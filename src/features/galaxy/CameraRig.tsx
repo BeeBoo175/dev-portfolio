@@ -1,0 +1,152 @@
+import { useEffect, useRef } from "react";
+import { useFrame, useThree } from "@react-three/fiber";
+import * as THREE from "three";
+
+const RADIAL_OFFSET = 6;
+const HEIGHT_OFFSET = 3;
+const ORBIT_DISTANCE = Math.hypot(RADIAL_OFFSET, HEIGHT_OFFSET);
+const HOME_RADIAL = 42;
+const HOME_HEIGHT = 20;
+const HOME_DISTANCE = Math.hypot(HOME_RADIAL, HOME_HEIGHT);
+const HOME_THETA = 0;
+const FIXED_POLAR_ANGLE = Math.PI / 2 - 0.35;
+const TRANSITION_DURATION = 0.6;
+
+function easeInOutCubic(t: number) {
+    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+}
+
+function flushOrbitMomentum(controls: any) {
+    if (controls?.sphericalDelta?.set) {
+        controls.sphericalDelta.set(0, 0, 0);
+    }
+}
+
+function shortestAngleDiff(from: number, to: number) {
+    let diff = (to - from) % (Math.PI * 2);
+    if (diff > Math.PI) diff -= Math.PI * 2;
+    if (diff < -Math.PI) diff += Math.PI * 2;
+    return diff;
+}
+
+interface CameraRigProps {
+    focusId: string;
+    centralId: string;
+    bodyRefs: React.MutableRefObject<Record<string, THREE.Group | null>>;
+    controlsRef: React.MutableRefObject<any>;
+}
+
+function CameraRig({ focusId, centralId, bodyRefs, controlsRef }: CameraRigProps) {
+    const { camera } = useThree();
+    const userRotating = useRef(false);
+    const lastFocusId = useRef<string | null>(null);
+    const currentTargetPos = useRef(new THREE.Vector3());
+    const prevTargetPos = useRef(new THREE.Vector3());
+    const desiredPos = useRef(new THREE.Vector3());
+    const delta = useRef(new THREE.Vector3());
+
+    const isTransitioning = useRef(false);
+    const transitionElapsed = useRef(0);
+    const transitionStartTargetPos = useRef(new THREE.Vector3());
+    const startSpherical = useRef(new THREE.Spherical());
+    const endSpherical = useRef(new THREE.Spherical());
+    const scratchOffset = useRef(new THREE.Vector3());
+    const scratchSpherical = useRef(new THREE.Spherical());
+
+    useEffect(() => {
+        const controls = controlsRef.current;
+        if (!controls) return;
+
+        const handleStart = () => {
+            userRotating.current = true;
+        };
+
+        controls.addEventListener("start", handleStart);
+        return () => controls.removeEventListener("start", handleStart);
+    }, [controlsRef]);
+
+    useFrame((_, frameDelta) => {
+        const controls = controlsRef.current;
+        if (!controls) return;
+
+        controls.minPolarAngle = FIXED_POLAR_ANGLE;
+        controls.maxPolarAngle = FIXED_POLAR_ANGLE;
+
+        const isHome = focusId === centralId;
+
+        if (isHome) {
+            currentTargetPos.current.set(0, 0, 0);
+        } else {
+            const planetGroup = bodyRefs.current[focusId];
+            if (planetGroup) {
+                planetGroup.getWorldPosition(currentTargetPos.current);
+            }
+        }
+
+        if (focusId !== lastFocusId.current) {
+            lastFocusId.current = focusId;
+            userRotating.current = false;
+            isTransitioning.current = true;
+            transitionElapsed.current = 0;
+            transitionStartTargetPos.current.copy(controls.target);
+
+            scratchOffset.current.subVectors(camera.position, controls.target);
+            startSpherical.current.setFromVector3(scratchOffset.current);
+
+            flushOrbitMomentum(controls);
+            controls.enabled = false;
+        }
+
+        const distance = isHome ? HOME_DISTANCE : ORBIT_DISTANCE;
+        const theta = isHome
+            ? HOME_THETA
+            : Math.atan2(currentTargetPos.current.x, currentTargetPos.current.z);
+
+        desiredPos.current
+            .set(
+                distance * Math.sin(FIXED_POLAR_ANGLE) * Math.sin(theta),
+                distance * Math.cos(FIXED_POLAR_ANGLE),
+                distance * Math.sin(FIXED_POLAR_ANGLE) * Math.cos(theta)
+            )
+            .add(currentTargetPos.current);
+
+        if (isTransitioning.current) {
+            transitionElapsed.current += frameDelta;
+            const t = Math.min(transitionElapsed.current / TRANSITION_DURATION, 1);
+            const eased = easeInOutCubic(t);
+
+            scratchOffset.current.subVectors(desiredPos.current, currentTargetPos.current);
+            endSpherical.current.setFromVector3(scratchOffset.current);
+
+            const radius = THREE.MathUtils.lerp(startSpherical.current.radius, endSpherical.current.radius, eased);
+            const thetaDiff = shortestAngleDiff(startSpherical.current.theta, endSpherical.current.theta);
+            const interpolatedTheta = startSpherical.current.theta + thetaDiff * eased;
+
+            scratchSpherical.current.set(radius, FIXED_POLAR_ANGLE, interpolatedTheta).makeSafe();
+            scratchOffset.current.setFromSpherical(scratchSpherical.current);
+
+            controls.target.lerpVectors(transitionStartTargetPos.current, currentTargetPos.current, eased);
+            camera.position.copy(controls.target).add(scratchOffset.current);
+
+            if (t >= 1) {
+                isTransitioning.current = false;
+                controls.enabled = true;
+                flushOrbitMomentum(controls);
+            }
+        } else if (userRotating.current) {
+            delta.current.subVectors(currentTargetPos.current, prevTargetPos.current);
+            camera.position.add(delta.current);
+            controls.target.copy(currentTargetPos.current);
+        } else {
+            camera.position.copy(desiredPos.current);
+            controls.target.copy(currentTargetPos.current);
+        }
+
+        prevTargetPos.current.copy(currentTargetPos.current);
+        controls.update();
+    });
+
+    return null;
+}
+
+export default CameraRig;
