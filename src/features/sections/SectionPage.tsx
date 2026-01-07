@@ -8,7 +8,7 @@ function SectionPage({ section }: SectionPageProps) {
     return (
         <main
             style={{
-                minHeight: "100vh",
+                minHeight: "100svh",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
