@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 
@@ -16,12 +16,6 @@ function easeInOutCubic(t: number) {
     return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 }
 
-function flushOrbitMomentum(controls: any) {
-    if (controls?.sphericalDelta?.set) {
-        controls.sphericalDelta.set(0, 0, 0);
-    }
-}
-
 function shortestAngleDiff(from: number, to: number) {
     let diff = (to - from) % (Math.PI * 2);
     if (diff > Math.PI) diff -= Math.PI * 2;
@@ -33,17 +27,14 @@ interface CameraRigProps {
     focusId: string;
     centralId: string;
     bodyRefs: React.MutableRefObject<Record<string, THREE.Group | null>>;
-    controlsRef: React.MutableRefObject<any>;
 }
 
-function CameraRig({ focusId, centralId, bodyRefs, controlsRef }: CameraRigProps) {
+function CameraRig({ focusId, centralId, bodyRefs }: CameraRigProps) {
     const { camera } = useThree();
-    const userRotating = useRef(false);
     const lastFocusId = useRef<string | null>(null);
     const currentTargetPos = useRef(new THREE.Vector3());
-    const prevTargetPos = useRef(new THREE.Vector3());
+    const currentLookTarget = useRef(new THREE.Vector3());
     const desiredPos = useRef(new THREE.Vector3());
-    const delta = useRef(new THREE.Vector3());
 
     const isTransitioning = useRef(false);
     const transitionElapsed = useRef(0);
@@ -53,25 +44,7 @@ function CameraRig({ focusId, centralId, bodyRefs, controlsRef }: CameraRigProps
     const scratchOffset = useRef(new THREE.Vector3());
     const scratchSpherical = useRef(new THREE.Spherical());
 
-    useEffect(() => {
-        const controls = controlsRef.current;
-        if (!controls) return;
-
-        const handleStart = () => {
-            userRotating.current = true;
-        };
-
-        controls.addEventListener("start", handleStart);
-        return () => controls.removeEventListener("start", handleStart);
-    }, [controlsRef]);
-
     useFrame((_, frameDelta) => {
-        const controls = controlsRef.current;
-        if (!controls) return;
-
-        controls.minPolarAngle = FIXED_POLAR_ANGLE;
-        controls.maxPolarAngle = FIXED_POLAR_ANGLE;
-
         const isHome = focusId === centralId;
 
         if (isHome) {
@@ -85,16 +58,12 @@ function CameraRig({ focusId, centralId, bodyRefs, controlsRef }: CameraRigProps
 
         if (focusId !== lastFocusId.current) {
             lastFocusId.current = focusId;
-            userRotating.current = false;
             isTransitioning.current = true;
             transitionElapsed.current = 0;
-            transitionStartTargetPos.current.copy(controls.target);
+            transitionStartTargetPos.current.copy(currentLookTarget.current);
 
-            scratchOffset.current.subVectors(camera.position, controls.target);
+            scratchOffset.current.subVectors(camera.position, currentLookTarget.current);
             startSpherical.current.setFromVector3(scratchOffset.current);
-
-            flushOrbitMomentum(controls);
-            controls.enabled = false;
         }
 
         const distance = isHome ? HOME_DISTANCE : ORBIT_DISTANCE;
@@ -125,25 +94,18 @@ function CameraRig({ focusId, centralId, bodyRefs, controlsRef }: CameraRigProps
             scratchSpherical.current.set(radius, FIXED_POLAR_ANGLE, interpolatedTheta).makeSafe();
             scratchOffset.current.setFromSpherical(scratchSpherical.current);
 
-            controls.target.lerpVectors(transitionStartTargetPos.current, currentTargetPos.current, eased);
-            camera.position.copy(controls.target).add(scratchOffset.current);
+            currentLookTarget.current.lerpVectors(transitionStartTargetPos.current, currentTargetPos.current, eased);
+            camera.position.copy(currentLookTarget.current).add(scratchOffset.current);
 
             if (t >= 1) {
                 isTransitioning.current = false;
-                controls.enabled = true;
-                flushOrbitMomentum(controls);
             }
-        } else if (userRotating.current) {
-            delta.current.subVectors(currentTargetPos.current, prevTargetPos.current);
-            camera.position.add(delta.current);
-            controls.target.copy(currentTargetPos.current);
         } else {
             camera.position.copy(desiredPos.current);
-            controls.target.copy(currentTargetPos.current);
+            currentLookTarget.current.copy(currentTargetPos.current);
         }
 
-        prevTargetPos.current.copy(currentTargetPos.current);
-        controls.update();
+        camera.lookAt(currentLookTarget.current);
     });
 
     return null;
