@@ -1,3 +1,7 @@
+:root {
+    --card-blur: blur(10px);
+}
+
 .sections-overlay {
     position: relative;
     z-index: 1;
@@ -20,15 +24,15 @@
     background: var(--surface);
     border: 1px solid var(--surface-border);
     border-radius: 16px;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: var(--card-blur);
+    backdrop-filter: var(--card-blur);
+    pointer-events: auto;
 }
 
 .sections-overlay__section--home .sections-overlay__card {
+    --card-blur: none;
     background: transparent;
     border: none;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
 }
 
 .sections-overlay__title {
