@@ -4,11 +4,9 @@ import * as THREE from "three";
 import CelestialBody from "./CelestialBody";
 import CameraRig from "./CameraRig";
 import { CENTRAL_BODY, ORBIT_LAYOUT } from "./data";
-import { SECTION_MAP } from "../sections/data";
-import type { SectionId } from "../sections/types";
 
-interface GalaxySceneProps {
-    focusId: SectionId;
+export interface GalaxySceneProps {
+    focusId: string;
     onSelect?: (id: string) => void;
 }
 
@@ -24,7 +22,6 @@ function GalaxyScene({ focusId, onSelect }: GalaxySceneProps) {
 
             <CelestialBody
                 body={CENTRAL_BODY}
-                color={SECTION_MAP["home"]?.color}
                 isSun
                 onSelect={onSelect}
             />
@@ -36,7 +33,6 @@ function GalaxyScene({ focusId, onSelect }: GalaxySceneProps) {
                         bodyRefs.current[body.id] = instance;
                     }}
                     body={body}
-                    color={SECTION_MAP[body.id]?.color}
                     onSelect={onSelect}
                 />
             ))}
