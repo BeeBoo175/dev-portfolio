@@ -2,7 +2,7 @@ import type { OrbitConfig } from "./types";
 
 export const CENTRAL_BODY: OrbitConfig = {
     id: "home",
-    radius: 2,
+    radius: 3.5,
     rotationSpeed: 0.2,
     color: "#ffd76b",
 };
@@ -10,7 +10,7 @@ export const CENTRAL_BODY: OrbitConfig = {
 export const ORBIT_LAYOUT: OrbitConfig[] = [
     {
         id: "about",
-        radius: 0.8,
+        radius: 1,
         rotationSpeed: 0.5,
         orbitRadius: 6,
         orbitSpeed: 0.2,
@@ -19,7 +19,7 @@ export const ORBIT_LAYOUT: OrbitConfig[] = [
     },
     {
         id: "skills",
-        radius: 0.9,
+        radius: 1.1,
         rotationSpeed: 0.4,
         orbitRadius: 10,
         orbitSpeed: 0.15,
@@ -28,7 +28,7 @@ export const ORBIT_LAYOUT: OrbitConfig[] = [
         children: [
             {
                 id: "skills-moon-1",
-                radius: 0.2,
+                radius: 0.5,
                 rotationSpeed: 0.5,
                 orbitRadius: 1.6,
                 orbitSpeed: 1,
@@ -38,7 +38,7 @@ export const ORBIT_LAYOUT: OrbitConfig[] = [
     },
     {
         id: "projects",
-        radius: 1.1,
+        radius: 1.5,
         rotationSpeed: 0.3,
         orbitRadius: 14,
         orbitSpeed: 0.1,
@@ -47,7 +47,7 @@ export const ORBIT_LAYOUT: OrbitConfig[] = [
         children: [
             {
                 id: "projects-moon-1",
-                radius: 0.18,
+                radius: 0.22,
                 rotationSpeed: 0.7,
                 orbitRadius: 1.8,
                 orbitSpeed: 0.8,
@@ -55,7 +55,7 @@ export const ORBIT_LAYOUT: OrbitConfig[] = [
             },
             {
                 id: "projects-moon-2",
-                radius: 0.12,
+                radius: 0.15,
                 rotationSpeed: 1,
                 orbitRadius: 2.4,
                 orbitSpeed: 0.5,
@@ -65,7 +65,7 @@ export const ORBIT_LAYOUT: OrbitConfig[] = [
     },
     {
         id: "contact",
-        radius: 0.7,
+        radius: 1.0,
         rotationSpeed: 0.6,
         orbitRadius: 18,
         orbitSpeed: 0.08,
@@ -74,7 +74,7 @@ export const ORBIT_LAYOUT: OrbitConfig[] = [
         children: [
             {
                 id: "contact-moon-1",
-                radius: 0.16,
+                radius: 0.18,
                 rotationSpeed: 0.5,
                 orbitRadius: 1.5,
                 orbitSpeed: 0.7,

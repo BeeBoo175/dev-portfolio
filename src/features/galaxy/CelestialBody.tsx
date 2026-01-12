@@ -48,12 +48,21 @@ const CelestialBody = forwardRef<THREE.Group, CelestialBodyProps>(
                         {isSun ? (
                             <meshBasicMaterial color={effectiveColor} />
                         ) : (
-                            <meshStandardMaterial color={effectiveColor} />
+                            <meshStandardMaterial
+                                color={effectiveColor}
+                                roughness={0.65}
+                                metalness={0.1}
+                            />
                         )}
                     </mesh>
 
                     {isSun && (
-                        <pointLight color={effectiveColor} intensity={2} distance={40} />
+                        <pointLight
+                            color={effectiveColor}
+                            intensity={3}
+                            distance={0}
+                            decay={0}
+                        />
                     )}
 
                     {body.children?.map((child) => (
