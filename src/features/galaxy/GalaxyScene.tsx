@@ -18,7 +18,7 @@ function GalaxyScene({ focusId, onSelect }: GalaxySceneProps) {
             camera={{ position: [0, 20, 42], fov: 50, near: 0.1, far: 2000 }}
             style={{ touchAction: "pan-y" }}
         >
-            <ambientLight intensity={0.3} />
+            <ambientLight intensity={0.1} />
 
             <CelestialBody
                 body={CENTRAL_BODY}
