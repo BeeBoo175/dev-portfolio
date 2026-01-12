@@ -5,5 +5,6 @@ export interface OrbitConfig {
     orbitRadius?: number;
     orbitSpeed?: number;
     initialAngle?: number;
+    color?: string;
     children?: OrbitConfig[];
 }

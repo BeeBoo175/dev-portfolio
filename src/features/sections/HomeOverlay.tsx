@@ -6,7 +6,7 @@ import "./HomeOverlay.css";
 
 const PROGRAMMATIC_SCROLL_FAILSAFE_MS = 1500;
 
-interface HomeOverlayProps {
+export interface HomeOverlayProps {
     onFocusChange: (id: SectionId) => void;
     registerTrigger: (fn: (id: SectionId) => void) => void;
 }
@@ -30,6 +30,7 @@ function HomeOverlay({ onFocusChange, registerTrigger }: HomeOverlayProps) {
         const initialId = PATH_TO_ID[location.pathname] ?? "home";
         sectionRefs.current[initialId]?.scrollIntoView({ behavior: "auto" });
         onFocusChange(initialId);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
