@@ -26,7 +26,7 @@ function shortestAngleDiff(from: number, to: number) {
 interface CameraRigProps {
     focusId: string;
     centralId: string;
-    bodyRefs: React.MutableRefObject<Record<string, THREE.Group | null>>;
+    bodyRefs: React.RefObject<Record<string, THREE.Group | null>>;
 }
 
 function CameraRig({ focusId, centralId, bodyRefs }: CameraRigProps) {
