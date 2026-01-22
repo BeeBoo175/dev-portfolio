@@ -1,9 +1,9 @@
 import { useRef, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { ORBIT_LAYOUT } from "./data";
+import { ORBIT_LAYOUT } from "../data";
 
-interface SpaceshipProps {
+export interface SpaceshipProps {
     focusId: string;
     bodyRefs: React.RefObject<Record<string, THREE.Group | null>>;
 }
@@ -62,7 +62,7 @@ export function Spaceship({ focusId, bodyRefs }: SpaceshipProps) {
     const targetPlanetId = useRef<string>(DEFAULT_PLANET_ID);
     const isFlying = useRef<boolean>(false);
     const flightElapsed = useRef<number>(0);
-    const flightDuration = useRef<number>(1.2);
+    const flightDuration = useRef<number>(1.5);
 
     const flightStartPos = useRef(new THREE.Vector3());
     const flightControlPoint = useRef(new THREE.Vector3());

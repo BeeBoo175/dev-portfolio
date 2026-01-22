@@ -1,10 +1,11 @@
 import { useRef } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
-import CelestialBody from "./CelestialBody";
-import CameraRig from "./CameraRig";
-import Spaceship from "./Spaceship";
-import { CENTRAL_BODY, ORBIT_LAYOUT } from "./data";
+import CelestialBody from "./components/CelestialBody";
+import CameraRig from "./components/CameraRig";
+import Spaceship from "./components/Spaceship";
+import { CENTRAL_BODY } from "./data";
+import { useGalaxyPlanets } from "./store";
 
 export interface GalaxySceneProps {
     focusId: string;
@@ -72,6 +73,7 @@ function CameraFillLight({
 
 function GalaxyScene({ focusId, onSelect }: GalaxySceneProps) {
     const bodyRefs = useRef<Record<string, THREE.Group | null>>({});
+    const planets = useGalaxyPlanets();
 
     return (
         <Canvas
@@ -87,7 +89,7 @@ function GalaxyScene({ focusId, onSelect }: GalaxySceneProps) {
                 onSelect={onSelect}
             />
 
-            {ORBIT_LAYOUT.map((body) => (
+            {planets.map((body) => (
                 <CelestialBody
                     key={body.id}
                     ref={(instance) => {

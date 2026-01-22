@@ -1,16 +1,17 @@
 import { forwardRef, useImperativeHandle, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import type { OrbitConfig } from "./types";
+import type { OrbitConfig } from "../types";
+import LowPolyPlanet from "./LowPolyPlanet";
 
-interface CelestialBodyProps {
+export interface CelestialBodyProps {
     body: OrbitConfig;
     color?: string;
     isSun?: boolean;
     onSelect?: (id: string) => void;
 }
 
-const CelestialBody = forwardRef<THREE.Group, CelestialBodyProps>(
+export const CelestialBody = forwardRef<THREE.Group, CelestialBodyProps>(
     ({ body, color, isSun, onSelect }, ref) => {
         const orbitRef = useRef<THREE.Group>(null);
         const positionRef = useRef<THREE.Group>(null);
@@ -31,8 +32,11 @@ const CelestialBody = forwardRef<THREE.Group, CelestialBodyProps>(
         return (
             <group ref={orbitRef} rotation={[0, body.initialAngle ?? 0, 0]}>
                 <group ref={positionRef} position={[body.orbitRadius ?? 0, 0, 0]}>
-                    <mesh
+                    <LowPolyPlanet
                         ref={bodyRef}
+                        body={body}
+                        isSun={isSun}
+                        color={effectiveColor}
                         onClick={(e) => {
                             e.stopPropagation();
                             onSelect?.(body.id);
@@ -43,18 +47,7 @@ const CelestialBody = forwardRef<THREE.Group, CelestialBodyProps>(
                         onPointerOut={() => {
                             document.body.style.cursor = "default";
                         }}
-                    >
-                        <sphereGeometry args={[body.radius, 32, 32]} />
-                        {isSun ? (
-                            <meshBasicMaterial color={effectiveColor} />
-                        ) : (
-                            <meshStandardMaterial
-                                color={effectiveColor}
-                                roughness={0.65}
-                                metalness={0.1}
-                            />
-                        )}
-                    </mesh>
+                    />
 
                     {isSun && (
                         <pointLight
