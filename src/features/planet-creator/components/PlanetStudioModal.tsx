@@ -3,6 +3,11 @@ import type { OrbitConfig, PaletteConfig } from "../../galaxy";
 import { galaxyStore, useGalaxyPlanets } from "../../galaxy";
 import { BIOME_PRESETS, generateRandomTerrain } from "../presets";
 import PlanetPreviewCanvas from "./PlanetPreviewCanvas";
+import TerrainPanel from "./TerrainPanel";
+import AppearancePanel from "./AppearancePanel";
+import MoonsPanel from "./MoonsPanel";
+import OrbitPanel from "./OrbitPanel";
+import GalaxyDataDialog from "./GalaxyDataDialog";
 import "../PlanetStudio.css";
 
 const EDITABLE_TARGETS = [
@@ -12,21 +17,37 @@ const EDITABLE_TARGETS = [
     { id: "contact", label: "Contact" },
 ];
 
-export function PlanetStudioModal() {
+type CategoryTab = "terrain" | "appearance" | "moons" | "orbit";
+
+export interface PlanetStudioModalProps {
+    focusId?: string;
+}
+
+export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
     const [isOpen, setIsOpen] = useState(false);
     const planets = useGalaxyPlanets();
-    const [selectedId, setSelectedId] = useState<string>("projects");
+
+    const [selectedId, setSelectedId] = useState<string>("about");
+    const [activeTab, setActiveTab] = useState<CategoryTab>("terrain");
+    const [activeMoonIndex, setActiveMoonIndex] = useState<number>(0);
+    const [isDataModalOpen, setIsDataModalOpen] = useState(false);
+
     const [draftPlanet, setDraftPlanet] = useState<OrbitConfig | null>(() => {
-        const found = planets.find((p) => p.id === "projects") ?? planets[0];
+        const targetId = focusId && EDITABLE_TARGETS.some((t) => t.id === focusId) ? focusId : "about";
+        const found = planets.find((p) => p.id === targetId) ?? planets[0];
         return found ? JSON.parse(JSON.stringify(found)) : null;
     });
     const [toastMessage, setToastMessage] = useState<string | null>(null);
+    const [importJsonText, setImportJsonText] = useState("");
 
     const handleOpen = () => {
-        const found = planets.find((p) => p.id === selectedId) ?? planets[0];
+        const targetId = focusId && EDITABLE_TARGETS.some((t) => t.id === focusId) ? focusId : "about";
+        setSelectedId(targetId);
+        const found = planets.find((p) => p.id === targetId) ?? planets[0];
         if (found) {
             setDraftPlanet(JSON.parse(JSON.stringify(found)));
         }
+        setActiveMoonIndex(0);
         setIsOpen(true);
     };
 
@@ -36,6 +57,7 @@ export function PlanetStudioModal() {
         if (found) {
             setDraftPlanet(JSON.parse(JSON.stringify(found)));
         }
+        setActiveMoonIndex(0);
     };
 
     useEffect(() => {
@@ -54,6 +76,12 @@ export function PlanetStudioModal() {
             terrain,
             palette,
             color,
+            ring: draftPlanet.ring
+                ? {
+                      ...draftPlanet.ring,
+                      color: palette.coast ?? palette.land ?? color,
+                  }
+                : undefined,
         });
     };
 
@@ -64,6 +92,12 @@ export function PlanetStudioModal() {
             terrain: { ...preset.terrain },
             palette: { ...preset.palette },
             color: preset.color,
+            ring: draftPlanet.ring
+                ? {
+                      ...draftPlanet.ring,
+                      color: preset.palette.coast ?? preset.color,
+                  }
+                : undefined,
         });
     };
 
@@ -89,6 +123,28 @@ export function PlanetStudioModal() {
         });
     };
 
+    const handleRingColorChange = (val: string) => {
+        if (!draftPlanet || !draftPlanet.ring) return;
+        setDraftPlanet({
+            ...draftPlanet,
+            ring: {
+                ...draftPlanet.ring,
+                color: val,
+            },
+        });
+    };
+
+    const handleRingParamChange = (key: "innerRadius" | "outerRadius" | "opacity", val: number) => {
+        if (!draftPlanet || !draftPlanet.ring) return;
+        setDraftPlanet({
+            ...draftPlanet,
+            ring: {
+                ...draftPlanet.ring,
+                [key]: val,
+            },
+        });
+    };
+
     const handleRingToggle = () => {
         if (!draftPlanet) return;
         if (draftPlanet.ring) {
@@ -101,20 +157,96 @@ export function PlanetStudioModal() {
             setDraftPlanet({
                 ...draftPlanet,
                 ring: {
-                    innerRadius: rad * 1.5,
-                    outerRadius: rad * 2.2,
+                    innerRadius: Number((rad * 1.5).toFixed(2)),
+                    outerRadius: Number((rad * 2.3).toFixed(2)),
                     color: draftPlanet.palette?.coast ?? draftPlanet.color ?? "#38bdf8",
                     opacity: 0.8,
                     tilt: [Math.PI / 3, 0, Math.PI / 6],
                 },
             });
+            setActiveTab("appearance");
         }
+    };
+
+    const handleOrbitalChange = (
+        key: "radius" | "orbitRadius" | "orbitSpeed" | "rotationSpeed" | "initialAngle",
+        val: number
+    ) => {
+        if (!draftPlanet) return;
+        setDraftPlanet({
+            ...draftPlanet,
+            [key]: val,
+        });
+    };
+
+    const handleAddMoon = () => {
+        if (!draftPlanet) return;
+        const currentMoons = draftPlanet.children ?? [];
+        const baseRad = draftPlanet.radius ?? 1.0;
+        const orbitDist = Number((baseRad * 1.8 + currentMoons.length * 0.9).toFixed(2));
+
+        const newMoon: OrbitConfig = {
+            id: `${draftPlanet.id}-moon-${Date.now().toString().slice(-4)}`,
+            radius: 0.22,
+            rotationSpeed: 0.5,
+            orbitRadius: orbitDist,
+            orbitSpeed: Number((0.9 - currentMoons.length * 0.15).toFixed(2)),
+            color: "#cbd5e1",
+            terrain: {
+                seed: Math.floor(Math.random() * 200),
+                noiseScale: 2.0,
+                roughness: 0.2,
+                waterLevel: 0,
+                detail: 2,
+            },
+            palette: {
+                land: "#94a3b8",
+                mountain: "#64748b",
+                peak: "#e2e8f0",
+            },
+        };
+
+        const updated = [...currentMoons, newMoon];
+        setDraftPlanet({
+            ...draftPlanet,
+            children: updated,
+        });
+        setActiveMoonIndex(updated.length - 1);
+        setToastMessage(`Added Moon #${updated.length}`);
+    };
+
+    const handleRemoveMoon = (moonId: string) => {
+        if (!draftPlanet || !draftPlanet.children) return;
+        const updated = draftPlanet.children.filter((m) => m.id !== moonId);
+        setDraftPlanet({
+            ...draftPlanet,
+            children: updated,
+        });
+        setActiveMoonIndex(Math.max(0, updated.length - 1));
+    };
+
+    const handleMoonChange = (moonId: string, updates: Partial<OrbitConfig>) => {
+        if (!draftPlanet || !draftPlanet.children) return;
+        setDraftPlanet({
+            ...draftPlanet,
+            children: draftPlanet.children.map((m) => {
+                if (m.id === moonId) {
+                    return {
+                        ...m,
+                        ...updates,
+                        terrain: updates.terrain ? { ...m.terrain, ...updates.terrain } : m.terrain,
+                        palette: updates.palette ? { ...m.palette, ...updates.palette } : m.palette,
+                    };
+                }
+                return m;
+            }),
+        });
     };
 
     const handleApply = () => {
         if (!draftPlanet) return;
         galaxyStore.updatePlanet(draftPlanet.id, draftPlanet);
-        setToastMessage(`Saved ${draftPlanet.id.toUpperCase()} to your Galaxy!`);
+        setToastMessage(`Saved ${draftPlanet.id.toUpperCase()} to Galaxy`);
     };
 
     const handleReset = () => {
@@ -129,7 +261,27 @@ export function PlanetStudioModal() {
 
     const handleResetAll = () => {
         galaxyStore.resetAll();
-        setToastMessage("Restored default portfolio galaxy");
+        setToastMessage("Restored default galaxy");
+    };
+
+    const handleExportJSON = () => {
+        const json = galaxyStore.exportJSON();
+        navigator.clipboard.writeText(json);
+        setToastMessage("Galaxy JSON copied to clipboard");
+    };
+
+    const handleImportJSON = () => {
+        if (!importJsonText.trim()) return;
+        const success = galaxyStore.importJSON(importJsonText);
+        if (success) {
+            setToastMessage("Galaxy JSON imported successfully");
+            setImportJsonText("");
+            setIsDataModalOpen(false);
+            const updated = planets.find((p) => p.id === selectedId) ?? planets[0];
+            if (updated) setDraftPlanet(JSON.parse(JSON.stringify(updated)));
+        } else {
+            setToastMessage("Invalid JSON format");
+        }
     };
 
     return (
@@ -137,9 +289,9 @@ export function PlanetStudioModal() {
             <button
                 className="planet-lab-trigger"
                 onClick={handleOpen}
-                title="Open Planet Creator Studio"
+                title="Open Planet Studio"
             >
-                <span className="planet-lab-trigger__icon">🪐</span>
+                <span className="planet-lab-trigger__dot" />
                 <span>Planet Lab</span>
             </button>
 
@@ -148,15 +300,25 @@ export function PlanetStudioModal() {
                     <div className="planet-studio" onClick={(e) => e.stopPropagation()}>
                         <div className="planet-studio__header">
                             <div className="planet-studio__title">
-                                <span>🪐</span>
-                                <span>Planet Creator Studio</span>
+                                <span className="planet-studio__title-badge">Studio</span>
+                                <span>Planet &amp; Moon Customizer</span>
                             </div>
-                            <button
-                                className="planet-studio__close-btn"
-                                onClick={() => setIsOpen(false)}
-                            >
-                                ✕
-                            </button>
+                            <div className="planet-studio__header-actions">
+                                <button
+                                    className="planet-studio__data-btn"
+                                    onClick={() => setIsDataModalOpen(true)}
+                                    title="Import or Export Galaxy JSON"
+                                >
+                                    Backup / Data
+                                </button>
+                                <button
+                                    className="planet-studio__close-btn"
+                                    onClick={() => setIsOpen(false)}
+                                    aria-label="Close"
+                                >
+                                    &times;
+                                </button>
+                            </div>
                         </div>
 
                         <div className="planet-studio__body">
@@ -169,19 +331,21 @@ export function PlanetStudioModal() {
                                     <button
                                         className="planet-studio__btn planet-studio__btn--primary"
                                         onClick={handleRandomize}
+                                        style={{ flex: 1 }}
                                     >
-                                        🎲 Roll Random
+                                        Roll Random
                                     </button>
                                     <button
                                         className="planet-studio__btn planet-studio__btn--secondary"
                                         onClick={handleRingToggle}
+                                        style={{ flex: 1 }}
                                     >
-                                        {draftPlanet.ring ? "🪐 Remove Ring" : "🪐 Add Ring"}
+                                        {draftPlanet.ring ? "Remove Ring" : "Add Ring"}
                                     </button>
                                 </div>
 
                                 <div className="planet-studio__biomes">
-                                    <span className="planet-studio__section-label">Biome Archetypes</span>
+                                    <span className="planet-studio__section-label">Biome Presets</span>
                                     <div className="planet-studio__biome-grid">
                                         {BIOME_PRESETS.map((preset) => (
                                             <button
@@ -189,7 +353,10 @@ export function PlanetStudioModal() {
                                                 className="planet-studio__biome-chip"
                                                 onClick={() => handleSelectBiome(preset)}
                                             >
-                                                <span>{preset.icon}</span>
+                                                <span
+                                                    className="planet-studio__biome-dot"
+                                                    style={{ background: preset.color }}
+                                                />
                                                 <span>{preset.name}</span>
                                             </button>
                                         ))}
@@ -212,150 +379,121 @@ export function PlanetStudioModal() {
                                     ))}
                                 </div>
 
-                                <div className="planet-studio__group">
-                                    <span className="planet-studio__section-label">Terrain Sculpting</span>
-
-                                    <div className="planet-studio__row">
-                                        <label className="planet-studio__slider-label">
-                                            <span>Mountain Roughness</span>
-                                            <span className="planet-studio__slider-value">
-                                                {draftPlanet.terrain?.roughness?.toFixed(2) ?? 0.2}
-                                            </span>
-                                        </label>
-                                    </div>
-                                    <input
-                                        type="range"
-                                        min="0.0"
-                                        max="0.45"
-                                        step="0.01"
-                                        value={draftPlanet.terrain?.roughness ?? 0.2}
-                                        onChange={(e) => handleTerrainChange("roughness", parseFloat(e.target.value))}
-                                        className="planet-studio__range"
-                                    />
-
-                                    <div className="planet-studio__row">
-                                        <label className="planet-studio__slider-label">
-                                            <span>Sea Level / Ocean Depth</span>
-                                            <span className="planet-studio__slider-value">
-                                                {draftPlanet.terrain?.waterLevel?.toFixed(2) ?? 0.4}
-                                            </span>
-                                        </label>
-                                    </div>
-                                    <input
-                                        type="range"
-                                        min="0.0"
-                                        max="0.75"
-                                        step="0.02"
-                                        value={draftPlanet.terrain?.waterLevel ?? 0.4}
-                                        onChange={(e) => handleTerrainChange("waterLevel", parseFloat(e.target.value))}
-                                        className="planet-studio__range"
-                                    />
-
-                                    <div className="planet-studio__row">
-                                        <label className="planet-studio__slider-label">
-                                            <span>Continent Scale</span>
-                                            <span className="planet-studio__slider-value">
-                                                {draftPlanet.terrain?.noiseScale?.toFixed(2) ?? 1.4}
-                                            </span>
-                                        </label>
-                                    </div>
-                                    <input
-                                        type="range"
-                                        min="0.5"
-                                        max="3.0"
-                                        step="0.1"
-                                        value={draftPlanet.terrain?.noiseScale ?? 1.4}
-                                        onChange={(e) => handleTerrainChange("noiseScale", parseFloat(e.target.value))}
-                                        className="planet-studio__range"
-                                    />
+                                <div className="planet-studio__category-nav">
+                                    <button
+                                        className={`planet-studio__category-btn ${
+                                            activeTab === "terrain" ? "planet-studio__category-btn--active" : ""
+                                        }`}
+                                        onClick={() => setActiveTab("terrain")}
+                                    >
+                                        Terrain
+                                    </button>
+                                    <button
+                                        className={`planet-studio__category-btn ${
+                                            activeTab === "appearance" ? "planet-studio__category-btn--active" : ""
+                                        }`}
+                                        onClick={() => setActiveTab("appearance")}
+                                    >
+                                        Appearance
+                                    </button>
+                                    <button
+                                        className={`planet-studio__category-btn ${
+                                            activeTab === "moons" ? "planet-studio__category-btn--active" : ""
+                                        }`}
+                                        onClick={() => setActiveTab("moons")}
+                                    >
+                                        Moons ({(draftPlanet.children ?? []).length})
+                                    </button>
+                                    <button
+                                        className={`planet-studio__category-btn ${
+                                            activeTab === "orbit" ? "planet-studio__category-btn--active" : ""
+                                        }`}
+                                        onClick={() => setActiveTab("orbit")}
+                                    >
+                                        Orbit &amp; Spin
+                                    </button>
                                 </div>
 
-                                <div className="planet-studio__group">
-                                    <span className="planet-studio__section-label">Color Layers</span>
-                                    <div className="planet-studio__palette-grid">
-                                        <div className="planet-studio__color-item">
-                                            <input
-                                                type="color"
-                                                value={draftPlanet.palette?.water ?? "#0284c7"}
-                                                onChange={(e) => handlePaletteChange("water", e.target.value)}
-                                                className="planet-studio__color-input"
-                                            />
-                                            <span className="planet-studio__color-label">Ocean</span>
-                                        </div>
-                                        <div className="planet-studio__color-item">
-                                            <input
-                                                type="color"
-                                                value={draftPlanet.palette?.coast ?? "#38bdf8"}
-                                                onChange={(e) => handlePaletteChange("coast", e.target.value)}
-                                                className="planet-studio__color-input"
-                                            />
-                                            <span className="planet-studio__color-label">Coast</span>
-                                        </div>
-                                        <div className="planet-studio__color-item">
-                                            <input
-                                                type="color"
-                                                value={draftPlanet.palette?.land ?? "#10b981"}
-                                                onChange={(e) => handlePaletteChange("land", e.target.value)}
-                                                className="planet-studio__color-input"
-                                            />
-                                            <span className="planet-studio__color-label">Land</span>
-                                        </div>
-                                        <div className="planet-studio__color-item">
-                                            <input
-                                                type="color"
-                                                value={draftPlanet.palette?.mountain ?? "#047857"}
-                                                onChange={(e) => handlePaletteChange("mountain", e.target.value)}
-                                                className="planet-studio__color-input"
-                                            />
-                                            <span className="planet-studio__color-label">Mountain</span>
-                                        </div>
-                                        <div className="planet-studio__color-item">
-                                            <input
-                                                type="color"
-                                                value={draftPlanet.palette?.peak ?? "#f8fafc"}
-                                                onChange={(e) => handlePaletteChange("peak", e.target.value)}
-                                                className="planet-studio__color-input"
-                                            />
-                                            <span className="planet-studio__color-label">Peaks</span>
-                                        </div>
-                                    </div>
+                                <div className="planet-studio__tab-content">
+                                    {activeTab === "terrain" && (
+                                        <TerrainPanel
+                                            draftPlanet={draftPlanet}
+                                            onTerrainChange={handleTerrainChange}
+                                        />
+                                    )}
+
+                                    {activeTab === "appearance" && (
+                                        <AppearancePanel
+                                            draftPlanet={draftPlanet}
+                                            onPaletteChange={handlePaletteChange}
+                                            onRingColorChange={handleRingColorChange}
+                                            onRingParamChange={handleRingParamChange}
+                                        />
+                                    )}
+
+                                    {activeTab === "moons" && (
+                                        <MoonsPanel
+                                            draftPlanet={draftPlanet}
+                                            activeMoonIndex={activeMoonIndex}
+                                            onSelectMoon={setActiveMoonIndex}
+                                            onAddMoon={handleAddMoon}
+                                            onRemoveMoon={handleRemoveMoon}
+                                            onMoonChange={handleMoonChange}
+                                        />
+                                    )}
+
+                                    {activeTab === "orbit" && (
+                                        <OrbitPanel
+                                            draftPlanet={draftPlanet}
+                                            onOrbitalChange={handleOrbitalChange}
+                                        />
+                                    )}
                                 </div>
                             </div>
                         </div>
 
                         <div className="planet-studio__footer">
-                            <div style={{ display: "flex", gap: "8px" }}>
+                            <div className="planet-studio__footer-left">
                                 <button
-                                    className="planet-studio__btn planet-studio__btn--secondary"
+                                    className="planet-studio__btn planet-studio__btn--secondary planet-studio__btn--footer"
                                     onClick={handleReset}
                                 >
                                     Reset Planet
                                 </button>
                                 <button
-                                    className="planet-studio__btn planet-studio__btn--secondary"
+                                    className="planet-studio__btn planet-studio__btn--secondary planet-studio__btn--footer"
                                     onClick={handleResetAll}
                                 >
                                     Reset All Defaults
                                 </button>
                             </div>
 
-                            <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+                            <div className="planet-studio__footer-right">
                                 {toastMessage && (
-                                    <span style={{ color: "#38bdf8", fontSize: "13px", fontWeight: "600" }}>
+                                    <span className="planet-studio__toast">
                                         {toastMessage}
                                     </span>
                                 )}
                                 <button
-                                    className="planet-studio__btn planet-studio__btn--primary"
+                                    className="planet-studio__btn planet-studio__btn--primary planet-studio__btn--footer"
                                     onClick={handleApply}
                                 >
-                                    🚀 Apply to Galaxy
+                                    Apply to Galaxy
                                 </button>
                             </div>
                         </div>
                     </div>
                 </div>
             )}
+
+            <GalaxyDataDialog
+                isOpen={isDataModalOpen}
+                importJsonText={importJsonText}
+                onTextChange={setImportJsonText}
+                onExportJSON={handleExportJSON}
+                onImportJSON={handleImportJSON}
+                onClose={() => setIsDataModalOpen(false)}
+            />
         </>
     );
 }

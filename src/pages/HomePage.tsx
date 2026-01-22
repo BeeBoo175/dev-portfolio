@@ -6,7 +6,7 @@ import type { SectionId } from "../features/sections";
 
 export function HomePage() {
     const [focusId, setFocusId] = useState<SectionId>("home");
-    const triggerRef = useRef<(id: SectionId) => void>(() => {});
+    const triggerRef = useRef<(id: SectionId) => void>(() => { });
 
     const registerTrigger = useCallback((fn: (id: SectionId) => void) => {
         triggerRef.current = fn;
@@ -27,7 +27,7 @@ export function HomePage() {
                 registerTrigger={registerTrigger}
             />
 
-            <PlanetStudioModal />
+            <PlanetStudioModal focusId={focusId} />
         </div>
     );
 }
