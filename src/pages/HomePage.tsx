@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from "react";
 import { GalaxyScene } from "../features/galaxy";
 import { HomeOverlay } from "../features/sections";
+import { PlanetStudioModal } from "../features/planet-creator";
 import type { SectionId } from "../features/sections";
 
 export function HomePage() {
@@ -25,6 +26,8 @@ export function HomePage() {
                 onFocusChange={setFocusId}
                 registerTrigger={registerTrigger}
             />
+
+            <PlanetStudioModal />
         </div>
     );
 }
