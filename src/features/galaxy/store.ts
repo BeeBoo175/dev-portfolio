@@ -58,6 +58,7 @@ class GalaxyStore {
                     terrain: updates.terrain ? { ...p.terrain, ...updates.terrain } : p.terrain,
                     palette: updates.palette ? { ...p.palette, ...updates.palette } : p.palette,
                     ring: updates.ring !== undefined ? updates.ring : p.ring,
+                    children: updates.children !== undefined ? updates.children : p.children,
                 };
             }
             return p;
@@ -78,6 +79,22 @@ class GalaxyStore {
         this.planets = cloneDefaultPlanets();
         localStorage.removeItem(STORAGE_KEY);
         this.listeners.forEach((l) => l());
+    }
+
+    exportJSON(): string {
+        return JSON.stringify(this.planets, null, 2);
+    }
+
+    importJSON(jsonString: string): boolean {
+        try {
+            const parsed = JSON.parse(jsonString);
+            if (!Array.isArray(parsed)) return false;
+            this.planets = parsed;
+            this.notify();
+            return true;
+        } catch {
+            return false;
+        }
     }
 }
 

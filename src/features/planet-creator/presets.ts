@@ -4,7 +4,6 @@ export interface BiomePreset {
     id: string;
     name: string;
     description: string;
-    icon: string;
     terrain: PlanetTerrainConfig;
     palette: PaletteConfig;
     color: string;
@@ -15,7 +14,6 @@ export const BIOME_PRESETS: BiomePreset[] = [
         id: "terra",
         name: "Terra Prime",
         description: "Lush terrestrial world with vast oceans and emerald continents.",
-        icon: "🌍",
         color: "#38bdf8",
         terrain: {
             seed: 12,
@@ -36,7 +34,6 @@ export const BIOME_PRESETS: BiomePreset[] = [
         id: "magma",
         name: "Inferno Core",
         description: "Volcanic planet with glowing magma fractures and obsidian peaks.",
-        icon: "🌋",
         color: "#ff7849",
         terrain: {
             seed: 48,
@@ -57,7 +54,6 @@ export const BIOME_PRESETS: BiomePreset[] = [
         id: "cyberpunk",
         name: "Neon Synth",
         description: "Futuristic crystal planet with ultraviolet valleys and magenta ridges.",
-        icon: "🔮",
         color: "#ec4899",
         terrain: {
             seed: 77,
@@ -78,7 +74,6 @@ export const BIOME_PRESETS: BiomePreset[] = [
         id: "emerald",
         name: "Jade Spire",
         description: "Alien mineral world filled with teal oceans and crystal peaks.",
-        icon: "❇️",
         color: "#10b981",
         terrain: {
             seed: 63,
@@ -99,7 +94,6 @@ export const BIOME_PRESETS: BiomePreset[] = [
         id: "glacier",
         name: "Frostbite Tundra",
         description: "Frozen world of turquoise ice shelves and shimmering snowdrifts.",
-        icon: "❄️",
         color: "#67e8f9",
         terrain: {
             seed: 31,
@@ -120,7 +114,6 @@ export const BIOME_PRESETS: BiomePreset[] = [
         id: "desert",
         name: "Solar Dunes",
         description: "Endless golden sand ridges and sunbaked canyons.",
-        icon: "🏜️",
         color: "#f59e0b",
         terrain: {
             seed: 85,
