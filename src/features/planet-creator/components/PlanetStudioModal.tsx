@@ -41,6 +41,16 @@ export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
     const [toastMessage, setToastMessage] = useState<string | null>(null);
     const [importJsonText, setImportJsonText] = useState("");
 
+    useEffect(() => {
+        if (isOpen) {
+            const originalOverflow = document.body.style.overflow;
+            document.body.style.overflow = "hidden";
+            return () => {
+                document.body.style.overflow = originalOverflow;
+            };
+        }
+    }, [isOpen]);
+
     const handleOpen = () => {
         const targetId = focusId && EDITABLE_TARGETS.some((t) => t.id === focusId) ? focusId : "about";
         setSelectedId(targetId);
@@ -297,7 +307,12 @@ export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
             </button>
 
             {isOpen && draftPlanet && (
-                <div className="planet-studio-backdrop" onClick={() => setIsOpen(false)}>
+                <div
+                    className="planet-studio-backdrop"
+                    onClick={() => setIsOpen(false)}
+                    onWheel={(e) => e.stopPropagation()}
+                    onTouchMove={(e) => e.stopPropagation()}
+                >
                     <div className="planet-studio" onClick={(e) => e.stopPropagation()}>
                         <div className="planet-studio__header">
                             <div className="planet-studio__title">
@@ -305,6 +320,24 @@ export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
                                 <span>Planet &amp; Moon Customizer</span>
                             </div>
                             <div className="planet-studio__header-actions">
+                                <button
+                                    className={`planet-studio__toggle-btn ${
+                                        visuals.showOrbitPaths ? "planet-studio__toggle-btn--active" : ""
+                                    }`}
+                                    onClick={() => galaxyStore.toggleOrbitPaths()}
+                                    title="Toggle 3D Circular Orbit Trajectories"
+                                >
+                                    Orbits: {visuals.showOrbitPaths ? "ON" : "OFF"}
+                                </button>
+                                <button
+                                    className={`planet-studio__toggle-btn ${
+                                        visuals.showOrbitalAxes ? "planet-studio__toggle-btn--active" : ""
+                                    }`}
+                                    onClick={() => galaxyStore.toggleOrbitalAxes()}
+                                    title="Toggle Polar Rotational Spin Axes"
+                                >
+                                    Axes: {visuals.showOrbitalAxes ? "ON" : "OFF"}
+                                </button>
                                 <button
                                     className="planet-studio__data-btn"
                                     onClick={() => setIsDataModalOpen(true)}
@@ -342,25 +375,6 @@ export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
                                         style={{ flex: 1 }}
                                     >
                                         {draftPlanet.ring ? "Remove Ring" : "Add Ring"}
-                                    </button>
-                                </div>
-
-                                <div className="planet-studio__visual-toggles">
-                                    <button
-                                        className={`planet-studio__toggle-chip ${
-                                            visuals.showOrbitPaths ? "planet-studio__toggle-chip--active" : ""
-                                        }`}
-                                        onClick={() => galaxyStore.toggleOrbitPaths()}
-                                    >
-                                        Orbit Paths: {visuals.showOrbitPaths ? "ON" : "OFF"}
-                                    </button>
-                                    <button
-                                        className={`planet-studio__toggle-chip ${
-                                            visuals.showOrbitalAxes ? "planet-studio__toggle-chip--active" : ""
-                                        }`}
-                                        onClick={() => galaxyStore.toggleOrbitalAxes()}
-                                    >
-                                        Spin Axes: {visuals.showOrbitalAxes ? "ON" : "OFF"}
                                     </button>
                                 </div>
 
