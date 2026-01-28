@@ -18,8 +18,8 @@
     max-width: 480px;
     padding: 32px 36px;
     text-align: center;
-    background: var(--surface);
-    border: 1px solid var(--surface-border);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 16px;
     -webkit-backdrop-filter: var(--card-blur);
     backdrop-filter: var(--card-blur);
@@ -35,6 +35,7 @@
 .sections-overlay__title {
     font-size: 44px;
     margin-bottom: 12px;
+    color: var(--text-primary);
 }
 
 .sections-overlay__section--home .sections-overlay__title {
@@ -44,6 +45,7 @@
 .sections-overlay__subtitle {
     font-size: 16px;
     line-height: 1.5;
+    color: var(--text-secondary);
 }
 
 @media (max-width: 640px) {

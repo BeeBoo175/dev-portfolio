@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import type { OrbitConfig, PaletteConfig } from "../../galaxy";
-import { galaxyStore, useGalaxyPlanets } from "../../galaxy";
+import { galaxyStore, useGalaxyPlanets, useGalaxyVisuals } from "../../galaxy";
 import { BIOME_PRESETS, generateRandomTerrain } from "../presets";
 import PlanetPreviewCanvas from "./PlanetPreviewCanvas";
 import TerrainPanel from "./TerrainPanel";
@@ -26,6 +26,7 @@ export interface PlanetStudioModalProps {
 export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
     const [isOpen, setIsOpen] = useState(false);
     const planets = useGalaxyPlanets();
+    const visuals = useGalaxyVisuals();
 
     const [selectedId, setSelectedId] = useState<string>("about");
     const [activeTab, setActiveTab] = useState<CategoryTab>("terrain");
@@ -344,6 +345,25 @@ export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
                                     </button>
                                 </div>
 
+                                <div className="planet-studio__visual-toggles">
+                                    <button
+                                        className={`planet-studio__toggle-chip ${
+                                            visuals.showOrbitPaths ? "planet-studio__toggle-chip--active" : ""
+                                        }`}
+                                        onClick={() => galaxyStore.toggleOrbitPaths()}
+                                    >
+                                        Orbit Paths: {visuals.showOrbitPaths ? "ON" : "OFF"}
+                                    </button>
+                                    <button
+                                        className={`planet-studio__toggle-chip ${
+                                            visuals.showOrbitalAxes ? "planet-studio__toggle-chip--active" : ""
+                                        }`}
+                                        onClick={() => galaxyStore.toggleOrbitalAxes()}
+                                    >
+                                        Spin Axes: {visuals.showOrbitalAxes ? "ON" : "OFF"}
+                                    </button>
+                                </div>
+
                                 <div className="planet-studio__biomes">
                                     <span className="planet-studio__section-label">Biome Presets</span>
                                     <div className="planet-studio__biome-grid">
@@ -445,6 +465,7 @@ export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
                                     {activeTab === "orbit" && (
                                         <OrbitPanel
                                             draftPlanet={draftPlanet}
+                                            allPlanets={planets}
                                             onOrbitalChange={handleOrbitalChange}
                                         />
                                     )}

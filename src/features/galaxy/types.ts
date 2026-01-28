@@ -35,3 +35,8 @@ export interface OrbitConfig {
     ring?: RingConfig;
     children?: OrbitConfig[];
 }
+
+export interface GalaxyVisualSettings {
+    showOrbitPaths: boolean;
+    showOrbitalAxes: boolean;
+}

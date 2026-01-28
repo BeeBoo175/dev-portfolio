@@ -2,7 +2,7 @@ import { useRef } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import type { OrbitConfig } from "../../galaxy";
-import { LowPolyPlanet } from "../../galaxy";
+import { LowPolyPlanet, OrbitPathLine, OrbitalAxisLine, useGalaxyVisuals } from "../../galaxy";
 
 export interface PlanetPreviewCanvasProps {
     planet: OrbitConfig;
@@ -11,6 +11,7 @@ export interface PlanetPreviewCanvasProps {
 function RotatingMoon({ moon }: { moon: OrbitConfig }) {
     const orbitRef = useRef<THREE.Group>(null);
     const bodyRef = useRef<THREE.Mesh>(null);
+    const visuals = useGalaxyVisuals();
 
     useFrame((_, delta) => {
         if (orbitRef.current) {
@@ -21,17 +22,36 @@ function RotatingMoon({ moon }: { moon: OrbitConfig }) {
         }
     });
 
+    const orbitRadius = moon.orbitRadius ?? 2.0;
+
     return (
-        <group ref={orbitRef}>
-            <group position={[moon.orbitRadius ?? 2.0, 0, 0]}>
-                <LowPolyPlanet ref={bodyRef} body={moon} />
+        <>
+            {visuals.showOrbitPaths && (
+                <OrbitPathLine
+                    radius={orbitRadius}
+                    color={moon.color ?? "#94a3b8"}
+                    opacity={0.35}
+                />
+            )}
+            <group ref={orbitRef}>
+                <group position={[orbitRadius, 0, 0]}>
+                    <LowPolyPlanet ref={bodyRef} body={moon} />
+                    {visuals.showOrbitalAxes && (
+                        <OrbitalAxisLine
+                            radius={moon.radius}
+                            color={moon.color ?? "#94a3b8"}
+                            opacity={0.5}
+                        />
+                    )}
+                </group>
             </group>
-        </group>
+        </>
     );
 }
 
 function RotatingPlanet({ planet }: { planet: OrbitConfig }) {
     const groupRef = useRef<THREE.Group>(null);
+    const visuals = useGalaxyVisuals();
 
     useFrame((_, delta) => {
         if (groupRef.current) {
@@ -42,6 +62,13 @@ function RotatingPlanet({ planet }: { planet: OrbitConfig }) {
     return (
         <group ref={groupRef}>
             <LowPolyPlanet body={planet} />
+            {visuals.showOrbitalAxes && (
+                <OrbitalAxisLine
+                    radius={planet.radius}
+                    color={planet.color ?? "#38bdf8"}
+                    opacity={0.6}
+                />
+            )}
             {planet.children?.map((child) => (
                 <RotatingMoon key={child.id} moon={child} />
             ))}

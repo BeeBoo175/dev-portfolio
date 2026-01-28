@@ -1,8 +1,9 @@
 import { useSyncExternalStore } from "react";
-import type { OrbitConfig } from "./types";
+import type { GalaxyVisualSettings, OrbitConfig } from "./types";
 import { ORBIT_LAYOUT } from "./data";
 
 const STORAGE_KEY = "portfolio_custom_planets_v1";
+const VISUALS_KEY = "portfolio_galaxy_visuals_v1";
 
 function cloneDefaultPlanets(): OrbitConfig[] {
     return JSON.parse(JSON.stringify(ORBIT_LAYOUT));
@@ -25,12 +26,27 @@ function loadPersistedPlanets(): OrbitConfig[] {
     }
 }
 
+function loadPersistedVisuals(): GalaxyVisualSettings {
+    try {
+        const raw = localStorage.getItem(VISUALS_KEY);
+        if (raw) return JSON.parse(raw);
+    } catch {
+        // Ignored
+    }
+    return { showOrbitPaths: true, showOrbitalAxes: false };
+}
+
 class GalaxyStore {
     private planets: OrbitConfig[] = loadPersistedPlanets();
+    private visuals: GalaxyVisualSettings = loadPersistedVisuals();
     private listeners = new Set<() => void>();
 
     getSnapshot = () => {
         return this.planets;
+    };
+
+    getVisualsSnapshot = () => {
+        return this.visuals;
     };
 
     subscribe = (listener: () => void) => {
@@ -43,6 +59,7 @@ class GalaxyStore {
     private notify() {
         try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(this.planets));
+            localStorage.setItem(VISUALS_KEY, JSON.stringify(this.visuals));
         } catch {
             // Ignored
         }
@@ -77,8 +94,25 @@ class GalaxyStore {
 
     resetAll() {
         this.planets = cloneDefaultPlanets();
+        this.visuals = { showOrbitPaths: true, showOrbitalAxes: false };
         localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(VISUALS_KEY);
         this.listeners.forEach((l) => l());
+    }
+
+    toggleOrbitPaths() {
+        this.visuals = { ...this.visuals, showOrbitPaths: !this.visuals.showOrbitPaths };
+        this.notify();
+    }
+
+    toggleOrbitalAxes() {
+        this.visuals = { ...this.visuals, showOrbitalAxes: !this.visuals.showOrbitalAxes };
+        this.notify();
+    }
+
+    setVisualSettings(updates: Partial<GalaxyVisualSettings>) {
+        this.visuals = { ...this.visuals, ...updates };
+        this.notify();
     }
 
     exportJSON(): string {
@@ -102,4 +136,8 @@ export const galaxyStore = new GalaxyStore();
 
 export function useGalaxyPlanets(): OrbitConfig[] {
     return useSyncExternalStore(galaxyStore.subscribe, galaxyStore.getSnapshot);
+}
+
+export function useGalaxyVisuals(): GalaxyVisualSettings {
+    return useSyncExternalStore(galaxyStore.subscribe, galaxyStore.getVisualsSnapshot);
 }
