@@ -161,7 +161,7 @@
 .planet-studio__preview-pane {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
     height: 100%;
     overflow-y: auto;
     scrollbar-gutter: stable;
@@ -170,8 +170,8 @@
 }
 
 .planet-studio__canvas-wrapper {
-    height: 230px;
-    min-height: 230px;
+    height: 220px;
+    min-height: 220px;
     background: radial-gradient(circle at center, rgba(17, 29, 61, 0.6), rgba(3, 7, 18, 0.9));
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-md);
@@ -182,6 +182,38 @@
 .planet-studio__quick-actions {
     display: flex;
     gap: 8px;
+}
+
+.planet-studio__visual-toggles {
+    display: flex;
+    gap: 6px;
+}
+
+.planet-studio__toggle-chip {
+    flex: 1;
+    padding: 5px 8px;
+    background: var(--bg-surface-subtle);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    font-size: 10px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    text-align: center;
+}
+
+.planet-studio__toggle-chip:hover {
+    background: var(--bg-surface-hover);
+    color: var(--text-primary);
+}
+
+.planet-studio__toggle-chip--active {
+    background: var(--accent-subtle);
+    border-color: rgba(56, 189, 248, 0.35);
+    color: var(--accent-cyan);
+    font-weight: 600;
 }
 
 .planet-studio__btn {
@@ -373,6 +405,30 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
+}
+
+.planet-studio__collision-warning {
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    border-radius: var(--radius-sm);
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    animation: studioFadeIn 0.2s ease-out;
+}
+
+.planet-studio__collision-title {
+    color: #fbbf24;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.planet-studio__collision-desc {
+    color: #fde68a;
+    font-size: 11px;
+    line-height: 1.4;
 }
 
 .planet-studio__row {

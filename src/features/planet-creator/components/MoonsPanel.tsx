@@ -21,8 +21,34 @@ export function MoonsPanel({
     const activeMoon = moons[activeMoonIndex];
     const baseRadius = draftPlanet.radius ?? 1;
 
+    const surfaceCollision = activeMoon
+        ? (activeMoon.orbitRadius ?? 2.0) < baseRadius + activeMoon.radius + 0.1
+        : false;
+
+    const moonCollision = activeMoon
+        ? moons.some((other) => {
+              if (other.id === activeMoon.id) return false;
+              const dist = Math.abs((activeMoon.orbitRadius ?? 2.0) - (other.orbitRadius ?? 2.0));
+              return dist < activeMoon.radius + other.radius + 0.15;
+          })
+        : false;
+
     return (
         <div className="planet-studio__card">
+            {(surfaceCollision || moonCollision) && (
+                <div className="planet-studio__collision-warning">
+                    <div className="planet-studio__collision-title">
+                        Lunar Collision Warning
+                    </div>
+                    <div className="planet-studio__collision-desc">
+                        {surfaceCollision
+                            ? "This moon's orbit passes through the planet surface."
+                            : "This moon's orbit intersects another moon's trajectory."}
+                        &nbsp;Note: This is cosmetic only &mdash; physical collisions are not simulated.
+                    </div>
+                </div>
+            )}
+
             <div className="planet-studio__moon-pill-bar">
                 {moons.map((moon, mIdx) => (
                     <button
@@ -87,7 +113,7 @@ export function MoonsPanel({
                     </div>
                     <input
                         type="range"
-                        min={baseRadius * 1.3}
+                        min={baseRadius * 0.8}
                         max="7.0"
                         step="0.1"
                         value={activeMoon.orbitRadius ?? 2.0}

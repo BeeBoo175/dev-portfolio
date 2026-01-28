@@ -1,4 +1,4 @@
-import type { PaletteConfig, PlanetTerrainConfig } from "../galaxy/types";
+import type { PaletteConfig, PlanetTerrainConfig } from "../galaxy";
 
 export interface BiomePreset {
     id: string;
