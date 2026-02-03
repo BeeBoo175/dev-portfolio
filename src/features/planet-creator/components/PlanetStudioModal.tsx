@@ -180,7 +180,7 @@ export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
     };
 
     const handleOrbitalChange = (
-        key: "radius" | "orbitRadius" | "orbitSpeed" | "rotationSpeed" | "initialAngle",
+        key: "radius" | "orbitRadius" | "orbitSpeed" | "rotationSpeed" | "initialAngle" | "axialTilt" | "orbitInclination",
         val: number
     ) => {
         if (!draftPlanet) return;

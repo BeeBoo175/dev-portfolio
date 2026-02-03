@@ -29,6 +29,8 @@ export interface OrbitConfig {
     orbitRadius?: number;
     orbitSpeed?: number;
     initialAngle?: number;
+    orbitInclination?: number;
+    axialTilt?: number;
     color?: string;
     palette?: PaletteConfig;
     terrain?: PlanetTerrainConfig;

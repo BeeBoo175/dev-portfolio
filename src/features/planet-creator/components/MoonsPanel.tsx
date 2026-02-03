@@ -33,6 +33,13 @@ export function MoonsPanel({
           })
         : false;
 
+    const moonAxialTiltDeg = activeMoon
+        ? (((activeMoon.axialTilt ?? 0) * 180) / Math.PI).toFixed(1)
+        : "0.0";
+    const moonInclinationDeg = activeMoon
+        ? (((activeMoon.orbitInclination ?? 0) * 180) / Math.PI).toFixed(1)
+        : "0.0";
+
     return (
         <div className="planet-studio__card">
             {(surfaceCollision || moonCollision) && (
@@ -68,7 +75,7 @@ export function MoonsPanel({
             </div>
 
             {activeMoon ? (
-                <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginTop: "4px" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "4px" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                         <span style={{ fontSize: "12px", fontWeight: 600, color: "var(--accent-cyan)" }}>
                             Moon {activeMoonIndex + 1} Settings
@@ -149,6 +156,26 @@ export function MoonsPanel({
 
                     <div className="planet-studio__row">
                         <label className="planet-studio__slider-label">
+                            <span>Orbit Inclination</span>
+                            <span className="planet-studio__slider-value">{moonInclinationDeg}&deg;</span>
+                        </label>
+                    </div>
+                    <input
+                        type="range"
+                        min="-0.78"
+                        max="0.78"
+                        step="0.02"
+                        value={activeMoon.orbitInclination ?? 0}
+                        onChange={(e) =>
+                            onMoonChange(activeMoon.id, {
+                                orbitInclination: parseFloat(e.target.value),
+                            })
+                        }
+                        className="planet-studio__range"
+                    />
+
+                    <div className="planet-studio__row">
+                        <label className="planet-studio__slider-label">
                             <span>Axial Spin Speed</span>
                             <span className="planet-studio__slider-value">
                                 {activeMoon.rotationSpeed.toFixed(2)}
@@ -164,6 +191,48 @@ export function MoonsPanel({
                         onChange={(e) =>
                             onMoonChange(activeMoon.id, {
                                 rotationSpeed: parseFloat(e.target.value),
+                            })
+                        }
+                        className="planet-studio__range"
+                    />
+
+                    <div className="planet-studio__row">
+                        <label className="planet-studio__slider-label">
+                            <span>Axial Polar Tilt</span>
+                            <span className="planet-studio__slider-value">{moonAxialTiltDeg}&deg;</span>
+                        </label>
+                    </div>
+                    <input
+                        type="range"
+                        min="0.0"
+                        max="1.57"
+                        step="0.02"
+                        value={activeMoon.axialTilt ?? 0}
+                        onChange={(e) =>
+                            onMoonChange(activeMoon.id, {
+                                axialTilt: parseFloat(e.target.value),
+                            })
+                        }
+                        className="planet-studio__range"
+                    />
+
+                    <div className="planet-studio__row">
+                        <label className="planet-studio__slider-label">
+                            <span>Initial Orbit Angle</span>
+                            <span className="planet-studio__slider-value">
+                                {(activeMoon.initialAngle ?? 0).toFixed(2)} rad
+                            </span>
+                        </label>
+                    </div>
+                    <input
+                        type="range"
+                        min="0.0"
+                        max="6.28"
+                        step="0.1"
+                        value={activeMoon.initialAngle ?? 0}
+                        onChange={(e) =>
+                            onMoonChange(activeMoon.id, {
+                                initialAngle: parseFloat(e.target.value),
                             })
                         }
                         className="planet-studio__range"

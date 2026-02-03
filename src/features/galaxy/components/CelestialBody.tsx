@@ -34,43 +34,47 @@ export const CelestialBody = forwardRef<THREE.Group, CelestialBodyProps>(
         });
 
         const hasOrbit = (body.orbitRadius ?? 0) > 0;
+        const orbitInclination = body.orbitInclination ?? 0;
+        const axialTilt = body.axialTilt ?? 0;
 
         return (
-            <>
+            <group rotation={[orbitInclination, 0, 0]}>
                 {visuals.showOrbitPaths && hasOrbit && (
                     <OrbitPathLine
                         radius={body.orbitRadius!}
                         color={effectiveColor}
-                        opacity={0.2}
+                        opacity={0.25}
                     />
                 )}
 
                 <group ref={orbitRef} rotation={[0, body.initialAngle ?? 0, 0]}>
                     <group ref={positionRef} position={[body.orbitRadius ?? 0, 0, 0]}>
-                        <LowPolyPlanet
-                            ref={bodyRef}
-                            body={body}
-                            isSun={isSun}
-                            color={effectiveColor}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onSelect?.(body.id);
-                            }}
-                            onPointerOver={() => {
-                                document.body.style.cursor = "pointer";
-                            }}
-                            onPointerOut={() => {
-                                document.body.style.cursor = "default";
-                            }}
-                        />
-
-                        {visuals.showOrbitalAxes && !isSun && (
-                            <OrbitalAxisLine
-                                radius={body.radius}
+                        <group rotation={[axialTilt, 0, 0]}>
+                            <LowPolyPlanet
+                                ref={bodyRef}
+                                body={body}
+                                isSun={isSun}
                                 color={effectiveColor}
-                                opacity={0.5}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onSelect?.(body.id);
+                                }}
+                                onPointerOver={() => {
+                                    document.body.style.cursor = "pointer";
+                                }}
+                                onPointerOut={() => {
+                                    document.body.style.cursor = "default";
+                                }}
                             />
-                        )}
+
+                            {visuals.showOrbitalAxes && !isSun && (
+                                <OrbitalAxisLine
+                                    radius={body.radius}
+                                    color={effectiveColor}
+                                    opacity={0.6}
+                                />
+                            )}
+                        </group>
 
                         {isSun && (
                             <pointLight
@@ -86,7 +90,7 @@ export const CelestialBody = forwardRef<THREE.Group, CelestialBodyProps>(
                         ))}
                     </group>
                 </group>
-            </>
+            </group>
         );
     }
 );
