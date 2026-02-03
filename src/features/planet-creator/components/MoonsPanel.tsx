@@ -1,4 +1,5 @@
 import type { OrbitConfig } from "../../galaxy";
+import { detectMoonCollisions } from "../../galaxy";
 
 interface MoonsPanelProps {
     draftPlanet: OrbitConfig;
@@ -21,17 +22,7 @@ export function MoonsPanel({
     const activeMoon = moons[activeMoonIndex];
     const baseRadius = draftPlanet.radius ?? 1;
 
-    const surfaceCollision = activeMoon
-        ? (activeMoon.orbitRadius ?? 2.0) < baseRadius + activeMoon.radius + 0.1
-        : false;
-
-    const moonCollision = activeMoon
-        ? moons.some((other) => {
-              if (other.id === activeMoon.id) return false;
-              const dist = Math.abs((activeMoon.orbitRadius ?? 2.0) - (other.orbitRadius ?? 2.0));
-              return dist < activeMoon.radius + other.radius + 0.15;
-          })
-        : false;
+    const warnings = activeMoon ? detectMoonCollisions(draftPlanet, activeMoon) : [];
 
     const moonAxialTiltDeg = activeMoon
         ? (((activeMoon.axialTilt ?? 0) * 180) / Math.PI).toFixed(1)
@@ -42,17 +33,16 @@ export function MoonsPanel({
 
     return (
         <div className="planet-studio__card">
-            {(surfaceCollision || moonCollision) && (
+            {warnings.length > 0 && (
                 <div className="planet-studio__collision-warning">
                     <div className="planet-studio__collision-title">
-                        Lunar Collision Warning
+                        Lunar Collision Warning ({warnings.length})
                     </div>
-                    <div className="planet-studio__collision-desc">
-                        {surfaceCollision
-                            ? "This moon's orbit passes through the planet surface."
-                            : "This moon's orbit intersects another moon's trajectory."}
-                        &nbsp;Note: This is cosmetic only &mdash; physical collisions are not simulated.
-                    </div>
+                    {warnings.map((w) => (
+                        <div key={w.id} className="planet-studio__collision-desc">
+                            <strong>{w.title}:</strong> {w.description}
+                        </div>
+                    ))}
                 </div>
             )}
 
