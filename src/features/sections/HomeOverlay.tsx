@@ -35,7 +35,12 @@ function HomeOverlay({ onFocusChange, registerTrigger }: HomeOverlayProps) {
     useEffect(() => {
         const observer = new IntersectionObserver(
             (entries) => {
-                if (isProgrammaticScroll.current) return;
+                if (
+                    isProgrammaticScroll.current ||
+                    document.documentElement.classList.contains("planet-studio-open")
+                ) {
+                    return;
+                }
 
                 const visible = entries
                     .filter((entry) => entry.isIntersecting)

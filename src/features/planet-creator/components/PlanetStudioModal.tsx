@@ -45,21 +45,19 @@ export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
         if (!isOpen) return;
 
         const html = document.documentElement;
-        const { body } = document;
-        const prevHtmlOverflow = html.style.overflow;
-        const prevBodyOverflow = body.style.overflow;
-        const scrollbarWidth = Math.max(0, window.innerWidth - html.clientWidth);
-
         html.classList.add("planet-studio-open");
-        html.style.setProperty("--studio-scroll-lock", `${scrollbarWidth}px`);
-        html.style.overflow = "hidden";
-        body.style.overflow = "hidden";
+
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Escape") {
+                setIsOpen(false);
+            }
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
 
         return () => {
             html.classList.remove("planet-studio-open");
-            html.style.removeProperty("--studio-scroll-lock");
-            html.style.overflow = prevHtmlOverflow;
-            body.style.overflow = prevBodyOverflow;
+            window.removeEventListener("keydown", handleKeyDown);
         };
     }, [isOpen]);
 
@@ -101,9 +99,9 @@ export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
             color,
             ring: draftPlanet.ring
                 ? {
-                      ...draftPlanet.ring,
-                      color: palette.coast ?? palette.land ?? color,
-                  }
+                    ...draftPlanet.ring,
+                    color: palette.coast ?? palette.land ?? color,
+                }
                 : undefined,
         });
     };
@@ -117,9 +115,9 @@ export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
             color: preset.color,
             ring: draftPlanet.ring
                 ? {
-                      ...draftPlanet.ring,
-                      color: preset.palette.coast ?? preset.color,
-                  }
+                    ...draftPlanet.ring,
+                    color: preset.palette.coast ?? preset.color,
+                }
                 : undefined,
         });
     };
@@ -338,23 +336,20 @@ export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
                     <div className="planet-studio" onClick={(e) => e.stopPropagation()}>
                         <div className="planet-studio__header">
                             <div className="planet-studio__title">
-                                <span className="planet-studio__title-badge">Studio</span>
-                                <span>Planet &amp; Moon Customizer</span>
+                                <span>Planet Lab</span>
                             </div>
                             <div className="planet-studio__header-actions">
                                 <button
-                                    className={`planet-studio__toggle-btn ${
-                                        visuals.showOrbitPaths ? "planet-studio__toggle-btn--active" : ""
-                                    }`}
+                                    className={`planet-studio__toggle-btn ${visuals.showOrbitPaths ? "planet-studio__toggle-btn--active" : ""
+                                        }`}
                                     onClick={() => galaxyStore.toggleOrbitPaths()}
                                     title="Toggle 3D Circular Orbit Trajectories"
                                 >
                                     Orbits: {visuals.showOrbitPaths ? "ON" : "OFF"}
                                 </button>
                                 <button
-                                    className={`planet-studio__toggle-btn ${
-                                        visuals.showOrbitalAxes ? "planet-studio__toggle-btn--active" : ""
-                                    }`}
+                                    className={`planet-studio__toggle-btn ${visuals.showOrbitalAxes ? "planet-studio__toggle-btn--active" : ""
+                                        }`}
                                     onClick={() => galaxyStore.toggleOrbitalAxes()}
                                     title="Toggle Polar Rotational Spin Axes"
                                 >
@@ -425,9 +420,8 @@ export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
                                     {EDITABLE_TARGETS.map((t) => (
                                         <button
                                             key={t.id}
-                                            className={`planet-studio__target-tab ${
-                                                selectedId === t.id ? "planet-studio__target-tab--active" : ""
-                                            }`}
+                                            className={`planet-studio__target-tab ${selectedId === t.id ? "planet-studio__target-tab--active" : ""
+                                                }`}
                                             onClick={() => handleSelectTarget(t.id)}
                                         >
                                             {t.label}
@@ -437,33 +431,29 @@ export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
 
                                 <div className="planet-studio__category-nav">
                                     <button
-                                        className={`planet-studio__category-btn ${
-                                            activeTab === "terrain" ? "planet-studio__category-btn--active" : ""
-                                        }`}
+                                        className={`planet-studio__category-btn ${activeTab === "terrain" ? "planet-studio__category-btn--active" : ""
+                                            }`}
                                         onClick={() => setActiveTab("terrain")}
                                     >
                                         Terrain
                                     </button>
                                     <button
-                                        className={`planet-studio__category-btn ${
-                                            activeTab === "appearance" ? "planet-studio__category-btn--active" : ""
-                                        }`}
+                                        className={`planet-studio__category-btn ${activeTab === "appearance" ? "planet-studio__category-btn--active" : ""
+                                            }`}
                                         onClick={() => setActiveTab("appearance")}
                                     >
                                         Appearance
                                     </button>
                                     <button
-                                        className={`planet-studio__category-btn ${
-                                            activeTab === "moons" ? "planet-studio__category-btn--active" : ""
-                                        }`}
+                                        className={`planet-studio__category-btn ${activeTab === "moons" ? "planet-studio__category-btn--active" : ""
+                                            }`}
                                         onClick={() => setActiveTab("moons")}
                                     >
                                         Moons ({(draftPlanet.children ?? []).length})
                                     </button>
                                     <button
-                                        className={`planet-studio__category-btn ${
-                                            activeTab === "orbit" ? "planet-studio__category-btn--active" : ""
-                                        }`}
+                                        className={`planet-studio__category-btn ${activeTab === "orbit" ? "planet-studio__category-btn--active" : ""
+                                            }`}
                                         onClick={() => setActiveTab("orbit")}
                                     >
                                         Orbit &amp; Spin
