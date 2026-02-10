@@ -52,6 +52,14 @@ body,
     overscroll-behavior-y: none;
 }
 
+html {
+    scrollbar-gutter: stable;
+}
+
+html.planet-studio-open {
+    overflow: hidden;
+}
+
 body {
     background: var(--bg-canvas);
     color: var(--text-primary);
