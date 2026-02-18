@@ -51,7 +51,12 @@ export const CelestialBody = forwardRef<THREE.Group, CelestialBodyProps>(
                     <group ref={positionRef} position={[body.orbitRadius ?? 0, 0, 0]}>
                         <group rotation={[axialTilt, 0, 0]}>
                             <LowPolyPlanet
-                                ref={bodyRef}
+                                ref={(meshInstance) => {
+                                    bodyRef.current = meshInstance;
+                                    if (positionRef.current) {
+                                        positionRef.current.userData.surfaceMesh = meshInstance;
+                                    }
+                                }}
                                 body={body}
                                 isSun={isSun}
                                 color={effectiveColor}
