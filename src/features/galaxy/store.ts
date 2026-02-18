@@ -83,6 +83,11 @@ class GalaxyStore {
         this.notify();
     }
 
+    setPlanets(newPlanets: OrbitConfig[]) {
+        this.planets = newPlanets;
+        this.notify();
+    }
+
     resetPlanet(id: string) {
         const defaults = cloneDefaultPlanets();
         const defaultPlanet = defaults.find((p) => p.id === id);
