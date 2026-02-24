@@ -125,3 +125,120 @@ export function detectMoonCollisions(
 
     return warnings;
 }
+
+export function detectAllGalaxyCollisions(allPlanets: OrbitConfig[]): CollisionWarning[] {
+    const seen = new Set<string>();
+    const allWarnings: CollisionWarning[] = [];
+
+    for (const planet of allPlanets) {
+        const warnings = detectPlanetCollisions(planet, allPlanets);
+        for (const w of warnings) {
+            const normKey =
+                w.type === "planet-planet"
+                    ? [planet.id, w.id.replace("pp-", "")].sort().join("-")
+                    : `${planet.id}-${w.id}`;
+            if (!seen.has(normKey)) {
+                seen.add(normKey);
+                allWarnings.push(w);
+            }
+        }
+    }
+    return allWarnings;
+}
+
+export function resolveGalaxyCollisions(planets: OrbitConfig[]): {
+    resolvedPlanets: OrbitConfig[];
+    changedCount: number;
+} {
+    let changedCount = 0;
+
+    // Step 1: Deep clone planets and fix internal moon collisions first
+    const clone: OrbitConfig[] = planets.map((p) => {
+        const pRad = p.radius ?? 1.0;
+        let pChanged = false;
+        let currentMoons = p.children ? [...p.children] : undefined;
+
+        if (currentMoons && currentMoons.length > 0) {
+            let safeDistance = pRad + 0.5;
+            currentMoons = currentMoons.map((moon) => {
+                const minRequired = Number((safeDistance + moon.radius + 0.15).toFixed(2));
+                const currentOrbit = moon.orbitRadius ?? 2.0;
+
+                if (currentOrbit < minRequired) {
+                    pChanged = true;
+                    safeDistance = Number((minRequired + 0.1).toFixed(2));
+                    return {
+                        ...moon,
+                        orbitRadius: minRequired,
+                    };
+                } else {
+                    safeDistance = Number((currentOrbit + moon.radius + 0.15).toFixed(2));
+                    return moon;
+                }
+            });
+        }
+
+        if (pChanged) changedCount++;
+        return {
+            ...p,
+            children: currentMoons,
+        };
+    });
+
+    // Step 2: Fix planetary orbit distances and cross-system reaches
+    const indexed = clone.map((p, idx) => ({ p: { ...p }, idx }));
+    indexed.sort((a, b) => (a.p.orbitRadius ?? 0) - (b.p.orbitRadius ?? 0));
+
+    const SUN_SAFE_ORBIT = 6.8;
+
+    for (let i = 0; i < indexed.length; i++) {
+        const item = indexed[i];
+        let orbit = item.p.orbitRadius ?? 7.0;
+
+        if (i === 0) {
+            if (orbit < SUN_SAFE_ORBIT) {
+                orbit = SUN_SAFE_ORBIT;
+                if (orbit !== item.p.orbitRadius) changedCount++;
+                item.p.orbitRadius = orbit;
+            }
+        } else {
+            const prevItem = indexed[i - 1];
+            const prevOrbit = prevItem.p.orbitRadius ?? 7.0;
+            const prevRad = prevItem.p.radius ?? 1.0;
+            const curRad = item.p.radius ?? 1.0;
+
+            let prevOuterReach = prevRad;
+            if (prevItem.p.children && prevItem.p.children.length > 0) {
+                for (const m of prevItem.p.children) {
+                    const mReach = (m.orbitRadius ?? 2.0) + m.radius;
+                    if (mReach > prevOuterReach) prevOuterReach = mReach;
+                }
+            }
+
+            let curInnerReach = curRad;
+            if (item.p.children && item.p.children.length > 0) {
+                for (const m of item.p.children) {
+                    const mReach = (m.orbitRadius ?? 2.0) + m.radius;
+                    if (mReach > curInnerReach) curInnerReach = mReach;
+                }
+            }
+
+            const minSafeDist = Math.max(
+                prevRad + curRad + 0.35,
+                prevOuterReach + curInnerReach + 0.45
+            );
+
+            const minRequiredOrbit = Number((prevOrbit + minSafeDist).toFixed(1));
+
+            if (orbit < minRequiredOrbit) {
+                if (orbit !== minRequiredOrbit) changedCount++;
+                item.p.orbitRadius = minRequiredOrbit;
+            }
+        }
+    }
+
+    indexed.sort((a, b) => a.idx - b.idx);
+    const resolvedPlanets = indexed.map((item) => item.p);
+
+    return { resolvedPlanets, changedCount };
+}

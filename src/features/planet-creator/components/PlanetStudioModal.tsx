@@ -1,6 +1,13 @@
 import { useState, useEffect } from "react";
 import type { OrbitConfig, PaletteConfig } from "../../galaxy";
-import { galaxyStore, useGalaxyPlanets, useGalaxyVisuals, ORBIT_LAYOUT } from "../../galaxy";
+import {
+    galaxyStore,
+    useGalaxyPlanets,
+    useGalaxyVisuals,
+    ORBIT_LAYOUT,
+    detectAllGalaxyCollisions,
+    resolveGalaxyCollisions,
+} from "../../galaxy";
 import { BIOME_PRESETS, generateRandomTerrain, generateRandomGalaxy } from "../presets";
 import PlanetPreviewCanvas from "./PlanetPreviewCanvas";
 import TerrainPanel from "./TerrainPanel";
@@ -46,6 +53,7 @@ export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
     const isDirty = JSON.stringify(draftPlanets) !== savedSnapshot;
     const draftPlanet =
         draftPlanets.find((p) => p.id === selectedId) ?? draftPlanets[0];
+    const allGalaxyWarnings = detectAllGalaxyCollisions(draftPlanets);
 
     const updateDraftPlanet = (updater: (prev: OrbitConfig) => OrbitConfig) => {
         setDraftPlanets((prevList) =>
@@ -128,9 +136,9 @@ export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
             color,
             ring: prev.ring
                 ? {
-                      ...prev.ring,
-                      color: palette.coast ?? palette.land ?? color,
-                  }
+                    ...prev.ring,
+                    color: palette.coast ?? palette.land ?? color,
+                }
                 : undefined,
         }));
     };
@@ -143,9 +151,9 @@ export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
             color: preset.color,
             ring: prev.ring
                 ? {
-                      ...prev.ring,
-                      color: preset.palette.coast ?? preset.color,
-                  }
+                    ...prev.ring,
+                    color: preset.palette.coast ?? preset.color,
+                }
                 : undefined,
         }));
     };
@@ -339,6 +347,16 @@ export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
         setToastMessage("Galaxy randomized! Click Apply to save.");
     };
 
+    const handleResolveCollisions = () => {
+        const { resolvedPlanets, changedCount } = resolveGalaxyCollisions(draftPlanets);
+        if (changedCount > 0) {
+            setDraftPlanets(resolvedPlanets);
+            setToastMessage(`Resolved ${changedCount} orbital path(s)! Click Apply to save.`);
+        } else {
+            setToastMessage("All orbital paths are already clear!");
+        }
+    };
+
     const handleExportJSON = () => {
         const json = JSON.stringify(draftPlanets, null, 2);
         navigator.clipboard.writeText(json);
@@ -382,28 +400,33 @@ export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
                         className="planet-studio"
                         onClick={(e) => e.stopPropagation()}
                     >
+                        {toastMessage && (
+                            <div className="planet-studio__toast-container">
+                                <div className="planet-studio__toast">
+                                    {toastMessage}
+                                </div>
+                            </div>
+                        )}
                         <div className="planet-studio__header">
                             <div className="planet-studio__title">
                                 <span>Planet Lab</span>
                             </div>
                             <div className="planet-studio__header-actions">
                                 <button
-                                    className={`planet-studio__toggle-btn ${
-                                        visuals.showOrbitPaths
+                                    className={`planet-studio__toggle-btn ${visuals.showOrbitPaths
                                             ? "planet-studio__toggle-btn--active"
                                             : ""
-                                    }`}
+                                        }`}
                                     onClick={() => galaxyStore.toggleOrbitPaths()}
                                     title="Toggle 3D Circular Orbit Trajectories"
                                 >
                                     Orbits: {visuals.showOrbitPaths ? "ON" : "OFF"}
                                 </button>
                                 <button
-                                    className={`planet-studio__toggle-btn ${
-                                        visuals.showOrbitalAxes
+                                    className={`planet-studio__toggle-btn ${visuals.showOrbitalAxes
                                             ? "planet-studio__toggle-btn--active"
                                             : ""
-                                    }`}
+                                        }`}
                                     onClick={() => galaxyStore.toggleOrbitalAxes()}
                                     title="Toggle Polar Rotational Spin Axes"
                                 >
@@ -480,40 +503,83 @@ export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
 
                             <div className="planet-studio__controls-pane">
                                 <div className="planet-studio__target-tabs">
-                                    {EDITABLE_TARGETS.map((t) => (
-                                        <button
-                                            key={t.id}
-                                            className={`planet-studio__target-tab ${
-                                                selectedId === t.id
-                                                    ? "planet-studio__target-tab--active"
-                                                    : ""
-                                            }`}
-                                            onClick={() =>
-                                                handleSelectTarget(t.id)
-                                            }
-                                        >
-                                            {t.label}
-                                        </button>
-                                    ))}
+                                    {EDITABLE_TARGETS.map((t) => {
+                                        const isWarned = allGalaxyWarnings.some(
+                                            (w) =>
+                                                w.id.toLowerCase().includes(t.id) ||
+                                                w.description.toLowerCase().includes(t.id)
+                                        );
+                                        return (
+                                            <button
+                                                key={t.id}
+                                                className={`planet-studio__target-tab ${selectedId === t.id
+                                                        ? "planet-studio__target-tab--active"
+                                                        : ""
+                                                    }`}
+                                                onClick={() =>
+                                                    handleSelectTarget(t.id)
+                                                }
+                                            >
+                                                <span>{t.label}</span>
+                                                {isWarned && (
+                                                    <span
+                                                        className="planet-studio__tab-warn-badge"
+                                                        title="This planet has an orbital conflict"
+                                                    >
+                                                        ⚠️
+                                                    </span>
+                                                )}
+                                            </button>
+                                        );
+                                    })}
                                 </div>
+
+                                {allGalaxyWarnings.length > 0 && (
+                                    <div className="planet-studio__global-collision-banner">
+                                        <div className="planet-studio__global-collision-header">
+                                            <div className="planet-studio__global-collision-title">
+                                                <span>⚠️</span>
+                                                <span>
+                                                    {allGalaxyWarnings.length} Orbital Collision
+                                                    {allGalaxyWarnings.length > 1 ? "s" : ""} Detected
+                                                </span>
+                                            </div>
+                                            <button
+                                                className="planet-studio__global-resolve-btn"
+                                                onClick={handleResolveCollisions}
+                                                title="Automatically adjust orbits minimally to clear all collisions"
+                                            >
+                                                Auto-Resolve Orbits
+                                            </button>
+                                        </div>
+                                        <div className="planet-studio__global-collision-list">
+                                            {allGalaxyWarnings.map((w, idx) => (
+                                                <div
+                                                    key={`${w.id}-${idx}`}
+                                                    className="planet-studio__global-collision-item"
+                                                >
+                                                    <strong>{w.title}:</strong> {w.description}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
 
                                 <div className="planet-studio__category-nav">
                                     <button
-                                        className={`planet-studio__category-btn ${
-                                            activeTab === "terrain"
+                                        className={`planet-studio__category-btn ${activeTab === "terrain"
                                                 ? "planet-studio__category-btn--active"
                                                 : ""
-                                        }`}
+                                            }`}
                                         onClick={() => setActiveTab("terrain")}
                                     >
                                         Terrain
                                     </button>
                                     <button
-                                        className={`planet-studio__category-btn ${
-                                            activeTab === "appearance"
+                                        className={`planet-studio__category-btn ${activeTab === "appearance"
                                                 ? "planet-studio__category-btn--active"
                                                 : ""
-                                        }`}
+                                            }`}
                                         onClick={() =>
                                             setActiveTab("appearance")
                                         }
@@ -521,22 +587,20 @@ export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
                                         Appearance
                                     </button>
                                     <button
-                                        className={`planet-studio__category-btn ${
-                                            activeTab === "moons"
+                                        className={`planet-studio__category-btn ${activeTab === "moons"
                                                 ? "planet-studio__category-btn--active"
                                                 : ""
-                                        }`}
+                                            }`}
                                         onClick={() => setActiveTab("moons")}
                                     >
                                         Moons (
                                         {(draftPlanet.children ?? []).length})
                                     </button>
                                     <button
-                                        className={`planet-studio__category-btn ${
-                                            activeTab === "orbit"
+                                        className={`planet-studio__category-btn ${activeTab === "orbit"
                                                 ? "planet-studio__category-btn--active"
                                                 : ""
-                                        }`}
+                                            }`}
                                         onClick={() => setActiveTab("orbit")}
                                     >
                                         Orbit &amp; Spin
@@ -582,7 +646,6 @@ export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
                                     {activeTab === "orbit" && (
                                         <OrbitPanel
                                             draftPlanet={draftPlanet}
-                                            allPlanets={draftPlanets}
                                             onOrbitalChange={
                                                 handleOrbitalChange
                                             }
@@ -611,16 +674,18 @@ export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
                                     onClick={handleRandomizeGalaxy}
                                     title="Procedurally randomize all planets, biomes, orbits, and moons across the entire galaxy"
                                 >
-                                    🎲 Randomize Galaxy
+                                    Randomize Galaxy
+                                </button>
+                                <button
+                                    className="planet-studio__btn planet-studio__btn--secondary planet-studio__btn--footer"
+                                    onClick={handleResolveCollisions}
+                                    title="Automatically adjust orbital distances to resolve all collisions with minimal changes"
+                                >
+                                    Resolve Collisions
                                 </button>
                             </div>
 
                             <div className="planet-studio__footer-right">
-                                {toastMessage && (
-                                    <span className="planet-studio__toast">
-                                        {toastMessage}
-                                    </span>
-                                )}
                                 <button
                                     className="planet-studio__btn planet-studio__btn--primary planet-studio__btn--footer"
                                     onClick={handleApply}
