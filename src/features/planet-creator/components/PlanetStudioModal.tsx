@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import type { OrbitConfig, PaletteConfig } from "../../galaxy";
-import { galaxyStore, useGalaxyPlanets, useGalaxyVisuals } from "../../galaxy";
+import { galaxyStore, useGalaxyPlanets, useGalaxyVisuals, ORBIT_LAYOUT } from "../../galaxy";
 import { BIOME_PRESETS, generateRandomTerrain, generateRandomGalaxy } from "../presets";
 import PlanetPreviewCanvas from "./PlanetPreviewCanvas";
 import TerrainPanel from "./TerrainPanel";
@@ -28,18 +28,43 @@ export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
     const planets = useGalaxyPlanets();
     const visuals = useGalaxyVisuals();
 
+    const [draftPlanets, setDraftPlanets] = useState<OrbitConfig[]>(() =>
+        JSON.parse(JSON.stringify(planets))
+    );
+    const [savedSnapshot, setSavedSnapshot] = useState<string>(() =>
+        JSON.stringify(planets)
+    );
     const [selectedId, setSelectedId] = useState<string>("about");
     const [activeTab, setActiveTab] = useState<CategoryTab>("terrain");
     const [activeMoonIndex, setActiveMoonIndex] = useState<number>(0);
     const [isDataModalOpen, setIsDataModalOpen] = useState(false);
+    const [isConfirmCloseOpen, setIsConfirmCloseOpen] = useState(false);
 
-    const [draftPlanet, setDraftPlanet] = useState<OrbitConfig | null>(() => {
-        const targetId = focusId && EDITABLE_TARGETS.some((t) => t.id === focusId) ? focusId : "about";
-        const found = planets.find((p) => p.id === targetId) ?? planets[0];
-        return found ? JSON.parse(JSON.stringify(found)) : null;
-    });
     const [toastMessage, setToastMessage] = useState<string | null>(null);
     const [importJsonText, setImportJsonText] = useState("");
+
+    const isDirty = JSON.stringify(draftPlanets) !== savedSnapshot;
+    const draftPlanet =
+        draftPlanets.find((p) => p.id === selectedId) ?? draftPlanets[0];
+
+    const updateDraftPlanet = (updater: (prev: OrbitConfig) => OrbitConfig) => {
+        setDraftPlanets((prevList) =>
+            prevList.map((p) => (p.id === selectedId ? updater(p) : p))
+        );
+    };
+
+    const requestClose = () => {
+        if (isDirty) {
+            setIsConfirmCloseOpen(true);
+        } else {
+            setIsOpen(false);
+        }
+    };
+
+    const handleConfirmDiscard = () => {
+        setIsConfirmCloseOpen(false);
+        setIsOpen(false);
+    };
 
     useEffect(() => {
         if (!isOpen) return;
@@ -49,7 +74,13 @@ export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
 
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === "Escape") {
-                setIsOpen(false);
+                if (isConfirmCloseOpen) {
+                    setIsConfirmCloseOpen(false);
+                } else if (isDataModalOpen) {
+                    setIsDataModalOpen(false);
+                } else {
+                    requestClose();
+                }
             }
         };
 
@@ -59,25 +90,24 @@ export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
             html.classList.remove("planet-studio-open");
             window.removeEventListener("keydown", handleKeyDown);
         };
-    }, [isOpen]);
+    }, [isOpen, isDirty, isConfirmCloseOpen, isDataModalOpen]);
 
     const handleOpen = () => {
-        const targetId = focusId && EDITABLE_TARGETS.some((t) => t.id === focusId) ? focusId : "about";
+        const fresh = JSON.parse(JSON.stringify(planets));
+        setDraftPlanets(fresh);
+        setSavedSnapshot(JSON.stringify(planets));
+        const targetId =
+            focusId && EDITABLE_TARGETS.some((t) => t.id === focusId)
+                ? focusId
+                : "about";
         setSelectedId(targetId);
-        const found = planets.find((p) => p.id === targetId) ?? planets[0];
-        if (found) {
-            setDraftPlanet(JSON.parse(JSON.stringify(found)));
-        }
         setActiveMoonIndex(0);
+        setIsConfirmCloseOpen(false);
         setIsOpen(true);
     };
 
     const handleSelectTarget = (id: string) => {
         setSelectedId(id);
-        const found = planets.find((p) => p.id === id);
-        if (found) {
-            setDraftPlanet(JSON.parse(JSON.stringify(found)));
-        }
         setActiveMoonIndex(0);
     };
 
@@ -90,121 +120,134 @@ export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
     if (!draftPlanet && isOpen) return null;
 
     const handleRandomize = () => {
-        if (!draftPlanet) return;
         const { terrain, palette, color } = generateRandomTerrain();
-        setDraftPlanet({
-            ...draftPlanet,
+        updateDraftPlanet((prev) => ({
+            ...prev,
             terrain,
             palette,
             color,
-            ring: draftPlanet.ring
+            ring: prev.ring
                 ? {
-                    ...draftPlanet.ring,
-                    color: palette.coast ?? palette.land ?? color,
-                }
+                      ...prev.ring,
+                      color: palette.coast ?? palette.land ?? color,
+                  }
                 : undefined,
-        });
+        }));
     };
 
-    const handleSelectBiome = (preset: typeof BIOME_PRESETS[0]) => {
-        if (!draftPlanet) return;
-        setDraftPlanet({
-            ...draftPlanet,
+    const handleSelectBiome = (preset: (typeof BIOME_PRESETS)[0]) => {
+        updateDraftPlanet((prev) => ({
+            ...prev,
             terrain: { ...preset.terrain },
             palette: { ...preset.palette },
             color: preset.color,
-            ring: draftPlanet.ring
+            ring: prev.ring
                 ? {
-                    ...draftPlanet.ring,
-                    color: preset.palette.coast ?? preset.color,
-                }
+                      ...prev.ring,
+                      color: preset.palette.coast ?? preset.color,
+                  }
                 : undefined,
-        });
+        }));
     };
 
-    const handleTerrainChange = (key: keyof NonNullable<OrbitConfig["terrain"]>, val: number) => {
-        if (!draftPlanet) return;
-        setDraftPlanet({
-            ...draftPlanet,
+    const handleTerrainChange = (
+        key: keyof NonNullable<OrbitConfig["terrain"]>,
+        val: number
+    ) => {
+        updateDraftPlanet((prev) => ({
+            ...prev,
             terrain: {
-                ...draftPlanet.terrain,
+                ...prev.terrain,
                 [key]: val,
             },
-        });
+        }));
     };
 
     const handlePaletteChange = (key: keyof PaletteConfig, val: string) => {
-        if (!draftPlanet) return;
-        setDraftPlanet({
-            ...draftPlanet,
+        updateDraftPlanet((prev) => ({
+            ...prev,
             palette: {
-                ...draftPlanet.palette,
+                ...prev.palette,
                 [key]: val,
             },
-        });
+        }));
     };
 
     const handleRingColorChange = (val: string) => {
-        if (!draftPlanet || !draftPlanet.ring) return;
-        setDraftPlanet({
-            ...draftPlanet,
-            ring: {
-                ...draftPlanet.ring,
-                color: val,
-            },
+        updateDraftPlanet((prev) => {
+            if (!prev.ring) return prev;
+            return {
+                ...prev,
+                ring: {
+                    ...prev.ring,
+                    color: val,
+                },
+            };
         });
     };
 
-    const handleRingParamChange = (key: "innerRadius" | "outerRadius" | "opacity", val: number) => {
-        if (!draftPlanet || !draftPlanet.ring) return;
-        setDraftPlanet({
-            ...draftPlanet,
-            ring: {
-                ...draftPlanet.ring,
-                [key]: val,
-            },
+    const handleRingParamChange = (
+        key: "innerRadius" | "outerRadius" | "opacity",
+        val: number
+    ) => {
+        updateDraftPlanet((prev) => {
+            if (!prev.ring) return prev;
+            return {
+                ...prev,
+                ring: {
+                    ...prev.ring,
+                    [key]: val,
+                },
+            };
         });
     };
 
     const handleRingToggle = () => {
-        if (!draftPlanet) return;
-        if (draftPlanet.ring) {
-            setDraftPlanet({
-                ...draftPlanet,
-                ring: undefined,
-            });
-        } else {
-            const rad = draftPlanet.radius ?? 1;
-            setDraftPlanet({
-                ...draftPlanet,
+        updateDraftPlanet((prev) => {
+            if (prev.ring) {
+                return {
+                    ...prev,
+                    ring: undefined,
+                };
+            }
+            const rad = prev.radius ?? 1;
+            return {
+                ...prev,
                 ring: {
                     innerRadius: Number((rad * 1.5).toFixed(2)),
                     outerRadius: Number((rad * 2.3).toFixed(2)),
-                    color: draftPlanet.palette?.coast ?? draftPlanet.color ?? "#38bdf8",
+                    color: prev.palette?.coast ?? prev.color ?? "#38bdf8",
                     opacity: 0.8,
                     tilt: [Math.PI / 3, 0, Math.PI / 6],
                 },
-            });
-            setActiveTab("appearance");
-        }
+            };
+        });
+        setActiveTab("appearance");
     };
 
     const handleOrbitalChange = (
-        key: "radius" | "orbitRadius" | "orbitSpeed" | "rotationSpeed" | "initialAngle" | "axialTilt" | "orbitInclination",
+        key:
+            | "radius"
+            | "orbitRadius"
+            | "orbitSpeed"
+            | "rotationSpeed"
+            | "initialAngle"
+            | "axialTilt"
+            | "orbitInclination",
         val: number
     ) => {
-        if (!draftPlanet) return;
-        setDraftPlanet({
-            ...draftPlanet,
+        updateDraftPlanet((prev) => ({
+            ...prev,
             [key]: val,
-        });
+        }));
     };
 
     const handleAddMoon = () => {
-        if (!draftPlanet) return;
         const currentMoons = draftPlanet.children ?? [];
         const baseRad = draftPlanet.radius ?? 1.0;
-        const orbitDist = Number((baseRad * 1.8 + currentMoons.length * 0.9).toFixed(2));
+        const orbitDist = Number(
+            (baseRad * 1.8 + currentMoons.length * 0.9).toFixed(2)
+        );
 
         const newMoon: OrbitConfig = {
             id: `${draftPlanet.id}-moon-${Date.now().toString().slice(-4)}`,
@@ -228,98 +271,90 @@ export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
         };
 
         const updated = [...currentMoons, newMoon];
-        setDraftPlanet({
-            ...draftPlanet,
+        updateDraftPlanet((prev) => ({
+            ...prev,
             children: updated,
-        });
+        }));
         setActiveMoonIndex(updated.length - 1);
         setToastMessage(`Added Moon #${updated.length}`);
     };
 
     const handleRemoveMoon = (moonId: string) => {
-        if (!draftPlanet || !draftPlanet.children) return;
-        const updated = draftPlanet.children.filter((m) => m.id !== moonId);
-        setDraftPlanet({
-            ...draftPlanet,
+        const updated = (draftPlanet.children ?? []).filter(
+            (m) => m.id !== moonId
+        );
+        updateDraftPlanet((prev) => ({
+            ...prev,
             children: updated,
-        });
+        }));
         setActiveMoonIndex(Math.max(0, updated.length - 1));
     };
 
-    const handleMoonChange = (moonId: string, updates: Partial<OrbitConfig>) => {
-        if (!draftPlanet || !draftPlanet.children) return;
-        setDraftPlanet({
-            ...draftPlanet,
-            children: draftPlanet.children.map((m) => {
+    const handleMoonChange = (
+        moonId: string,
+        updates: Partial<OrbitConfig>
+    ) => {
+        updateDraftPlanet((prev) => ({
+            ...prev,
+            children: (prev.children ?? []).map((m) => {
                 if (m.id === moonId) {
                     return {
                         ...m,
                         ...updates,
-                        terrain: updates.terrain ? { ...m.terrain, ...updates.terrain } : m.terrain,
-                        palette: updates.palette ? { ...m.palette, ...updates.palette } : m.palette,
+                        terrain: updates.terrain
+                            ? { ...m.terrain, ...updates.terrain }
+                            : m.terrain,
+                        palette: updates.palette
+                            ? { ...m.palette, ...updates.palette }
+                            : m.palette,
                     };
                 }
                 return m;
             }),
-        });
+        }));
     };
 
     const handleApply = () => {
-        if (!draftPlanet) return;
-        galaxyStore.updatePlanet(draftPlanet.id, draftPlanet);
-        setToastMessage(`Saved ${draftPlanet.id.toUpperCase()} to Galaxy`);
-    };
-
-    const clonePlanetFromStore = (id: string) => {
-        const snapshot = galaxyStore.getSnapshot();
-        const found = snapshot.find((p) => p.id === id) ?? snapshot[0];
-        return found ? (JSON.parse(JSON.stringify(found)) as OrbitConfig) : null;
+        galaxyStore.setPlanets(draftPlanets);
+        setSavedSnapshot(JSON.stringify(draftPlanets));
+        setToastMessage("Applied changes to Galaxy!");
     };
 
     const handleReset = () => {
-        if (!draftPlanet) return;
-        galaxyStore.resetPlanet(draftPlanet.id);
-        const resetTarget = clonePlanetFromStore(draftPlanet.id);
-        if (resetTarget) {
-            setDraftPlanet(resetTarget);
+        const defaultPlanet = ORBIT_LAYOUT.find((p) => p.id === selectedId);
+        if (defaultPlanet) {
+            updateDraftPlanet(() => JSON.parse(JSON.stringify(defaultPlanet)));
+            setToastMessage(`Reset ${selectedId.toUpperCase()} to defaults (Unsaved)`);
         }
-        setToastMessage(`Restored default ${draftPlanet.id.toUpperCase()}`);
     };
 
     const handleResetAll = () => {
-        galaxyStore.resetAll();
-        const resetTarget = clonePlanetFromStore(selectedId);
-        if (resetTarget) {
-            setDraftPlanet(resetTarget);
-        }
-        setToastMessage("Restored default galaxy");
+        setDraftPlanets(JSON.parse(JSON.stringify(ORBIT_LAYOUT)));
+        setToastMessage("Reset all planets to defaults (Unsaved)");
     };
 
     const handleRandomizeGalaxy = () => {
-        const randomized = generateRandomGalaxy(planets);
-        galaxyStore.setPlanets(randomized);
-        const updated = randomized.find((p) => p.id === selectedId) ?? randomized[0];
-        if (updated) {
-            setDraftPlanet(JSON.parse(JSON.stringify(updated)));
-        }
-        setToastMessage("Galaxy randomized with new biomes & orbits!");
+        const randomized = generateRandomGalaxy(draftPlanets);
+        setDraftPlanets(randomized);
+        setToastMessage("Galaxy randomized! Click Apply to save.");
     };
 
     const handleExportJSON = () => {
-        const json = galaxyStore.exportJSON();
+        const json = JSON.stringify(draftPlanets, null, 2);
         navigator.clipboard.writeText(json);
-        setToastMessage("Galaxy JSON copied to clipboard");
+        setToastMessage("Draft Galaxy JSON copied to clipboard");
     };
 
     const handleImportJSON = () => {
         if (!importJsonText.trim()) return;
         const success = galaxyStore.importJSON(importJsonText);
         if (success) {
+            const imported = galaxyStore.getSnapshot();
+            setDraftPlanets(JSON.parse(JSON.stringify(imported)));
+            setSavedSnapshot(JSON.stringify(imported));
             setToastMessage("Galaxy JSON imported successfully");
             setImportJsonText("");
             setIsDataModalOpen(false);
-            const updated = clonePlanetFromStore(selectedId);
-            if (updated) setDraftPlanet(updated);
         } else {
             setToastMessage("Invalid JSON format");
         }
@@ -339,39 +374,40 @@ export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
             {isOpen && draftPlanet && (
                 <div
                     className="planet-studio-backdrop"
-                    onClick={() => setIsOpen(false)}
+                    onClick={requestClose}
                     onWheel={(e) => e.stopPropagation()}
                     onTouchMove={(e) => e.stopPropagation()}
                 >
-                    <div className="planet-studio" onClick={(e) => e.stopPropagation()}>
+                    <div
+                        className="planet-studio"
+                        onClick={(e) => e.stopPropagation()}
+                    >
                         <div className="planet-studio__header">
                             <div className="planet-studio__title">
                                 <span>Planet Lab</span>
                             </div>
                             <div className="planet-studio__header-actions">
                                 <button
-                                    className={`planet-studio__toggle-btn ${visuals.showOrbitPaths ? "planet-studio__toggle-btn--active" : ""
-                                        }`}
+                                    className={`planet-studio__toggle-btn ${
+                                        visuals.showOrbitPaths
+                                            ? "planet-studio__toggle-btn--active"
+                                            : ""
+                                    }`}
                                     onClick={() => galaxyStore.toggleOrbitPaths()}
                                     title="Toggle 3D Circular Orbit Trajectories"
                                 >
                                     Orbits: {visuals.showOrbitPaths ? "ON" : "OFF"}
                                 </button>
                                 <button
-                                    className={`planet-studio__toggle-btn ${visuals.showOrbitalAxes ? "planet-studio__toggle-btn--active" : ""
-                                        }`}
+                                    className={`planet-studio__toggle-btn ${
+                                        visuals.showOrbitalAxes
+                                            ? "planet-studio__toggle-btn--active"
+                                            : ""
+                                    }`}
                                     onClick={() => galaxyStore.toggleOrbitalAxes()}
                                     title="Toggle Polar Rotational Spin Axes"
                                 >
                                     Axes: {visuals.showOrbitalAxes ? "ON" : "OFF"}
-                                </button>
-                                <button
-                                    className="planet-studio__random-galaxy-btn"
-                                    onClick={handleRandomizeGalaxy}
-                                    title="Procedurally randomize all planets, biomes, orbits, and moons across the entire galaxy"
-                                >
-                                    <span>🎲</span>
-                                    <span>Random Galaxy</span>
                                 </button>
                                 <button
                                     className="planet-studio__data-btn"
@@ -382,7 +418,7 @@ export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
                                 </button>
                                 <button
                                     className="planet-studio__close-btn"
-                                    onClick={() => setIsOpen(false)}
+                                    onClick={requestClose}
                                     aria-label="Close"
                                 >
                                     &times;
@@ -409,22 +445,31 @@ export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
                                         onClick={handleRingToggle}
                                         style={{ flex: 1 }}
                                     >
-                                        {draftPlanet.ring ? "Remove Ring" : "Add Ring"}
+                                        {draftPlanet.ring
+                                            ? "Remove Ring"
+                                            : "Add Ring"}
                                     </button>
                                 </div>
 
                                 <div className="planet-studio__biomes">
-                                    <span className="planet-studio__section-label">Biome Presets</span>
+                                    <span className="planet-studio__section-label">
+                                        Biome Presets
+                                    </span>
                                     <div className="planet-studio__biome-grid">
                                         {BIOME_PRESETS.map((preset) => (
                                             <button
                                                 key={preset.id}
                                                 className="planet-studio__biome-chip"
-                                                onClick={() => handleSelectBiome(preset)}
+                                                onClick={() =>
+                                                    handleSelectBiome(preset)
+                                                }
                                             >
                                                 <span
                                                     className="planet-studio__biome-dot"
-                                                    style={{ background: preset.color }}
+                                                    style={{
+                                                        background:
+                                                            preset.color,
+                                                    }}
                                                 />
                                                 <span>{preset.name}</span>
                                             </button>
@@ -438,9 +483,14 @@ export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
                                     {EDITABLE_TARGETS.map((t) => (
                                         <button
                                             key={t.id}
-                                            className={`planet-studio__target-tab ${selectedId === t.id ? "planet-studio__target-tab--active" : ""
-                                                }`}
-                                            onClick={() => handleSelectTarget(t.id)}
+                                            className={`planet-studio__target-tab ${
+                                                selectedId === t.id
+                                                    ? "planet-studio__target-tab--active"
+                                                    : ""
+                                            }`}
+                                            onClick={() =>
+                                                handleSelectTarget(t.id)
+                                            }
                                         >
                                             {t.label}
                                         </button>
@@ -449,29 +499,44 @@ export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
 
                                 <div className="planet-studio__category-nav">
                                     <button
-                                        className={`planet-studio__category-btn ${activeTab === "terrain" ? "planet-studio__category-btn--active" : ""
-                                            }`}
+                                        className={`planet-studio__category-btn ${
+                                            activeTab === "terrain"
+                                                ? "planet-studio__category-btn--active"
+                                                : ""
+                                        }`}
                                         onClick={() => setActiveTab("terrain")}
                                     >
                                         Terrain
                                     </button>
                                     <button
-                                        className={`planet-studio__category-btn ${activeTab === "appearance" ? "planet-studio__category-btn--active" : ""
-                                            }`}
-                                        onClick={() => setActiveTab("appearance")}
+                                        className={`planet-studio__category-btn ${
+                                            activeTab === "appearance"
+                                                ? "planet-studio__category-btn--active"
+                                                : ""
+                                        }`}
+                                        onClick={() =>
+                                            setActiveTab("appearance")
+                                        }
                                     >
                                         Appearance
                                     </button>
                                     <button
-                                        className={`planet-studio__category-btn ${activeTab === "moons" ? "planet-studio__category-btn--active" : ""
-                                            }`}
+                                        className={`planet-studio__category-btn ${
+                                            activeTab === "moons"
+                                                ? "planet-studio__category-btn--active"
+                                                : ""
+                                        }`}
                                         onClick={() => setActiveTab("moons")}
                                     >
-                                        Moons ({(draftPlanet.children ?? []).length})
+                                        Moons (
+                                        {(draftPlanet.children ?? []).length})
                                     </button>
                                     <button
-                                        className={`planet-studio__category-btn ${activeTab === "orbit" ? "planet-studio__category-btn--active" : ""
-                                            }`}
+                                        className={`planet-studio__category-btn ${
+                                            activeTab === "orbit"
+                                                ? "planet-studio__category-btn--active"
+                                                : ""
+                                        }`}
                                         onClick={() => setActiveTab("orbit")}
                                     >
                                         Orbit &amp; Spin
@@ -482,16 +547,24 @@ export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
                                     {activeTab === "terrain" && (
                                         <TerrainPanel
                                             draftPlanet={draftPlanet}
-                                            onTerrainChange={handleTerrainChange}
+                                            onTerrainChange={
+                                                handleTerrainChange
+                                            }
                                         />
                                     )}
 
                                     {activeTab === "appearance" && (
                                         <AppearancePanel
                                             draftPlanet={draftPlanet}
-                                            onPaletteChange={handlePaletteChange}
-                                            onRingColorChange={handleRingColorChange}
-                                            onRingParamChange={handleRingParamChange}
+                                            onPaletteChange={
+                                                handlePaletteChange
+                                            }
+                                            onRingColorChange={
+                                                handleRingColorChange
+                                            }
+                                            onRingParamChange={
+                                                handleRingParamChange
+                                            }
                                         />
                                     )}
 
@@ -509,8 +582,10 @@ export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
                                     {activeTab === "orbit" && (
                                         <OrbitPanel
                                             draftPlanet={draftPlanet}
-                                            allPlanets={planets}
-                                            onOrbitalChange={handleOrbitalChange}
+                                            allPlanets={draftPlanets}
+                                            onOrbitalChange={
+                                                handleOrbitalChange
+                                            }
                                         />
                                     )}
                                 </div>
@@ -527,16 +602,16 @@ export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
                                 </button>
                                 <button
                                     className="planet-studio__btn planet-studio__btn--secondary planet-studio__btn--footer"
+                                    onClick={handleResetAll}
+                                >
+                                    Reset All Defaults
+                                </button>
+                                <button
+                                    className="planet-studio__btn planet-studio__btn--secondary planet-studio__btn--footer"
                                     onClick={handleRandomizeGalaxy}
                                     title="Procedurally randomize all planets, biomes, orbits, and moons across the entire galaxy"
                                 >
                                     🎲 Randomize Galaxy
-                                </button>
-                                <button
-                                    className="planet-studio__btn planet-studio__btn--secondary planet-studio__btn--footer"
-                                    onClick={handleResetAll}
-                                >
-                                    Reset All Defaults
                                 </button>
                             </div>
 
@@ -549,10 +624,49 @@ export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
                                 <button
                                     className="planet-studio__btn planet-studio__btn--primary planet-studio__btn--footer"
                                     onClick={handleApply}
+                                    disabled={!isDirty}
                                 >
                                     Apply to Galaxy
                                 </button>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {isConfirmCloseOpen && (
+                <div
+                    className="planet-studio__dialog-backdrop"
+                    onClick={() => setIsConfirmCloseOpen(false)}
+                >
+                    <div
+                        className="planet-studio__confirm-dialog"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="planet-studio__confirm-title">
+                            <span>⚠️</span>
+                            <span>Unsaved Changes</span>
+                        </div>
+                        <div className="planet-studio__confirm-text">
+                            You have unsaved modifications in Planet Lab. Are you sure you want to discard them and exit?
+                        </div>
+                        <div className="planet-studio__confirm-actions">
+                            <button
+                                className="planet-studio__btn planet-studio__btn--secondary"
+                                onClick={() => setIsConfirmCloseOpen(false)}
+                            >
+                                Keep Editing
+                            </button>
+                            <button
+                                className="planet-studio__btn planet-studio__btn--primary"
+                                style={{
+                                    background: "var(--destructive)",
+                                    borderColor: "var(--destructive)",
+                                }}
+                                onClick={handleConfirmDiscard}
+                            >
+                                Discard &amp; Exit
+                            </button>
                         </div>
                     </div>
                 </div>
