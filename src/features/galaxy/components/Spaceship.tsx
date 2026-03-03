@@ -272,12 +272,12 @@ export function Spaceship({ focusId, bodyRefs }: SpaceshipProps) {
             const desiredQuat = new THREE.Quaternion();
 
             if (isMidFlightRedirect.current) {
+                const startPt = midFlightStartPos.current;
+                const cp = calculateCruiseControlPoint(startPt, destApexWorld);
+
                 if (p < LANDING_PHASE_START) {
                     const u = p / LANDING_PHASE_START;
                     const s = u * u * (3 - 2 * u);
-
-                    const startPt = midFlightStartPos.current;
-                    const cp = calculateCruiseControlPoint(startPt, destApexWorld);
 
                     const oneMinusS = 1 - s;
                     const term1 = startPt.clone().multiplyScalar(oneMinusS * oneMinusS);
@@ -302,7 +302,7 @@ export function Spaceship({ focusId, bodyRefs }: SpaceshipProps) {
                         const blend = u / 0.25;
                         desiredQuat
                             .copy(midFlightStartQuat.current)
-                            .slerp(cruiseQuat, blend * blend);
+                            .slerp(cruiseQuat, blend * blend * (3 - 2 * blend));
                     } else if (u < 0.7) {
                         desiredQuat.copy(cruiseQuat);
                     } else {
@@ -320,14 +320,7 @@ export function Spaceship({ focusId, bodyRefs }: SpaceshipProps) {
                         eased
                     );
                     newPos.copy(localPos).applyMatrix4(destSurface.matrixWorld);
-
-                    const entryTangent = new THREE.Vector3()
-                        .subVectors(destApexWorld, calculateCruiseControlPoint(midFlightStartPos.current, destApexWorld))
-                        .normalize();
-                    const entryQuat = computeForwardRotation(entryTangent);
-
-                    const blend = Math.min(subP * 1.5, 1.0);
-                    desiredQuat.copy(entryQuat).slerp(destLandedWorldQuat, blend);
+                    desiredQuat.copy(destLandedWorldQuat);
                 }
             } else {
                 const originSurface = getSurfaceMesh(originPlanetId.current);
@@ -382,8 +375,13 @@ export function Spaceship({ focusId, bodyRefs }: SpaceshipProps) {
                         newPos.lerpVectors(flightStartPos.current, originApexWorld, eased);
                     }
 
-                    const blend = subP * subP;
-                    desiredQuat.copy(originLandedWorldQuat).slerp(departureQuat, blend);
+                    if (subP < 0.5) {
+                        desiredQuat.copy(originLandedWorldQuat);
+                    } else {
+                        const turnBlend = (subP - 0.5) / 0.5;
+                        const turnEased = turnBlend * turnBlend * (3 - 2 * turnBlend);
+                        desiredQuat.copy(originLandedWorldQuat).slerp(departureQuat, turnEased);
+                    }
                 } else if (p > LANDING_PHASE_START) {
                     const subP = (p - LANDING_PHASE_START) / (1 - LANDING_PHASE_START);
                     const eased = subP * subP * (3 - 2 * subP);
@@ -394,14 +392,7 @@ export function Spaceship({ focusId, bodyRefs }: SpaceshipProps) {
                         eased
                     );
                     newPos.copy(localPos).applyMatrix4(destSurface.matrixWorld);
-
-                    const entryTangent = new THREE.Vector3()
-                        .subVectors(destApexWorld, cp)
-                        .normalize();
-                    const entryQuat = computeForwardRotation(entryTangent);
-
-                    const blend = Math.min(subP * 1.5, 1.0);
-                    desiredQuat.copy(entryQuat).slerp(destLandedWorldQuat, blend);
+                    desiredQuat.copy(destLandedWorldQuat);
                 } else {
                     const u = (p - TAKEOFF_PHASE_END) / CRUISE_PHASE_RANGE;
                     const s = u * u * (3 - 2 * u);
@@ -436,7 +427,7 @@ export function Spaceship({ focusId, bodyRefs }: SpaceshipProps) {
             }
 
             groupRef.current.position.copy(newPos);
-            groupRef.current.quaternion.slerp(desiredQuat, Math.min(delta * 12, 1.0));
+            groupRef.current.quaternion.copy(desiredQuat);
 
             if (p >= 1.0) {
                 isFlying.current = false;
