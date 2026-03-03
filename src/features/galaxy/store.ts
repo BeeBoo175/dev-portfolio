@@ -6,7 +6,7 @@ const STORAGE_KEY = "portfolio_custom_planets_v1";
 const VISUALS_KEY = "portfolio_galaxy_visuals_v1";
 
 function cloneDefaultPlanets(): OrbitConfig[] {
-    return JSON.parse(JSON.stringify(ORBIT_LAYOUT));
+    return structuredClone(ORBIT_LAYOUT);
 }
 
 function loadPersistedPlanets(): OrbitConfig[] {
