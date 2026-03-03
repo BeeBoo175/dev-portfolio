@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import * as THREE from "three";
 
 interface OrbitalAxisLineProps {
@@ -27,6 +27,17 @@ export function OrbitalAxisLine({
         });
         return new THREE.Line(geometry, material);
     }, [radius, color, opacity]);
+
+    useEffect(() => {
+        return () => {
+            lineMesh.geometry.dispose();
+            if (Array.isArray(lineMesh.material)) {
+                lineMesh.material.forEach((m) => m.dispose());
+            } else {
+                lineMesh.material.dispose();
+            }
+        };
+    }, [lineMesh]);
 
     return <primitive object={lineMesh} />;
 }

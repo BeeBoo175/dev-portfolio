@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import * as THREE from "three";
 
 interface OrbitPathLineProps {
@@ -29,6 +29,17 @@ export function OrbitPathLine({
         });
         return new THREE.LineLoop(geometry, material);
     }, [radius, color, opacity, segments]);
+
+    useEffect(() => {
+        return () => {
+            lineLoopMesh.geometry.dispose();
+            if (Array.isArray(lineLoopMesh.material)) {
+                lineLoopMesh.material.forEach((m) => m.dispose());
+            } else {
+                lineLoopMesh.material.dispose();
+            }
+        };
+    }, [lineLoopMesh]);
 
     return <primitive object={lineLoopMesh} />;
 }
