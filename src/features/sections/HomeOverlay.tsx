@@ -20,17 +20,28 @@ function HomeOverlay({ onFocusChange, registerTrigger }: HomeOverlayProps) {
     const failsafeTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useLayoutEffect(() => {
-        if (hasMounted.current) return;
-        hasMounted.current = true;
-
         if ("scrollRestoration" in window.history) {
             window.history.scrollRestoration = "manual";
         }
 
-        const initialId = PATH_TO_ID[location.pathname] ?? "home";
-        sectionRefs.current[initialId]?.scrollIntoView({ behavior: "auto" });
-        onFocusChange(initialId);
-    }, []);
+        const targetId = PATH_TO_ID[location.pathname] ?? "home";
+        onFocusChange(targetId);
+
+        if (!hasMounted.current) {
+            hasMounted.current = true;
+            sectionRefs.current[targetId]?.scrollIntoView({ behavior: "auto" });
+        } else {
+            isProgrammaticScroll.current = true;
+            if (failsafeTimeout.current) {
+                clearTimeout(failsafeTimeout.current);
+            }
+            failsafeTimeout.current = setTimeout(() => {
+                isProgrammaticScroll.current = false;
+                failsafeTimeout.current = null;
+            }, PROGRAMMATIC_SCROLL_FAILSAFE_MS);
+            sectionRefs.current[targetId]?.scrollIntoView({ behavior: "smooth" });
+        }
+    }, [location.pathname, onFocusChange]);
 
     useEffect(() => {
         const observer = new IntersectionObserver(
