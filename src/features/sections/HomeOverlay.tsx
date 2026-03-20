@@ -1,10 +1,7 @@
-import { useEffect, useLayoutEffect, useRef } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { ALL_SECTIONS, PATH_TO_ID, SECTION_MAP } from "./data";
+import { ALL_SECTIONS } from "./data";
+import { useSectionScroll } from "./useSectionScroll";
 import type { SectionId } from "./types";
 import "./HomeOverlay.css";
-
-const PROGRAMMATIC_SCROLL_FAILSAFE_MS = 1500;
 
 export interface HomeOverlayProps {
     onFocusChange: (id: SectionId) => void;
@@ -12,102 +9,10 @@ export interface HomeOverlayProps {
 }
 
 function HomeOverlay({ onFocusChange, registerTrigger }: HomeOverlayProps) {
-    const navigate = useNavigate();
-    const location = useLocation();
-    const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
-    const hasMounted = useRef(false);
-    const isProgrammaticScroll = useRef(false);
-    const failsafeTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-    useLayoutEffect(() => {
-        if ("scrollRestoration" in window.history) {
-            window.history.scrollRestoration = "manual";
-        }
-
-        const targetId = PATH_TO_ID[location.pathname] ?? "home";
-
-        if (!hasMounted.current) {
-            hasMounted.current = true;
-            onFocusChange(targetId);
-            sectionRefs.current[targetId]?.scrollIntoView({ behavior: "auto" });
-        }
-    }, [location.pathname, onFocusChange]);
-
-    useEffect(() => {
-        const observer = new IntersectionObserver(
-            (entries) => {
-                if (
-                    isProgrammaticScroll.current ||
-                    document.documentElement.classList.contains("planet-studio-open")
-                ) {
-                    return;
-                }
-
-                const visible = entries
-                    .filter((entry) => entry.isIntersecting)
-                    .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
-
-                if (visible) {
-                    const id = visible.target.id as SectionId;
-                    onFocusChange(id);
-
-                    const path = SECTION_MAP[id]?.path;
-                    if (path && path !== location.pathname) {
-                        navigate(path, { replace: true });
-                    }
-                }
-            },
-            { threshold: 0.6 }
-        );
-
-        Object.values(sectionRefs.current).forEach((el) => {
-            if (el) observer.observe(el);
-        });
-
-        return () => observer.disconnect();
-    }, [onFocusChange, navigate, location.pathname]);
-
-    useEffect(() => {
-        const clearFailsafe = () => {
-            if (failsafeTimeout.current) {
-                clearTimeout(failsafeTimeout.current);
-                failsafeTimeout.current = null;
-            }
-        };
-
-        const handleScrollEnd = () => {
-            isProgrammaticScroll.current = false;
-            clearFailsafe();
-        };
-
-        window.addEventListener("scrollend", handleScrollEnd);
-        return () => {
-            window.removeEventListener("scrollend", handleScrollEnd);
-            clearFailsafe();
-        };
-    }, []);
-
-    useEffect(() => {
-        registerTrigger((id: SectionId) => {
-            isProgrammaticScroll.current = true;
-            onFocusChange(id);
-
-            if (failsafeTimeout.current) {
-                clearTimeout(failsafeTimeout.current);
-            }
-            failsafeTimeout.current = setTimeout(() => {
-                isProgrammaticScroll.current = false;
-                failsafeTimeout.current = null;
-            }, PROGRAMMATIC_SCROLL_FAILSAFE_MS);
-
-            sectionRefs.current[id]?.scrollIntoView({ behavior: "smooth" });
-
-            const section = SECTION_MAP[id];
-            if (section) {
-                navigate(section.path);
-            }
-        });
-    }, [registerTrigger, navigate, onFocusChange]);
+    const { sectionRefs, showScrollTop, scrollToTop } = useSectionScroll({
+        onFocusChange,
+        registerTrigger,
+    });
 
     return (
         <div className="sections-overlay">
@@ -128,6 +33,30 @@ function HomeOverlay({ onFocusChange, registerTrigger }: HomeOverlayProps) {
                     </div>
                 </section>
             ))}
+
+            <button
+                type="button"
+                className={`scroll-to-top ${showScrollTop ? "scroll-to-top--visible" : ""}`}
+                onClick={scrollToTop}
+                aria-label="Scroll to top"
+                title="Scroll to top"
+            >
+                <svg
+                    className="scroll-to-top__icon"
+                    width="22"
+                    height="22"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                >
+                    <line x1="12" y1="19" x2="12" y2="5" />
+                    <polyline points="5 12 12 5 19 12" />
+                </svg>
+            </button>
         </div>
     );
 }
