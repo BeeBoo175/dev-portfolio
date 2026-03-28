@@ -8,7 +8,7 @@ const ORBIT_DISTANCE = Math.hypot(RADIAL_OFFSET, HEIGHT_OFFSET);
 const HOME_RADIAL = 52;
 const HOME_HEIGHT = 30;
 const HOME_DISTANCE = Math.hypot(HOME_RADIAL, HOME_HEIGHT);
-const HOME_THETA = 0;
+const HOME_ORBIT_SPEED = -0.045;
 const FIXED_POLAR_ANGLE = Math.PI / 2 - 0.35;
 const TRANSITION_DURATION = 0.6;
 
@@ -35,6 +35,7 @@ export function CameraRig({ focusId, centralId, bodyRefs }: CameraRigProps) {
     const currentTargetPos = useRef(new THREE.Vector3());
     const currentLookTarget = useRef(new THREE.Vector3());
     const desiredPos = useRef(new THREE.Vector3());
+    const homeTheta = useRef(0);
 
     const isTransitioning = useRef(false);
     const transitionElapsed = useRef(0);
@@ -49,6 +50,7 @@ export function CameraRig({ focusId, centralId, bodyRefs }: CameraRigProps) {
 
         if (isHome) {
             currentTargetPos.current.set(0, 0, 0);
+            homeTheta.current += HOME_ORBIT_SPEED * frameDelta;
         } else {
             const planetGroup = bodyRefs.current?.[focusId];
             if (planetGroup) {
@@ -68,7 +70,7 @@ export function CameraRig({ focusId, centralId, bodyRefs }: CameraRigProps) {
 
         const distance = isHome ? HOME_DISTANCE : ORBIT_DISTANCE;
         const theta = isHome
-            ? HOME_THETA
+            ? homeTheta.current
             : Math.atan2(currentTargetPos.current.x, currentTargetPos.current.z);
 
         desiredPos.current
@@ -112,3 +114,4 @@ export function CameraRig({ focusId, centralId, bodyRefs }: CameraRigProps) {
 }
 
 export default CameraRig;
+
