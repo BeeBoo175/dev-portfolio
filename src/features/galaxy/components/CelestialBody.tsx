@@ -6,6 +6,7 @@ import { useGalaxyVisuals } from "../store";
 import LowPolyPlanet from "./LowPolyPlanet";
 import OrbitPathLine from "./OrbitPathLine";
 import OrbitalAxisLine from "./OrbitalAxisLine";
+import SunGlow from "./SunGlow";
 
 export interface CelestialBodyProps {
     body: OrbitConfig;
@@ -82,12 +83,18 @@ export const CelestialBody = forwardRef<THREE.Group, CelestialBodyProps>(
                         </group>
 
                         {isSun && (
-                            <pointLight
-                                color={effectiveColor}
-                                intensity={6}
-                                distance={0}
-                                decay={0}
-                            />
+                            <>
+                                <pointLight
+                                    color={effectiveColor}
+                                    intensity={6}
+                                    distance={0}
+                                    decay={0}
+                                />
+                                <SunGlow
+                                    radius={body.radius}
+                                    color={effectiveColor}
+                                />
+                            </>
                         )}
 
                         {body.children?.map((child) => (
