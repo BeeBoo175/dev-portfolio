@@ -1,12 +1,17 @@
 import { useSyncExternalStore } from "react";
-import type { GalaxyVisualSettings, OrbitConfig } from "./types";
-import { ORBIT_LAYOUT } from "./data";
+import type { AsteroidBeltConfig, GalaxyVisualSettings, OrbitConfig } from "./types";
+import { DEFAULT_ASTEROID_BELT, ORBIT_LAYOUT } from "./data";
 
 const STORAGE_KEY = "portfolio_custom_planets_v1";
 const VISUALS_KEY = "portfolio_galaxy_visuals_v1";
+const ASTEROID_BELT_KEY = "portfolio_asteroid_belt_v1";
 
 function cloneDefaultPlanets(): OrbitConfig[] {
     return structuredClone(ORBIT_LAYOUT);
+}
+
+function cloneDefaultAsteroidBelt(): AsteroidBeltConfig {
+    return structuredClone(DEFAULT_ASTEROID_BELT);
 }
 
 function loadPersistedPlanets(): OrbitConfig[] {
@@ -26,6 +31,19 @@ function loadPersistedPlanets(): OrbitConfig[] {
     }
 }
 
+function loadPersistedAsteroidBelt(): AsteroidBeltConfig {
+    try {
+        const raw = localStorage.getItem(ASTEROID_BELT_KEY);
+        if (raw) {
+            const parsed = JSON.parse(raw);
+            return { ...cloneDefaultAsteroidBelt(), ...parsed };
+        }
+    } catch {
+        // Ignored
+    }
+    return cloneDefaultAsteroidBelt();
+}
+
 function loadPersistedVisuals(): GalaxyVisualSettings {
     try {
         const raw = localStorage.getItem(VISUALS_KEY);
@@ -38,11 +56,16 @@ function loadPersistedVisuals(): GalaxyVisualSettings {
 
 class GalaxyStore {
     private planets: OrbitConfig[] = loadPersistedPlanets();
+    private asteroidBelt: AsteroidBeltConfig = loadPersistedAsteroidBelt();
     private visuals: GalaxyVisualSettings = loadPersistedVisuals();
     private listeners = new Set<() => void>();
 
     getSnapshot = () => {
         return this.planets;
+    };
+
+    getAsteroidBeltSnapshot = () => {
+        return this.asteroidBelt;
     };
 
     getVisualsSnapshot = () => {
@@ -59,6 +82,7 @@ class GalaxyStore {
     private notify() {
         try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(this.planets));
+            localStorage.setItem(ASTEROID_BELT_KEY, JSON.stringify(this.asteroidBelt));
             localStorage.setItem(VISUALS_KEY, JSON.stringify(this.visuals));
         } catch {
             // Ignored
@@ -83,8 +107,21 @@ class GalaxyStore {
         this.notify();
     }
 
+    updateAsteroidBelt(updates: Partial<AsteroidBeltConfig>) {
+        this.asteroidBelt = {
+            ...this.asteroidBelt,
+            ...updates,
+        };
+        this.notify();
+    }
+
     setPlanets(newPlanets: OrbitConfig[]) {
         this.planets = newPlanets;
+        this.notify();
+    }
+
+    setAsteroidBelt(newBelt: AsteroidBeltConfig) {
+        this.asteroidBelt = newBelt;
         this.notify();
     }
 
@@ -97,11 +134,18 @@ class GalaxyStore {
         this.notify();
     }
 
+    resetAsteroidBelt() {
+        this.asteroidBelt = cloneDefaultAsteroidBelt();
+        this.notify();
+    }
+
     resetAll() {
         this.planets = cloneDefaultPlanets();
+        this.asteroidBelt = cloneDefaultAsteroidBelt();
         this.visuals = { showOrbitPaths: true, showOrbitalAxes: false };
         try {
             localStorage.removeItem(STORAGE_KEY);
+            localStorage.removeItem(ASTEROID_BELT_KEY);
             localStorage.removeItem(VISUALS_KEY);
         } catch {
             // Ignored
@@ -125,16 +169,33 @@ class GalaxyStore {
     }
 
     exportJSON(): string {
-        return JSON.stringify(this.planets, null, 2);
+        return JSON.stringify(
+            {
+                planets: this.planets,
+                asteroidBelt: this.asteroidBelt,
+            },
+            null,
+            2
+        );
     }
 
     importJSON(jsonString: string): boolean {
         try {
             const parsed = JSON.parse(jsonString);
-            if (!Array.isArray(parsed)) return false;
-            this.planets = parsed;
-            this.notify();
-            return true;
+            if (Array.isArray(parsed)) {
+                this.planets = parsed;
+                this.notify();
+                return true;
+            }
+            if (parsed && typeof parsed === "object" && Array.isArray(parsed.planets)) {
+                this.planets = parsed.planets;
+                if (parsed.asteroidBelt && typeof parsed.asteroidBelt === "object") {
+                    this.asteroidBelt = { ...cloneDefaultAsteroidBelt(), ...parsed.asteroidBelt };
+                }
+                this.notify();
+                return true;
+            }
+            return false;
         } catch {
             return false;
         }
@@ -147,6 +208,11 @@ export function useGalaxyPlanets(): OrbitConfig[] {
     return useSyncExternalStore(galaxyStore.subscribe, galaxyStore.getSnapshot);
 }
 
+export function useGalaxyAsteroidBelt(): AsteroidBeltConfig {
+    return useSyncExternalStore(galaxyStore.subscribe, galaxyStore.getAsteroidBeltSnapshot);
+}
+
 export function useGalaxyVisuals(): GalaxyVisualSettings {
     return useSyncExternalStore(galaxyStore.subscribe, galaxyStore.getVisualsSnapshot);
 }
+

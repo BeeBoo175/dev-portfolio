@@ -1,4 +1,19 @@
-import type { OrbitConfig } from "./types";
+import type { AsteroidBeltConfig, OrbitConfig } from "./types";
+ 
+export const DEFAULT_ASTEROID_BELT: AsteroidBeltConfig = {
+    enabled: true,
+    innerRadius: 13.6,
+    outerRadius: 16.2,
+    count: 450,
+    minSize: 0.05,
+    maxSize: 0.16,
+    orbitSpeed: 0.09,
+    heightSpread: 0.6,
+    inclination: 0.035,
+    color: "#9ca3af",
+    secondaryColor: "#57534e",
+    seed: 101,
+};
 
 export const CENTRAL_BODY: OrbitConfig = {
     id: "home",
@@ -15,13 +30,13 @@ export const CENTRAL_BODY: OrbitConfig = {
 
 export const ORBIT_LAYOUT: OrbitConfig[] = [
     {
-        id: "about", // Mercury analog: steepest orbital tilt (~7 degrees)
+        id: "about",
         radius: 1.0,
         rotationSpeed: 0.5,
         orbitRadius: 7.0,
         orbitSpeed: 0.23,
         initialAngle: 0,
-        orbitInclination: 0.122, // ~7.0°
+        orbitInclination: 0.122,
         axialTilt: 0.001,
         color: "#5da9ff",
         terrain: {
@@ -45,7 +60,7 @@ export const ORBIT_LAYOUT: OrbitConfig[] = [
                 rotationSpeed: 0.5,
                 orbitRadius: 2.2,
                 orbitSpeed: 0.93,
-                orbitInclination: 0.087, // ~5.0° (like Earth's Moon relative to ecliptic)
+                orbitInclination: 0.087,
                 axialTilt: 0.026,
                 color: "#cbd5e1",
                 terrain: {
@@ -64,14 +79,14 @@ export const ORBIT_LAYOUT: OrbitConfig[] = [
         ],
     },
     {
-        id: "skills", // Venus analog: slight tilt (~3.4 degrees)
+        id: "skills",
         radius: 1.1,
         rotationSpeed: 0.4,
         orbitRadius: 11.0,
         orbitSpeed: 0.137,
         initialAngle: (2 * Math.PI) / 3,
-        orbitInclination: 0.059, // ~3.39°
-        axialTilt: 3.09, // Extreme retrograde tilt like Venus (~177°)
+        orbitInclination: 0.059,
+        axialTilt: 3.09,
         color: "#ffb15d",
         terrain: {
             seed: 34,
@@ -89,14 +104,14 @@ export const ORBIT_LAYOUT: OrbitConfig[] = [
         },
     },
     {
-        id: "projects", // Jupiter analog: almost flat plane (~1.3 degrees)
+        id: "projects",
         radius: 1.5,
         rotationSpeed: 0.3,
         orbitRadius: 18.0,
         orbitSpeed: 0.071,
         initialAngle: (4 * Math.PI) / 3,
-        orbitInclination: 0.023, // ~1.30°
-        axialTilt: 0.054, // ~3.13°
+        orbitInclination: 0.023,
+        axialTilt: 0.054,
         color: "#7dff9c",
         terrain: {
             seed: 73,
@@ -126,7 +141,7 @@ export const ORBIT_LAYOUT: OrbitConfig[] = [
                 rotationSpeed: 0.7,
                 orbitRadius: 4.2,
                 orbitSpeed: 0.77,
-                orbitInclination: 0.008, // ~0.47° (Io-like tight coplanar orbit)
+                orbitInclination: 0.008,
                 axialTilt: 0.0,
                 color: "#94a3b8",
                 terrain: {
@@ -148,7 +163,7 @@ export const ORBIT_LAYOUT: OrbitConfig[] = [
                 rotationSpeed: 1,
                 orbitRadius: 5.0,
                 orbitSpeed: 0.43,
-                orbitInclination: 0.003, // ~0.18° (Europa-like)
+                orbitInclination: 0.003,
                 axialTilt: 0.0,
                 color: "#64748b",
                 terrain: {
@@ -167,14 +182,14 @@ export const ORBIT_LAYOUT: OrbitConfig[] = [
         ],
     },
     {
-        id: "contact", // Neptune/Saturn analog: slight tilt (~2 degrees)
+        id: "contact",
         radius: 1.0,
         rotationSpeed: 0.6,
         orbitRadius: 28.0,
         orbitSpeed: 0.039,
         initialAngle: Math.PI / 2,
-        orbitInclination: 0.031, // ~1.77°
-        axialTilt: 0.494, // ~28.3° (Saturn/Neptune-like axial tilt)
+        orbitInclination: 0.031,
+        axialTilt: 0.494,
         color: "#ff5d8f",
         terrain: {
             seed: 88,
@@ -215,4 +230,4 @@ export const ORBIT_LAYOUT: OrbitConfig[] = [
             },
         ],
     },
-];
+];

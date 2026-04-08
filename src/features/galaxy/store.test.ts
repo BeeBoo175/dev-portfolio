@@ -57,4 +57,31 @@ describe("galaxyStore", () => {
         const resetPlanet = planets.find((p) => p.id === ORBIT_LAYOUT[1].id);
         expect(resetPlanet?.radius).toBe(ORBIT_LAYOUT[1].radius);
     });
+
+    it("updates and resets asteroid belt configuration", () => {
+        galaxyStore.updateAsteroidBelt({ count: 620, innerRadius: 14.5 });
+        let belt = galaxyStore.getAsteroidBeltSnapshot();
+        expect(belt.count).toBe(620);
+        expect(belt.innerRadius).toBe(14.5);
+
+        galaxyStore.resetAsteroidBelt();
+        belt = galaxyStore.getAsteroidBeltSnapshot();
+        expect(belt.count).toBe(450);
+        expect(belt.innerRadius).toBe(13.6);
+    });
+
+    it("exports and imports galaxy data including asteroid belt", () => {
+        galaxyStore.updateAsteroidBelt({ count: 580, color: "#112233" });
+        const exported = galaxyStore.exportJSON();
+        expect(exported).toContain('"count": 580');
+
+        galaxyStore.resetAll();
+        expect(galaxyStore.getAsteroidBeltSnapshot().count).toBe(450);
+
+        const success = galaxyStore.importJSON(exported);
+        expect(success).toBe(true);
+        expect(galaxyStore.getAsteroidBeltSnapshot().count).toBe(580);
+        expect(galaxyStore.getAsteroidBeltSnapshot().color).toBe("#112233");
+    });
 });
+

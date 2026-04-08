@@ -2,11 +2,12 @@ import { useState, useRef, useEffect, useLayoutEffect } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import type { OrbitConfig } from "../../galaxy";
-import { LowPolyPlanet, OrbitPathLine, OrbitalAxisLine, useGalaxyVisuals } from "../../galaxy";
+import type { AsteroidBeltConfig, OrbitConfig } from "../../galaxy";
+import { AsteroidBelt, LowPolyPlanet, OrbitPathLine, OrbitalAxisLine, useGalaxyVisuals } from "../../galaxy";
 
 export interface PlanetPreviewCanvasProps {
-    planet: OrbitConfig;
+    planet?: OrbitConfig;
+    asteroidBelt?: AsteroidBeltConfig;
     resetNonce?: number;
 }
 
@@ -174,19 +175,30 @@ function dollyPreview(controls: OrbitControls | null, factor: number) {
     controls.update();
 }
 
-export function PlanetPreviewCanvas({ planet, resetNonce = 0 }: PlanetPreviewCanvasProps) {
+export function PlanetPreviewCanvas({
+    planet,
+    asteroidBelt,
+    resetNonce = 0,
+}: PlanetPreviewCanvasProps) {
     const [internalResetNonce, setInternalResetNonce] = useState(0);
     const controlsRef = useRef<OrbitControls | null>(null);
 
     const effectiveResetNonce = resetNonce + internalResetNonce;
 
-    const maxChildOrbit = (planet.children ?? []).reduce(
+    const isBeltMode = Boolean(asteroidBelt && !planet);
+
+    const maxChildOrbit = (planet?.children ?? []).reduce(
         (acc, c) => Math.max(acc, (c.orbitRadius ?? 0) + c.radius),
         0
     );
-    const maxRingOrbit = planet.ring?.outerRadius ?? 0;
-    const effectiveBound = Math.max(planet.radius ?? 1, maxChildOrbit * 0.72, maxRingOrbit * 0.65);
-    const baseDistance = Math.max(3.6, effectiveBound * 2.8);
+    const maxRingOrbit = planet?.ring?.outerRadius ?? 0;
+    const effectiveBound = isBeltMode
+        ? asteroidBelt?.outerRadius ?? 16
+        : Math.max(planet?.radius ?? 1, maxChildOrbit * 0.72, maxRingOrbit * 0.65);
+
+    const baseDistance = isBeltMode
+        ? Math.max(8.0, effectiveBound * 1.85)
+        : Math.max(3.6, effectiveBound * 2.8);
 
     return (
         <div
@@ -195,12 +207,16 @@ export function PlanetPreviewCanvas({ planet, resetNonce = 0 }: PlanetPreviewCan
         >
             <Canvas
                 camera={{
-                    position: [0, baseDistance * Math.sin(DEFAULT_PITCH), baseDistance * Math.cos(DEFAULT_PITCH)],
+                    position: [
+                        0,
+                        baseDistance * Math.sin(isBeltMode ? 0.45 : DEFAULT_PITCH),
+                        baseDistance * Math.cos(isBeltMode ? 0.45 : DEFAULT_PITCH),
+                    ],
                     fov: 45,
                 }}
                 style={{ width: "100%", height: "100%", borderRadius: "var(--radius-md)" }}
             >
-                <ambientLight intensity={0.25} />
+                <ambientLight intensity={0.3} />
                 <directionalLight position={[6, 8, 5]} intensity={3.0} />
                 <directionalLight position={[-6, -4, -5]} intensity={0.4} color="#93c5fd" />
                 <PreviewOrbitControls
@@ -208,7 +224,17 @@ export function PlanetPreviewCanvas({ planet, resetNonce = 0 }: PlanetPreviewCan
                     resetNonce={effectiveResetNonce}
                     controlsRef={controlsRef}
                 />
-                <RotatingPlanet planet={planet} />
+                {isBeltMode && asteroidBelt ? (
+                    <>
+                        <mesh>
+                            <sphereGeometry args={[2.0, 24, 24]} />
+                            <meshBasicMaterial color="#ffd76b" />
+                        </mesh>
+                        <AsteroidBelt config={asteroidBelt} />
+                    </>
+                ) : (
+                    planet && <RotatingPlanet planet={planet} />
+                )}
             </Canvas>
 
             <div className="planet-studio__zoom-overlay">
