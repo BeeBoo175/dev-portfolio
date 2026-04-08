@@ -38,6 +38,21 @@ export interface OrbitConfig {
     children?: OrbitConfig[];
 }
 
+export interface AsteroidBeltConfig {
+    enabled: boolean;
+    innerRadius: number;
+    outerRadius: number;
+    count: number;
+    minSize: number;
+    maxSize: number;
+    orbitSpeed: number;
+    heightSpread: number;
+    inclination?: number;
+    color?: string;
+    secondaryColor?: string;
+    seed?: number;
+}
+
 export interface GalaxyVisualSettings {
     showOrbitPaths: boolean;
     showOrbitalAxes: boolean;

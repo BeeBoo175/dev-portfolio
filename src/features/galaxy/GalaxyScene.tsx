@@ -4,8 +4,9 @@ import * as THREE from "three";
 import CelestialBody from "./components/CelestialBody";
 import CameraRig from "./components/CameraRig";
 import Spaceship from "./components/Spaceship";
+import AsteroidBelt from "./components/AsteroidBelt";
 import { CENTRAL_BODY } from "./data";
-import { useGalaxyPlanets } from "./store";
+import { useGalaxyAsteroidBelt, useGalaxyPlanets } from "./store";
 
 export interface GalaxySceneProps {
     focusId: string;
@@ -74,6 +75,7 @@ function CameraFillLight({
 function GalaxyScene({ focusId, onSelect }: GalaxySceneProps) {
     const bodyRefs = useRef<Record<string, THREE.Group | null>>({});
     const planets = useGalaxyPlanets();
+    const asteroidBelt = useGalaxyAsteroidBelt();
 
     return (
         <Canvas
@@ -88,6 +90,8 @@ function GalaxyScene({ focusId, onSelect }: GalaxySceneProps) {
                 isSun
                 onSelect={onSelect}
             />
+
+            <AsteroidBelt config={asteroidBelt} />
 
             {planets.map((body) => (
                 <CelestialBody

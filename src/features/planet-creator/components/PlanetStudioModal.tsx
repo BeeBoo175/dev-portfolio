@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
-import type { OrbitConfig, PaletteConfig } from "../../galaxy";
+import type { AsteroidBeltConfig, OrbitConfig, PaletteConfig } from "../../galaxy";
 import {
     galaxyStore,
     useGalaxyPlanets,
+    useGalaxyAsteroidBelt,
     useGalaxyVisuals,
+    DEFAULT_ASTEROID_BELT,
     ORBIT_LAYOUT,
     detectAllGalaxyCollisions,
     resolveGalaxyCollisions,
@@ -14,6 +16,7 @@ import TerrainPanel from "./TerrainPanel";
 import AppearancePanel from "./AppearancePanel";
 import MoonsPanel from "./MoonsPanel";
 import OrbitPanel from "./OrbitPanel";
+import AsteroidBeltPanel from "./AsteroidBeltPanel";
 import GalaxyDataDialog from "./GalaxyDataDialog";
 import "../PlanetStudio.css";
 
@@ -22,6 +25,7 @@ const EDITABLE_TARGETS = [
     { id: "skills", label: "Skills" },
     { id: "projects", label: "Projects" },
     { id: "contact", label: "Contact" },
+    { id: "asteroid-belt", label: "Asteroid Belt" },
 ];
 
 type CategoryTab = "terrain" | "appearance" | "moons" | "orbit";
@@ -33,13 +37,17 @@ export interface PlanetStudioModalProps {
 export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
     const [isOpen, setIsOpen] = useState(false);
     const planets = useGalaxyPlanets();
+    const asteroidBelt = useGalaxyAsteroidBelt();
     const visuals = useGalaxyVisuals();
 
     const [draftPlanets, setDraftPlanets] = useState<OrbitConfig[]>(() =>
         JSON.parse(JSON.stringify(planets))
     );
+    const [draftBelt, setDraftBelt] = useState<AsteroidBeltConfig>(() =>
+        JSON.parse(JSON.stringify(asteroidBelt))
+    );
     const [savedSnapshot, setSavedSnapshot] = useState<string>(() =>
-        JSON.stringify(planets)
+        JSON.stringify({ planets, asteroidBelt })
     );
     const [selectedId, setSelectedId] = useState<string>("about");
     const [activeTab, setActiveTab] = useState<CategoryTab>("terrain");
@@ -50,7 +58,8 @@ export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
     const [toastMessage, setToastMessage] = useState<string | null>(null);
     const [importJsonText, setImportJsonText] = useState("");
 
-    const isDirty = JSON.stringify(draftPlanets) !== savedSnapshot;
+    const isBeltSelected = selectedId === "asteroid-belt";
+    const isDirty = JSON.stringify({ planets: draftPlanets, asteroidBelt: draftBelt }) !== savedSnapshot;
     const draftPlanet =
         draftPlanets.find((p) => p.id === selectedId) ?? draftPlanets[0];
     const allGalaxyWarnings = detectAllGalaxyCollisions(draftPlanets);
@@ -101,9 +110,11 @@ export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
     }, [isOpen, isDirty, isConfirmCloseOpen, isDataModalOpen]);
 
     const handleOpen = () => {
-        const fresh = JSON.parse(JSON.stringify(planets));
-        setDraftPlanets(fresh);
-        setSavedSnapshot(JSON.stringify(planets));
+        const freshPlanets = JSON.parse(JSON.stringify(planets));
+        const freshBelt = JSON.parse(JSON.stringify(asteroidBelt));
+        setDraftPlanets(freshPlanets);
+        setDraftBelt(freshBelt);
+        setSavedSnapshot(JSON.stringify({ planets, asteroidBelt }));
         const targetId =
             focusId && EDITABLE_TARGETS.some((t) => t.id === focusId)
                 ? focusId
@@ -125,7 +136,7 @@ export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
         return () => clearTimeout(timer);
     }, [toastMessage]);
 
-    if (!draftPlanet && isOpen) return null;
+    if ((!draftPlanet && !isBeltSelected) && isOpen) return null;
 
     const handleRandomize = () => {
         const { terrain, palette, color } = generateRandomTerrain();
@@ -324,11 +335,17 @@ export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
 
     const handleApply = () => {
         galaxyStore.setPlanets(draftPlanets);
-        setSavedSnapshot(JSON.stringify(draftPlanets));
+        galaxyStore.setAsteroidBelt(draftBelt);
+        setSavedSnapshot(JSON.stringify({ planets: draftPlanets, asteroidBelt: draftBelt }));
         setToastMessage("Applied changes to Galaxy!");
     };
 
     const handleReset = () => {
+        if (isBeltSelected) {
+            setDraftBelt(JSON.parse(JSON.stringify(DEFAULT_ASTEROID_BELT)));
+            setToastMessage("Reset ASTEROID BELT to defaults (Unsaved)");
+            return;
+        }
         const defaultPlanet = ORBIT_LAYOUT.find((p) => p.id === selectedId);
         if (defaultPlanet) {
             updateDraftPlanet(() => JSON.parse(JSON.stringify(defaultPlanet)));
@@ -338,12 +355,19 @@ export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
 
     const handleResetAll = () => {
         setDraftPlanets(JSON.parse(JSON.stringify(ORBIT_LAYOUT)));
-        setToastMessage("Reset all planets to defaults (Unsaved)");
+        setDraftBelt(JSON.parse(JSON.stringify(DEFAULT_ASTEROID_BELT)));
+        setToastMessage("Reset all planets and asteroid belt to defaults (Unsaved)");
     };
 
     const handleRandomizeGalaxy = () => {
         const randomized = generateRandomGalaxy(draftPlanets);
         setDraftPlanets(randomized);
+        setDraftBelt((prev) => ({
+            ...prev,
+            seed: Math.floor(Math.random() * 9999),
+            orbitSpeed: Number((Math.random() * 0.08 + 0.05).toFixed(2)),
+            inclination: Number(((Math.random() - 0.5) * 0.1).toFixed(3)),
+        }));
         setToastMessage("Galaxy randomized! Click Apply to save.");
     };
 
@@ -358,7 +382,14 @@ export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
     };
 
     const handleExportJSON = () => {
-        const json = JSON.stringify(draftPlanets, null, 2);
+        const json = JSON.stringify(
+            {
+                planets: draftPlanets,
+                asteroidBelt: draftBelt,
+            },
+            null,
+            2
+        );
         navigator.clipboard.writeText(json);
         setToastMessage("Draft Galaxy JSON copied to clipboard");
     };
@@ -367,15 +398,25 @@ export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
         if (!importJsonText.trim()) return;
         const success = galaxyStore.importJSON(importJsonText);
         if (success) {
-            const imported = galaxyStore.getSnapshot();
-            setDraftPlanets(JSON.parse(JSON.stringify(imported)));
-            setSavedSnapshot(JSON.stringify(imported));
+            const importedPlanets = galaxyStore.getSnapshot();
+            const importedBelt = galaxyStore.getAsteroidBeltSnapshot();
+            setDraftPlanets(JSON.parse(JSON.stringify(importedPlanets)));
+            setDraftBelt(JSON.parse(JSON.stringify(importedBelt)));
+            setSavedSnapshot(JSON.stringify({ planets: importedPlanets, asteroidBelt: importedBelt }));
             setToastMessage("Galaxy JSON imported successfully");
             setImportJsonText("");
             setIsDataModalOpen(false);
         } else {
             setToastMessage("Invalid JSON format");
         }
+    };
+
+    const handleBeltChange = (updates: Partial<AsteroidBeltConfig>) => {
+        setDraftBelt((prev) => ({ ...prev, ...updates }));
+    };
+
+    const handleRandomizeBeltSeed = () => {
+        setDraftBelt((prev) => ({ ...prev, seed: Math.floor(Math.random() * 9999) }));
     };
 
     return (
@@ -452,59 +493,95 @@ export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
                         <div className="planet-studio__body">
                             <div className="planet-studio__preview-pane">
                                 <div className="planet-studio__canvas-wrapper">
-                                    <PlanetPreviewCanvas planet={draftPlanet} />
+                                    {isBeltSelected ? (
+                                        <PlanetPreviewCanvas asteroidBelt={draftBelt} />
+                                    ) : (
+                                        <PlanetPreviewCanvas planet={draftPlanet} />
+                                    )}
                                 </div>
 
-                                <div className="planet-studio__quick-actions">
-                                    <button
-                                        className="planet-studio__btn planet-studio__btn--primary"
-                                        onClick={handleRandomize}
-                                        style={{ flex: 1 }}
-                                    >
-                                        Roll Random
-                                    </button>
-                                    <button
-                                        className="planet-studio__btn planet-studio__btn--secondary"
-                                        onClick={handleRingToggle}
-                                        style={{ flex: 1 }}
-                                    >
-                                        {draftPlanet.ring
-                                            ? "Remove Ring"
-                                            : "Add Ring"}
-                                    </button>
-                                </div>
-
-                                <div className="planet-studio__biomes">
-                                    <span className="planet-studio__section-label">
-                                        Biome Presets
-                                    </span>
-                                    <div className="planet-studio__biome-grid">
-                                        {BIOME_PRESETS.map((preset) => (
+                                {!isBeltSelected && (
+                                    <>
+                                        <div className="planet-studio__quick-actions">
                                             <button
-                                                key={preset.id}
-                                                className="planet-studio__biome-chip"
+                                                className="planet-studio__btn planet-studio__btn--primary"
+                                                onClick={handleRandomize}
+                                                style={{ flex: 1 }}
+                                            >
+                                                Roll Random
+                                            </button>
+                                            <button
+                                                className="planet-studio__btn planet-studio__btn--secondary"
+                                                onClick={handleRingToggle}
+                                                style={{ flex: 1 }}
+                                            >
+                                                {draftPlanet.ring
+                                                    ? "Remove Ring"
+                                                    : "Add Ring"}
+                                            </button>
+                                        </div>
+
+                                        <div className="planet-studio__biomes">
+                                            <span className="planet-studio__section-label">
+                                                Biome Presets
+                                            </span>
+                                            <div className="planet-studio__biome-grid">
+                                                {BIOME_PRESETS.map((preset) => (
+                                                    <button
+                                                        key={preset.id}
+                                                        className="planet-studio__biome-chip"
+                                                        onClick={() =>
+                                                            handleSelectBiome(preset)
+                                                        }
+                                                    >
+                                                        <span
+                                                            className="planet-studio__biome-dot"
+                                                            style={{
+                                                                background:
+                                                                    preset.color,
+                                                            }}
+                                                        />
+                                                        <span>{preset.name}</span>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
+
+                                {isBeltSelected && (
+                                    <div className="planet-studio__biomes">
+                                        <span className="planet-studio__section-label">
+                                            Belt Quick Actions
+                                        </span>
+                                        <div style={{ display: "flex", gap: "8px" }}>
+                                            <button
+                                                className="planet-studio__btn planet-studio__btn--secondary"
+                                                style={{ flex: 1 }}
+                                                onClick={handleRandomizeBeltSeed}
+                                            >
+                                                Re-randomize Seed
+                                            </button>
+                                            <button
+                                                className="planet-studio__btn planet-studio__btn--secondary"
+                                                style={{ flex: 1 }}
                                                 onClick={() =>
-                                                    handleSelectBiome(preset)
+                                                    handleBeltChange({
+                                                        enabled: !draftBelt.enabled,
+                                                    })
                                                 }
                                             >
-                                                <span
-                                                    className="planet-studio__biome-dot"
-                                                    style={{
-                                                        background:
-                                                            preset.color,
-                                                    }}
-                                                />
-                                                <span>{preset.name}</span>
+                                                {draftBelt.enabled ? "Disable Belt" : "Enable Belt"}
                                             </button>
-                                        ))}
+                                        </div>
                                     </div>
-                                </div>
+                                )}
                             </div>
 
                             <div className="planet-studio__controls-pane">
                                 <div className="planet-studio__target-tabs">
                                     {EDITABLE_TARGETS.map((t) => {
-                                        const isWarned = allGalaxyWarnings.some(
+                                        const isWarned = !isBeltSelected && allGalaxyWarnings.some(
                                             (w) =>
                                                 w.id.toLowerCase().includes(t.id) ||
                                                 w.description.toLowerCase().includes(t.id)
@@ -565,93 +642,105 @@ export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
                                     </div>
                                 )}
 
-                                <div className="planet-studio__category-nav">
-                                    <button
-                                        className={`planet-studio__category-btn ${activeTab === "terrain"
-                                                ? "planet-studio__category-btn--active"
-                                                : ""
-                                            }`}
-                                        onClick={() => setActiveTab("terrain")}
-                                    >
-                                        Terrain
-                                    </button>
-                                    <button
-                                        className={`planet-studio__category-btn ${activeTab === "appearance"
-                                                ? "planet-studio__category-btn--active"
-                                                : ""
-                                            }`}
-                                        onClick={() =>
-                                            setActiveTab("appearance")
-                                        }
-                                    >
-                                        Appearance
-                                    </button>
-                                    <button
-                                        className={`planet-studio__category-btn ${activeTab === "moons"
-                                                ? "planet-studio__category-btn--active"
-                                                : ""
-                                            }`}
-                                        onClick={() => setActiveTab("moons")}
-                                    >
-                                        Moons (
-                                        {(draftPlanet.children ?? []).length})
-                                    </button>
-                                    <button
-                                        className={`planet-studio__category-btn ${activeTab === "orbit"
-                                                ? "planet-studio__category-btn--active"
-                                                : ""
-                                            }`}
-                                        onClick={() => setActiveTab("orbit")}
-                                    >
-                                        Orbit &amp; Spin
-                                    </button>
-                                </div>
-
-                                <div className="planet-studio__tab-content">
-                                    {activeTab === "terrain" && (
-                                        <TerrainPanel
-                                            draftPlanet={draftPlanet}
-                                            onTerrainChange={
-                                                handleTerrainChange
-                                            }
+                                {isBeltSelected ? (
+                                    <div className="planet-studio__tab-content">
+                                        <AsteroidBeltPanel
+                                            draftBelt={draftBelt}
+                                            onBeltChange={handleBeltChange}
+                                            onRandomizeSeed={handleRandomizeBeltSeed}
                                         />
-                                    )}
+                                    </div>
+                                ) : (
+                                    <>
+                                        <div className="planet-studio__category-nav">
+                                            <button
+                                                className={`planet-studio__category-btn ${activeTab === "terrain"
+                                                        ? "planet-studio__category-btn--active"
+                                                        : ""
+                                                    }`}
+                                                onClick={() => setActiveTab("terrain")}
+                                            >
+                                                Terrain
+                                            </button>
+                                            <button
+                                                className={`planet-studio__category-btn ${activeTab === "appearance"
+                                                        ? "planet-studio__category-btn--active"
+                                                        : ""
+                                                    }`}
+                                                onClick={() =>
+                                                    setActiveTab("appearance")
+                                                }
+                                            >
+                                                Appearance
+                                            </button>
+                                            <button
+                                                className={`planet-studio__category-btn ${activeTab === "moons"
+                                                        ? "planet-studio__category-btn--active"
+                                                        : ""
+                                                    }`}
+                                                onClick={() => setActiveTab("moons")}
+                                            >
+                                                Moons (
+                                                {(draftPlanet.children ?? []).length})
+                                            </button>
+                                            <button
+                                                className={`planet-studio__category-btn ${activeTab === "orbit"
+                                                        ? "planet-studio__category-btn--active"
+                                                        : ""
+                                                    }`}
+                                                onClick={() => setActiveTab("orbit")}
+                                            >
+                                                Orbit &amp; Spin
+                                            </button>
+                                        </div>
 
-                                    {activeTab === "appearance" && (
-                                        <AppearancePanel
-                                            draftPlanet={draftPlanet}
-                                            onPaletteChange={
-                                                handlePaletteChange
-                                            }
-                                            onRingColorChange={
-                                                handleRingColorChange
-                                            }
-                                            onRingParamChange={
-                                                handleRingParamChange
-                                            }
-                                        />
-                                    )}
+                                        <div className="planet-studio__tab-content">
+                                            {activeTab === "terrain" && (
+                                                <TerrainPanel
+                                                    draftPlanet={draftPlanet}
+                                                    onTerrainChange={
+                                                        handleTerrainChange
+                                                    }
+                                                />
+                                            )}
 
-                                    {activeTab === "moons" && (
-                                        <MoonsPanel
-                                            draftPlanet={draftPlanet}
-                                            activeMoonIndex={activeMoonIndex}
-                                            onSelectMoon={setActiveMoonIndex}
-                                            onAddMoon={handleAddMoon}
-                                            onRemoveMoon={handleRemoveMoon}
-                                            onMoonChange={handleMoonChange}
-                                        />
-                                    )}
+                                            {activeTab === "appearance" && (
+                                                <AppearancePanel
+                                                    draftPlanet={draftPlanet}
+                                                    onPaletteChange={
+                                                        handlePaletteChange
+                                                    }
+                                                    onRingColorChange={
+                                                        handleRingColorChange
+                                                    }
+                                                    onRingParamChange={
+                                                        handleRingParamChange
+                                                    }
+                                                />
+                                            )}
 
-                                    {activeTab === "orbit" && (
-                                        <OrbitPanel
-                                            draftPlanet={draftPlanet}
-                                            onOrbitalChange={
-                                                handleOrbitalChange
-                                            }
-                                        />
-                                    )}
-                                </div>
+                                            {activeTab === "moons" && (
+                                                <MoonsPanel
+                                                    draftPlanet={draftPlanet}
+                                                    activeMoonIndex={activeMoonIndex}
+                                                    onSelectMoon={setActiveMoonIndex}
+                                                    onAddMoon={handleAddMoon}
+                                                    onRemoveMoon={handleRemoveMoon}
+                                                    onMoonChange={handleMoonChange}
+                                                />
+                                            )}
+
+                                            {activeTab === "orbit" && (
+                                                <OrbitPanel
+                                                    draftPlanet={draftPlanet}
+                                                    onOrbitalChange={
+                                                        handleOrbitalChange
+                                                    }
+                                                />
+                                            )}
+                                        </div>
+                                    </>
+                                )}
                             </div>
                         </div>
 
