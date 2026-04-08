@@ -23,11 +23,17 @@ const mockPlanets: OrbitConfig[] = [
 
 describe("planet-creator presets", () => {
     it("generates randomized galaxy while preserving planet ids and basic structure", () => {
-        const randomized = generateRandomGalaxy(mockPlanets);
-        expect(randomized).toHaveLength(mockPlanets.length);
-        expect(randomized.find((p) => p.id === "about")).toBeDefined();
-        expect(randomized.find((p) => p.id === "projects")).toBeDefined();
-        expect(randomized[0].orbitRadius).toBeGreaterThan(0);
-        expect(randomized[1].orbitRadius).toBeGreaterThan(randomized[0].orbitRadius ?? 0);
+        const { planets, asteroidBelt } = generateRandomGalaxy(mockPlanets);
+        expect(planets).toHaveLength(mockPlanets.length);
+        expect(planets.find((p) => p.id === "about")).toBeDefined();
+        expect(planets.find((p) => p.id === "projects")).toBeDefined();
+        expect(planets[0].orbitRadius).toBeGreaterThan(0);
+        expect(planets[1].orbitRadius).toBeGreaterThan(planets[0].orbitRadius ?? 0);
+
+        expect(asteroidBelt).toBeDefined();
+        expect(asteroidBelt.innerRadius).toBeGreaterThan(10);
+        expect(asteroidBelt.outerRadius).toBeGreaterThan(asteroidBelt.innerRadius);
+        expect(asteroidBelt.count).toBeGreaterThan(0);
+        expect(asteroidBelt.color).toBeDefined();
     });
 });

@@ -360,15 +360,13 @@ export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
     };
 
     const handleRandomizeGalaxy = () => {
-        const randomized = generateRandomGalaxy(draftPlanets);
-        setDraftPlanets(randomized);
-        setDraftBelt((prev) => ({
-            ...prev,
-            seed: Math.floor(Math.random() * 9999),
-            orbitSpeed: Number((Math.random() * 0.08 + 0.05).toFixed(2)),
-            inclination: Number(((Math.random() - 0.5) * 0.1).toFixed(3)),
-        }));
-        setToastMessage("Galaxy randomized! Click Apply to save.");
+        const { planets: randomizedPlanets, asteroidBelt: randomizedBelt } = generateRandomGalaxy(
+            draftPlanets,
+            draftBelt
+        );
+        setDraftPlanets(randomizedPlanets);
+        setDraftBelt(randomizedBelt);
+        setToastMessage("Galaxy & Asteroid Belt randomized! Click Apply to save.");
     };
 
     const handleResolveCollisions = () => {
