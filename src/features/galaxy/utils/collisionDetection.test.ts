@@ -157,5 +157,36 @@ describe("collisionDetection utils", () => {
         const warningsAfter = detectAllGalaxyCollisions(resolvedPlanets, asteroidBelt);
         expect(warningsAfter.some((w) => w.type === "planet-belt")).toBe(false);
     });
+
+    it("detects and resolves collisions with oversized planetary rings", () => {
+        const ringedPlanets: OrbitConfig[] = [
+            {
+                id: "planet-a",
+                radius: 1.0,
+                rotationSpeed: 0.01,
+                orbitRadius: 10.0,
+                ring: {
+                    innerRadius: 1.5,
+                    outerRadius: 3.5,
+                    color: "#ffffff",
+                },
+            },
+            {
+                id: "planet-b",
+                radius: 1.0,
+                rotationSpeed: 0.01,
+                orbitRadius: 12.0,
+            },
+        ];
+
+        const warnings = detectAllGalaxyCollisions(ringedPlanets);
+        expect(warnings.some((w) => w.type === "planet-planet")).toBe(true);
+
+        const { resolvedPlanets, changedCount } = resolveGalaxyCollisions(ringedPlanets);
+        expect(changedCount).toBeGreaterThan(0);
+
+        const warningsAfter = detectAllGalaxyCollisions(resolvedPlanets);
+        expect(warningsAfter.some((w) => w.type === "planet-planet")).toBe(false);
+    });
 });
 

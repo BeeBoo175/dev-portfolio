@@ -20,7 +20,6 @@ export function MoonsPanel({
 }: MoonsPanelProps) {
     const moons = draftPlanet.children ?? [];
     const activeMoon = moons[activeMoonIndex];
-    const baseRadius = draftPlanet.radius ?? 1;
 
     const warnings = activeMoon ? detectMoonCollisions(draftPlanet, activeMoon) : [];
 
@@ -50,9 +49,8 @@ export function MoonsPanel({
                 {moons.map((moon, mIdx) => (
                     <button
                         key={moon.id}
-                        className={`planet-studio__moon-pill ${
-                            activeMoonIndex === mIdx ? "planet-studio__moon-pill--active" : ""
-                        }`}
+                        className={`planet-studio__moon-pill ${activeMoonIndex === mIdx ? "planet-studio__moon-pill--active" : ""
+                            }`}
                         onClick={() => onSelectMoon(mIdx)}
                     >
                         <span>Moon {mIdx + 1}</span>
@@ -88,8 +86,8 @@ export function MoonsPanel({
                     </div>
                     <input
                         type="range"
-                        min="0.1"
-                        max="0.6"
+                        min="0.05"
+                        max="1.5"
                         step="0.02"
                         value={activeMoon.radius}
                         onChange={(e) =>
@@ -110,8 +108,8 @@ export function MoonsPanel({
                     </div>
                     <input
                         type="range"
-                        min={baseRadius * 0.8}
-                        max="7.0"
+                        min="0.5"
+                        max="15.0"
                         step="0.1"
                         value={activeMoon.orbitRadius ?? 2.0}
                         onChange={(e) =>
@@ -132,8 +130,8 @@ export function MoonsPanel({
                     </div>
                     <input
                         type="range"
-                        min="0.1"
-                        max="2.5"
+                        min="0.02"
+                        max="4.0"
                         step="0.05"
                         value={activeMoon.orbitSpeed ?? 0.8}
                         onChange={(e) =>
@@ -152,8 +150,8 @@ export function MoonsPanel({
                     </div>
                     <input
                         type="range"
-                        min="-0.78"
-                        max="0.78"
+                        min="-1.2"
+                        max="1.2"
                         step="0.02"
                         value={activeMoon.orbitInclination ?? 0}
                         onChange={(e) =>
@@ -174,8 +172,8 @@ export function MoonsPanel({
                     </div>
                     <input
                         type="range"
-                        min="0.1"
-                        max="2.0"
+                        min="0.02"
+                        max="3.5"
                         step="0.05"
                         value={activeMoon.rotationSpeed}
                         onChange={(e) =>
@@ -195,7 +193,7 @@ export function MoonsPanel({
                     <input
                         type="range"
                         min="0.0"
-                        max="1.57"
+                        max="3.14"
                         step="0.02"
                         value={activeMoon.axialTilt ?? 0}
                         onChange={(e) =>
@@ -218,7 +216,7 @@ export function MoonsPanel({
                         type="range"
                         min="0.0"
                         max="6.28"
-                        step="0.1"
+                        step="0.05"
                         value={activeMoon.initialAngle ?? 0}
                         onChange={(e) =>
                             onMoonChange(activeMoon.id, {
