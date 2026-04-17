@@ -14,6 +14,8 @@ export function detectPlanetCollisions(
 ): CollisionWarning[] {
     const warnings: CollisionWarning[] = [];
     const r1 = planet.radius ?? 1;
+    const ring1Outer = planet.ring?.outerRadius ?? 0;
+    const planet1Reach = Math.max(r1, ring1Outer);
     const o1 = planet.orbitRadius ?? 0;
 
     if (o1 <= 0) return warnings;
@@ -22,18 +24,23 @@ export function detectPlanetCollisions(
         if (other.id === planet.id) continue;
         const o2 = other.orbitRadius ?? 0;
         const r2 = other.radius ?? 1;
+        const ring2Outer = other.ring?.outerRadius ?? 0;
+        const planet2Reach = Math.max(r2, ring2Outer);
 
         if (o2 <= 0) continue;
 
         const dist = Math.abs(o1 - o2);
-        const minSafeDist = r1 + r2 + 0.25;
+        const minSafeDist = planet1Reach + planet2Reach + 0.25;
 
         if (dist < minSafeDist) {
+            const hasRingConflict = ring1Outer > r1 || ring2Outer > r2;
             warnings.push({
                 id: `pp-${other.id}`,
                 type: "planet-planet",
-                title: `Planetary Orbit Overlap (${other.id.toUpperCase()})`,
-                description: `Orbit radius (${o1.toFixed(1)}) overlaps with ${other.id.toUpperCase()} (${o2.toFixed(1)}). Physical collisions are cosmetic only and will not impede site navigation.`,
+                title: hasRingConflict
+                    ? `Planetary Ring / Orbit Overlap (${other.id.toUpperCase()})`
+                    : `Planetary Orbit Overlap (${other.id.toUpperCase()})`,
+                description: `Orbit radius (${o1.toFixed(1)}) or ring reach (${planet1Reach.toFixed(2)}) overlaps with ${other.id.toUpperCase()} (${o2.toFixed(1)}, reach ${planet2Reach.toFixed(2)}).`,
             });
         }
 
@@ -43,12 +50,12 @@ export function detectPlanetCollisions(
             const innerBound = o1 - moonMaxReach;
             const outerBound = o1 + moonMaxReach;
 
-            if (o2 >= innerBound - r2 && o2 <= outerBound + r2 && dist >= minSafeDist) {
+            if (o2 >= innerBound - planet2Reach && o2 <= outerBound + planet2Reach && dist >= minSafeDist) {
                 warnings.push({
                     id: `cross-${other.id}-${moon.id}`,
                     type: "cross-system",
                     title: `Lunar Cross-System Reach (${other.id.toUpperCase()})`,
-                    description: `Moon orbit extends into ${other.id.toUpperCase()}'s orbital lane.`,
+                    description: `Moon orbit extends into ${other.id.toUpperCase()}'s orbital lane / ring zone.`,
                 });
             }
         }
@@ -57,15 +64,15 @@ export function detectPlanetCollisions(
     if (asteroidBelt && asteroidBelt.enabled && asteroidBelt.count > 0) {
         const beltInner = asteroidBelt.innerRadius;
         const beltOuter = asteroidBelt.outerRadius;
-        const planetInner = o1 - r1;
-        const planetOuter = o1 + r1;
+        const planetInner = o1 - planet1Reach;
+        const planetOuter = o1 + planet1Reach;
 
         if (planetOuter >= beltInner - 0.2 && planetInner <= beltOuter + 0.2) {
             warnings.push({
                 id: `belt-${planet.id}`,
                 type: "planet-belt",
                 title: `Asteroid Belt Intersection (${planet.id.toUpperCase()})`,
-                description: `Orbit (${o1.toFixed(1)}) passes directly through the Asteroid Belt zone (${beltInner.toFixed(1)} - ${beltOuter.toFixed(1)}).`,
+                description: `Orbit (${o1.toFixed(1)}) or ring zone (${planet1Reach.toFixed(2)}) passes directly through the Asteroid Belt zone (${beltInner.toFixed(1)} - ${beltOuter.toFixed(1)}).`,
             });
         }
 
@@ -99,6 +106,13 @@ export function detectPlanetCollisions(
                 title: `Surface Penetration (Moon #${i + 1})`,
                 description: `Moon #${i + 1}'s orbit distance (${m1Orbit.toFixed(2)}) intersects ${planet.id.toUpperCase()}'s surface radius (${r1.toFixed(2)}).`,
             });
+        } else if (ring1Outer > 0 && Math.abs(m1Orbit - ring1Outer) < m1.radius + 0.15) {
+            warnings.push({
+                id: `pr-${m1.id}`,
+                type: "planet-moon",
+                title: `Planetary Ring Intersection (Moon #${i + 1})`,
+                description: `Moon #${i + 1}'s orbit (${m1Orbit.toFixed(2)}) collides with ${planet.id.toUpperCase()}'s planetary ring plane (outer radius ${ring1Outer.toFixed(2)}).`,
+            });
         }
 
         for (let j = i + 1; j < moons.length; j++) {
@@ -127,6 +141,7 @@ export function detectMoonCollisions(
 ): CollisionWarning[] {
     const warnings: CollisionWarning[] = [];
     const baseRadius = parentPlanet.radius ?? 1;
+    const ringOuter = parentPlanet.ring?.outerRadius ?? 0;
     const moonOrbit = activeMoon.orbitRadius ?? 2.0;
 
     if (moonOrbit < baseRadius + activeMoon.radius + 0.1) {
@@ -135,6 +150,13 @@ export function detectMoonCollisions(
             type: "planet-moon",
             title: "Surface Collision Warning",
             description: `Orbit distance (${moonOrbit.toFixed(2)}) is inside the planet's surface radius (${baseRadius.toFixed(2)}). Note: Cosmetic only.`,
+        });
+    } else if (ringOuter > 0 && Math.abs(moonOrbit - ringOuter) < activeMoon.radius + 0.15) {
+        warnings.push({
+            id: `ring-${activeMoon.id}`,
+            type: "planet-moon",
+            title: "Ring Collision Warning",
+            description: `Moon orbit (${moonOrbit.toFixed(2)}) intersects with planetary ring edge (${ringOuter.toFixed(2)}).`,
         });
     }
 
@@ -194,11 +216,13 @@ export function resolveGalaxyCollisions(
 
     const clone: OrbitConfig[] = planets.map((p) => {
         const pRad = p.radius ?? 1.0;
+        const pRing = p.ring?.outerRadius ?? 0;
+        const safeBase = Math.max(pRad, pRing);
         let pChanged = false;
         let currentMoons = p.children ? [...p.children] : undefined;
 
         if (currentMoons && currentMoons.length > 0) {
-            let safeDistance = pRad + 0.5;
+            let safeDistance = safeBase + 0.45;
             currentMoons = currentMoons.map((moon) => {
                 const minRequired = Number((safeDistance + moon.radius + 0.15).toFixed(2));
                 const currentOrbit = moon.orbitRadius ?? 2.0;
@@ -233,9 +257,11 @@ export function resolveGalaxyCollisions(
         const item = indexed[i];
         let orbit = item.p.orbitRadius ?? 7.0;
         const curRad = item.p.radius ?? 1.0;
+        const curRing = item.p.ring?.outerRadius ?? 0;
+        const curBaseReach = Math.max(curRad, curRing);
 
-        let curInnerReach = curRad;
-        let curOuterReach = curRad;
+        let curInnerReach = curBaseReach;
+        let curOuterReach = curBaseReach;
         if (item.p.children && item.p.children.length > 0) {
             for (const m of item.p.children) {
                 const mReach = (m.orbitRadius ?? 2.0) + m.radius;
@@ -254,8 +280,10 @@ export function resolveGalaxyCollisions(
             const prevItem = indexed[i - 1];
             const prevOrbit = prevItem.p.orbitRadius ?? 7.0;
             const prevRad = prevItem.p.radius ?? 1.0;
+            const prevRing = prevItem.p.ring?.outerRadius ?? 0;
+            const prevBaseReach = Math.max(prevRad, prevRing);
 
-            let prevOuterReach = prevRad;
+            let prevOuterReach = prevBaseReach;
             if (prevItem.p.children && prevItem.p.children.length > 0) {
                 for (const m of prevItem.p.children) {
                     const mReach = (m.orbitRadius ?? 2.0) + m.radius;
@@ -264,7 +292,7 @@ export function resolveGalaxyCollisions(
             }
 
             const minSafeDist = Math.max(
-                prevRad + curRad + 0.35,
+                prevBaseReach + curBaseReach + 0.35,
                 prevOuterReach + curInnerReach + 0.45
             );
 

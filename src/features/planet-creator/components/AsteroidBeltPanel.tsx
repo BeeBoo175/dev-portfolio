@@ -17,17 +17,16 @@ export function AsteroidBeltPanel({
         <div className="planet-studio__card">
             <div className="planet-studio__belt-header-row">
                 <div>
-                    <span className="planet-studio__section-label">Main Asteroid Belt</span>
+                    <span className="planet-studio__section-label">Asteroid Belt</span>
                     <p style={{ fontSize: "11px", color: "var(--text-muted)", margin: "2px 0 0" }}>
-                        Procedurally instanced debris field orbiting between terrestrial and outer planets.
+                        Orbiting debris field between Mars and Jupiter.
                     </p>
                 </div>
                 <button
-                    className={`planet-studio__toggle-btn ${
-                        draftBelt.enabled ? "planet-studio__toggle-btn--active" : ""
-                    }`}
+                    className={`planet-studio__toggle-btn ${draftBelt.enabled ? "planet-studio__toggle-btn--active" : ""
+                        }`}
                     onClick={() => onBeltChange({ enabled: !draftBelt.enabled })}
-                    title="Toggle asteroid belt visibility"
+                    title={draftBelt.enabled ? "Disable asteroid belt" : "Enable asteroid belt"}
                 >
                     {draftBelt.enabled ? "Enabled" : "Disabled"}
                 </button>
@@ -43,8 +42,8 @@ export function AsteroidBeltPanel({
             </div>
             <input
                 type="range"
-                min="8.0"
-                max="24.0"
+                min="5.0"
+                max="35.0"
                 step="0.2"
                 value={draftBelt.innerRadius}
                 onChange={(e) => {
@@ -68,7 +67,7 @@ export function AsteroidBeltPanel({
             <input
                 type="range"
                 min={draftBelt.innerRadius + 0.5}
-                max="28.0"
+                max="45.0"
                 step="0.2"
                 value={draftBelt.outerRadius}
                 onChange={(e) => onBeltChange({ outerRadius: parseFloat(e.target.value) })}
@@ -83,9 +82,9 @@ export function AsteroidBeltPanel({
             </div>
             <input
                 type="range"
-                min="50"
-                max="750"
-                step="25"
+                min="20"
+                max="1200"
+                step="20"
                 value={draftBelt.count}
                 onChange={(e) => onBeltChange({ count: parseInt(e.target.value, 10) })}
                 className="planet-studio__range"
@@ -101,9 +100,9 @@ export function AsteroidBeltPanel({
             </div>
             <input
                 type="range"
-                min="0.01"
-                max="0.30"
-                step="0.01"
+                min="0.005"
+                max="0.60"
+                step="0.005"
                 value={draftBelt.orbitSpeed}
                 onChange={(e) => onBeltChange({ orbitSpeed: parseFloat(e.target.value) })}
                 className="planet-studio__range"
@@ -119,8 +118,8 @@ export function AsteroidBeltPanel({
             </div>
             <input
                 type="range"
-                min="0.1"
-                max="2.0"
+                min="0.05"
+                max="4.0"
                 step="0.05"
                 value={draftBelt.heightSpread}
                 onChange={(e) => onBeltChange({ heightSpread: parseFloat(e.target.value) })}
@@ -135,8 +134,8 @@ export function AsteroidBeltPanel({
             </div>
             <input
                 type="range"
-                min="-0.4"
-                max="0.4"
+                min="-1.2"
+                max="1.2"
                 step="0.01"
                 value={draftBelt.inclination ?? 0}
                 onChange={(e) => onBeltChange({ inclination: parseFloat(e.target.value) })}
@@ -153,8 +152,8 @@ export function AsteroidBeltPanel({
             </div>
             <input
                 type="range"
-                min="0.08"
-                max="0.4"
+                min="0.04"
+                max="0.8"
                 step="0.01"
                 value={draftBelt.maxSize}
                 onChange={(e) => onBeltChange({ maxSize: parseFloat(e.target.value) })}
