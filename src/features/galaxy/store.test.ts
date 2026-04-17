@@ -83,5 +83,18 @@ describe("galaxyStore", () => {
         expect(galaxyStore.getAsteroidBeltSnapshot().count).toBe(580);
         expect(galaxyStore.getAsteroidBeltSnapshot().color).toBe("#112233");
     });
+
+    it("updates and resets sun configuration", () => {
+        galaxyStore.updateSun({ radius: 4.8, color: "#ff5500", glowIntensity: 1.6 });
+        let sun = galaxyStore.getSunSnapshot();
+        expect(sun.radius).toBe(4.8);
+        expect(sun.color).toBe("#ff5500");
+        expect(sun.glowIntensity).toBe(1.6);
+
+        galaxyStore.resetSun();
+        sun = galaxyStore.getSunSnapshot();
+        expect(sun.radius).toBe(3.5);
+        expect(sun.color).toBe("#ffd76b");
+    });
 });
 

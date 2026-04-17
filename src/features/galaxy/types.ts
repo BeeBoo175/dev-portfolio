@@ -22,6 +22,16 @@ export interface RingConfig {
     tilt?: [number, number, number];
 }
 
+export interface SunConfig {
+    id: string;
+    radius: number;
+    rotationSpeed: number;
+    color: string;
+    glowIntensity: number;
+    lightIntensity: number;
+    palette?: PaletteConfig;
+}
+
 export interface OrbitConfig {
     id: string;
     radius: number;
@@ -30,6 +40,8 @@ export interface OrbitConfig {
     orbitSpeed?: number;
     initialAngle?: number;
     orbitInclination?: number;
+    orbitAscendingNode?: number;
+    orbitArgument?: number;
     axialTilt?: number;
     color?: string;
     palette?: PaletteConfig;
@@ -48,6 +60,7 @@ export interface AsteroidBeltConfig {
     orbitSpeed: number;
     heightSpread: number;
     inclination?: number;
+    ascendingNode?: number;
     color?: string;
     secondaryColor?: string;
     seed?: number;
