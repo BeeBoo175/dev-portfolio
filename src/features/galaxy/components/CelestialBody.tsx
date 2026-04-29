@@ -1,7 +1,7 @@
 import { forwardRef, useImperativeHandle, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import type { OrbitConfig } from "../types";
+import type { OrbitConfig, SunConfig } from "../types";
 import { useGalaxyVisuals } from "../store";
 import LowPolyPlanet from "./LowPolyPlanet";
 import OrbitPathLine from "./OrbitPathLine";
@@ -9,7 +9,7 @@ import OrbitalAxisLine from "./OrbitalAxisLine";
 import SunGlow from "./SunGlow";
 
 export interface CelestialBodyProps {
-    body: OrbitConfig;
+    body: OrbitConfig | SunConfig;
     color?: string;
     isSun?: boolean;
     onSelect?: (id: string) => void;
@@ -25,31 +25,36 @@ export const CelestialBody = forwardRef<THREE.Group, CelestialBodyProps>(
 
         useImperativeHandle(ref, () => positionRef.current as THREE.Group);
 
+        const orbitConfig = body as OrbitConfig;
+        const sunConfig = body as SunConfig;
+
         useFrame((_, delta) => {
-            if (orbitRef.current) {
-                orbitRef.current.rotation.y += (body.orbitSpeed ?? 0) * delta;
+            if (orbitRef.current && orbitConfig.orbitSpeed) {
+                orbitRef.current.rotation.y += orbitConfig.orbitSpeed * delta;
             }
             if (bodyRef.current) {
                 bodyRef.current.rotation.y += body.rotationSpeed * delta;
             }
         });
 
-        const hasOrbit = (body.orbitRadius ?? 0) > 0;
-        const orbitInclination = body.orbitInclination ?? 0;
-        const axialTilt = body.axialTilt ?? 0;
+        const hasOrbit = (orbitConfig.orbitRadius ?? 0) > 0;
+        const orbitInclination = orbitConfig.orbitInclination ?? 0;
+        const orbitAscendingNode = orbitConfig.orbitAscendingNode ?? 0;
+        const orbitArgument = orbitConfig.orbitArgument ?? 0;
+        const axialTilt = orbitConfig.axialTilt ?? 0;
 
         return (
-            <group rotation={[orbitInclination, 0, 0]}>
+            <group rotation={[orbitInclination, orbitAscendingNode, orbitArgument]}>
                 {visuals.showOrbitPaths && hasOrbit && (
                     <OrbitPathLine
-                        radius={body.orbitRadius!}
+                        radius={orbitConfig.orbitRadius!}
                         color={effectiveColor}
                         opacity={0.25}
                     />
                 )}
 
-                <group ref={orbitRef} rotation={[0, body.initialAngle ?? 0, 0]}>
-                    <group ref={positionRef} position={[body.orbitRadius ?? 0, 0, 0]}>
+                <group ref={orbitRef} rotation={[0, orbitConfig.initialAngle ?? 0, 0]}>
+                    <group ref={positionRef} position={[orbitConfig.orbitRadius ?? 0, 0, 0]}>
                         <group rotation={[axialTilt, 0, 0]}>
                             <LowPolyPlanet
                                 ref={(meshInstance) => {
@@ -58,7 +63,7 @@ export const CelestialBody = forwardRef<THREE.Group, CelestialBodyProps>(
                                         positionRef.current.userData.surfaceMesh = meshInstance;
                                     }
                                 }}
-                                body={body}
+                                body={body as OrbitConfig}
                                 isSun={isSun}
                                 color={effectiveColor}
                                 onClick={(e) => {
@@ -86,18 +91,19 @@ export const CelestialBody = forwardRef<THREE.Group, CelestialBodyProps>(
                             <>
                                 <pointLight
                                     color={effectiveColor}
-                                    intensity={6}
+                                    intensity={sunConfig.lightIntensity ?? 6}
                                     distance={0}
                                     decay={0}
                                 />
                                 <SunGlow
                                     radius={body.radius}
                                     color={effectiveColor}
+                                    glowIntensity={sunConfig.glowIntensity ?? 1.0}
                                 />
                             </>
                         )}
 
-                        {body.children?.map((child) => (
+                        {orbitConfig.children?.map((child) => (
                             <CelestialBody key={child.id} body={child} />
                         ))}
                     </group>

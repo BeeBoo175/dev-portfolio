@@ -5,11 +5,11 @@ import CelestialBody from "./components/CelestialBody";
 import CameraRig from "./components/CameraRig";
 import Spaceship from "./components/Spaceship";
 import AsteroidBelt from "./components/AsteroidBelt";
-import { CENTRAL_BODY } from "./data";
-import { useGalaxyAsteroidBelt, useGalaxyPlanets } from "./store";
+import { useGalaxyAsteroidBelt, useGalaxyPlanets, useGalaxySun } from "./store";
 
 export interface GalaxySceneProps {
     focusId: string;
+    isEditorMode?: boolean;
     onSelect?: (id: string) => void;
 }
 
@@ -38,7 +38,7 @@ function CameraFillLight({
         lightRef.current.position.copy(camera.position);
 
         let targetIntensity = 0;
-        if (focusId !== "home") {
+        if (focusId !== "home" && focusId !== "sun") {
             const planetGroup = bodyRefs.current[focusId];
             if (planetGroup) {
                 planetGroup.getWorldPosition(targetWorldPos.current);
@@ -72,8 +72,9 @@ function CameraFillLight({
     );
 }
 
-function GalaxyScene({ focusId, onSelect }: GalaxySceneProps) {
+function GalaxyScene({ focusId, isEditorMode = false, onSelect }: GalaxySceneProps) {
     const bodyRefs = useRef<Record<string, THREE.Group | null>>({});
+    const sun = useGalaxySun();
     const planets = useGalaxyPlanets();
     const asteroidBelt = useGalaxyAsteroidBelt();
 
@@ -86,7 +87,11 @@ function GalaxyScene({ focusId, onSelect }: GalaxySceneProps) {
             <CameraFillLight focusId={focusId} bodyRefs={bodyRefs} />
 
             <CelestialBody
-                body={CENTRAL_BODY}
+                ref={(instance) => {
+                    bodyRefs.current.home = instance;
+                    bodyRefs.current.sun = instance;
+                }}
+                body={sun}
                 isSun
                 onSelect={onSelect}
             />
@@ -108,6 +113,7 @@ function GalaxyScene({ focusId, onSelect }: GalaxySceneProps) {
                 focusId={focusId}
                 centralId="home"
                 bodyRefs={bodyRefs}
+                allowManualOrbit={isEditorMode}
             />
 
             <Spaceship
