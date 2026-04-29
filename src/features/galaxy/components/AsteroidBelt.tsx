@@ -86,7 +86,7 @@ export function AsteroidBelt({ config }: AsteroidBeltProps) {
 
     useEffect(() => {
         const mesh = meshRef.current;
-        if (!mesh) return;
+        if (!mesh || !enabled) return;
 
         const dummy = new THREE.Object3D();
 
@@ -105,7 +105,7 @@ export function AsteroidBelt({ config }: AsteroidBeltProps) {
 
         mesh.instanceMatrix.needsUpdate = true;
         if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
-    }, [asteroidData]);
+    }, [asteroidData, enabled]);
 
     useEffect(() => {
         return () => {
@@ -125,6 +125,7 @@ export function AsteroidBelt({ config }: AsteroidBeltProps) {
         <group rotation={[inclination, ascendingNode, 0]}>
             <group ref={groupRef}>
                 <instancedMesh
+                    key={`belt-${seed}-${count}-${enabled ? "on" : "off"}`}
                     ref={meshRef}
                     args={[geometry, undefined, count]}
                     raycast={() => null}

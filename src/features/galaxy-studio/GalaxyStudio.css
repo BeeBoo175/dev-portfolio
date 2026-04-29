@@ -241,6 +241,14 @@
     color: #ffffff;
 }
 
+.studio-btn:disabled,
+.studio-btn[disabled] {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
+    filter: grayscale(0.6);
+}
+
 .studio-target-dock {
     position: absolute;
     bottom: 16px;
@@ -360,9 +368,23 @@
 }
 
 .studio-sidebar__header {
-    padding: 14px 16px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
     border-bottom: 1px solid var(--border-subtle);
     background: var(--bg-surface-elevated);
+}
+
+.studio-sidebar__header-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.studio-sidebar__header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .studio-sidebar__target-type {
@@ -532,7 +554,7 @@
 
 .studio-presets-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(115px, 1fr));
     gap: 6px;
 }
 
@@ -551,6 +573,9 @@
     cursor: pointer;
     font-family: inherit;
     text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
     transition: all var(--transition-fast);
 }
 
@@ -564,6 +589,7 @@
     width: 6px;
     height: 6px;
     border-radius: var(--radius-xs);
+    flex-shrink: 0;
 }
 
 .studio-palette-grid {
@@ -591,11 +617,13 @@
     appearance: none;
     border: 1px solid var(--border-default);
     border-radius: var(--radius-xs);
-    width: 24px;
-    height: 24px;
+    width: 22px;
+    height: 22px;
     cursor: pointer;
     background: transparent;
     padding: 0;
+    overflow: hidden;
+    flex-shrink: 0;
 }
 
 .studio-color-picker input[type="color"]::-webkit-color-swatch-wrapper {
@@ -604,6 +632,11 @@
 }
 
 .studio-color-picker input[type="color"]::-webkit-color-swatch {
+    border: none;
+    border-radius: var(--radius-xs);
+}
+
+.studio-color-picker input[type="color"]::-moz-color-swatch {
     border: none;
     border-radius: var(--radius-xs);
 }
@@ -621,56 +654,83 @@
     text-transform: capitalize;
 }
 
-.studio-toggle-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 6px 0;
-}
-
-.studio-toggle {
+.studio-switch {
     position: relative;
     display: inline-block;
-    width: 36px;
-    height: 20px;
+    width: 34px;
+    height: 18px;
+    cursor: pointer;
+    flex-shrink: 0;
 }
 
-.studio-toggle input {
+.studio-switch input {
     opacity: 0;
     width: 0;
     height: 0;
-}
-
-.studio-toggle__slider {
     position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(255, 255, 255, 0.15);
-    transition: 0.2s;
-    border-radius: var(--radius-xs);
 }
 
-.studio-toggle__slider:before {
+.studio-switch__slider {
+    position: absolute;
+    inset: 0;
+    background-color: rgba(255, 255, 255, 0.15);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-xs);
+    transition: all var(--transition-fast);
+}
+
+.studio-switch__slider:before {
     position: absolute;
     content: "";
-    height: 14px;
-    width: 14px;
-    left: 3px;
-    bottom: 3px;
-    background-color: white;
-    transition: 0.2s;
-    border-radius: var(--radius-xs);
+    height: 12px;
+    width: 12px;
+    left: 2px;
+    bottom: 2px;
+    background-color: var(--text-muted);
+    border-radius: 2px;
+    transition: all var(--transition-fast);
 }
 
-.studio-toggle input:checked + .studio-toggle__slider {
-    background-color: var(--accent-primary);
+.studio-switch input:checked + .studio-switch__slider {
+    background-color: var(--accent-subtle);
+    border-color: var(--accent-cyan);
 }
 
-.studio-toggle input:checked + .studio-toggle__slider:before {
+.studio-switch input:checked + .studio-switch__slider:before {
     transform: translateX(16px);
+    background-color: var(--accent-cyan);
+}
+
+.studio-confirm-dialog {
+    width: 100%;
+    max-width: 400px;
+    background: var(--bg-surface-elevated);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    padding: 18px;
+    box-shadow: 0 20px 48px rgba(0, 0, 0, 0.85);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.studio-confirm-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.studio-confirm-text {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+.studio-confirm-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 4px;
 }
 
 .studio-moons-tabs,

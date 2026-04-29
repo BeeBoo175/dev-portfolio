@@ -1,12 +1,16 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { GalaxyScene } from "../features/galaxy";
+import { GalaxyScene, galaxyStore } from "../features/galaxy";
 import { HomeOverlay } from "../features/sections";
 import type { SectionId } from "../features/sections";
 
 export function HomePage() {
     const [focusId, setFocusId] = useState<SectionId>("home");
     const triggerRef = useRef<(id: SectionId) => void>(() => { });
+
+    useEffect(() => {
+        galaxyStore.revertToPersisted();
+    }, []);
 
     const registerTrigger = useCallback((fn: (id: SectionId) => void) => {
         triggerRef.current = fn;

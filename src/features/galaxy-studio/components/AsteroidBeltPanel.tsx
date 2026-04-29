@@ -5,7 +5,6 @@ import { Tooltip } from "../../../components/ui/Tooltip";
 export interface AsteroidBeltPanelProps {
     config: AsteroidBeltConfig;
     onChange: (updater: (prev: AsteroidBeltConfig) => AsteroidBeltConfig) => void;
-    onReset: () => void;
 }
 
 const RAD_TO_DEG = 180 / Math.PI;
@@ -14,7 +13,6 @@ const DEG_TO_RAD = Math.PI / 180;
 export function AsteroidBeltPanel({
     config,
     onChange,
-    onReset,
 }: AsteroidBeltPanelProps) {
     const handleRandomize = () => {
         const randomized = generateRandomAsteroidBelt(config);
@@ -49,13 +47,6 @@ export function AsteroidBeltPanel({
                             onClick={handleRandomize}
                         >
                             Randomize Belt
-                        </button>
-                        <button
-                            type="button"
-                            className="studio-btn studio-btn--ghost studio-btn--sm"
-                            onClick={onReset}
-                        >
-                            Reset
                         </button>
                     </div>
                 </div>
