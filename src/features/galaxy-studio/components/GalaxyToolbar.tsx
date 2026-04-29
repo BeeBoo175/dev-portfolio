@@ -29,10 +29,7 @@ export function GalaxyToolbar({
     return (
         <header className="studio-toolbar">
             <div className="studio-toolbar__left">
-                <Link to="/" className="studio-toolbar__brand" title="Return to Portfolio">
-                    <span className="studio-toolbar__brand-text">Galaxy Studio</span>
-                </Link>
-                <span className="studio-toolbar__tag">Live 3D Viewport</span>
+                <span className="studio-toolbar__brand-text">Galaxy Studio</span>
 
                 {warningCount > 0 && (
                     <button

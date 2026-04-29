@@ -116,13 +116,13 @@ export function SunPanel({ sun, onChange, onReset }: SunPanelProps) {
                         }}
                     />
                 </div>
+            </div>
 
-                <div className="studio-field">
-                    <div className="studio-field__label-row">
-                        <label htmlFor="sun-color">Star Core Color</label>
-                        <Tooltip text="Primary radiating chromatic hue for the stellar surface." />
-                    </div>
-                    <div className="studio-color-picker">
+            <div className="studio-panel__section">
+                <span className="studio-panel__title">Stellar Palette</span>
+
+                <div className="studio-palette-grid">
+                    <div className="studio-color-picker studio-color-picker--compact">
                         <input
                             id="sun-color"
                             type="color"
@@ -136,16 +136,11 @@ export function SunPanel({ sun, onChange, onReset }: SunPanelProps) {
                                 }));
                             }}
                         />
+                        <span className="studio-color-picker__label">Core Color</span>
                         <span className="studio-color-picker__hex">{sun.color || "#ffd76b"}</span>
                     </div>
-                </div>
 
-                <div className="studio-field">
-                    <div className="studio-field__label-row">
-                        <label htmlFor="sun-flare-color">Corona Flare Highlight</label>
-                        <Tooltip text="Secondary accent tint for high-energy solar flares and apex glow." />
-                    </div>
-                    <div className="studio-color-picker">
+                    <div className="studio-color-picker studio-color-picker--compact">
                         <input
                             id="sun-flare-color"
                             type="color"
@@ -158,6 +153,7 @@ export function SunPanel({ sun, onChange, onReset }: SunPanelProps) {
                                 }));
                             }}
                         />
+                        <span className="studio-color-picker__label">Flare Highlight</span>
                         <span className="studio-color-picker__hex">{sun.palette?.peak || "#fffbeb"}</span>
                     </div>
                 </div>
