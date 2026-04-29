@@ -42,30 +42,11 @@
     gap: 10px;
 }
 
-.studio-toolbar__brand {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    text-decoration: none;
+.studio-toolbar__brand-text {
     color: var(--text-primary);
     font-weight: 600;
     font-size: 14px;
     letter-spacing: -0.01em;
-    transition: opacity var(--transition-fast);
-}
-
-.studio-toolbar__brand:hover {
-    color: var(--accent-cyan);
-}
-
-.studio-toolbar__tag {
-    font-size: 11px;
-    font-weight: 500;
-    padding: 2px 6px;
-    background: var(--accent-subtle);
-    color: var(--accent-cyan);
-    border: 1px solid rgba(56, 189, 248, 0.3);
-    border-radius: var(--radius-xs);
 }
 
 .studio-toolbar__warning-btn {
@@ -89,6 +70,9 @@
 }
 
 .studio-toolbar__center {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
     display: flex;
     align-items: center;
     gap: 8px;
@@ -689,18 +673,20 @@
     transform: translateX(16px);
 }
 
+.studio-moons-tabs,
 .studio-moons-list {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
-    margin-bottom: 8px;
+    align-items: center;
+    gap: 8px;
+    margin: 8px 0 12px;
 }
 
 .studio-moon-tab {
     display: flex;
     align-items: center;
     gap: 6px;
-    padding: 4px 8px;
+    padding: 5px 8px;
     background: var(--bg-surface-subtle);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-xs);
@@ -742,6 +728,38 @@
 
 .studio-moon-tab__remove:hover {
     color: var(--destructive);
+}
+
+.studio-subtabs {
+    display: flex;
+    gap: 4px;
+    padding: 4px 0;
+    margin: 4px 0 12px;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.studio-subtab {
+    padding: 4px 8px;
+    font-size: 11px;
+    font-weight: 500;
+    border: none;
+    border-bottom: 2px solid transparent;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    white-space: nowrap;
+    font-family: inherit;
+    transition: all var(--transition-fast);
+}
+
+.studio-subtab:hover {
+    color: var(--text-primary);
+}
+
+.studio-subtab--active {
+    color: var(--accent-cyan);
+    border-bottom-color: var(--accent-cyan);
+    font-weight: 600;
 }
 
 .studio-modal-backdrop {

@@ -224,23 +224,27 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
                         </div>
 
                         {selectedId === "home" || selectedId === "sun" ? (
-                            <SunPanel
-                                sun={draftSun}
-                                onChange={updateSun}
-                                onReset={() => {
-                                    galaxyStore.resetSun();
-                                    setDraftSun(galaxyStore.getSunSnapshot());
-                                }}
-                            />
+                            <div className="studio-tab-body">
+                                <SunPanel
+                                    sun={draftSun}
+                                    onChange={updateSun}
+                                    onReset={() => {
+                                        galaxyStore.resetSun();
+                                        setDraftSun(galaxyStore.getSunSnapshot());
+                                    }}
+                                />
+                            </div>
                         ) : selectedId === "asteroid-belt" ? (
-                            <AsteroidBeltPanel
-                                config={draftBelt}
-                                onChange={updateBelt}
-                                onReset={() => {
-                                    galaxyStore.resetAsteroidBelt();
-                                    setDraftBelt(galaxyStore.getAsteroidBeltSnapshot());
-                                }}
-                            />
+                            <div className="studio-tab-body">
+                                <AsteroidBeltPanel
+                                    config={draftBelt}
+                                    onChange={updateBelt}
+                                    onReset={() => {
+                                        galaxyStore.resetAsteroidBelt();
+                                        setDraftBelt(galaxyStore.getAsteroidBeltSnapshot());
+                                    }}
+                                />
+                            </div>
                         ) : currentPlanet ? (
                             <>
                                 <nav className="studio-tabs" aria-label="Planet categories">
