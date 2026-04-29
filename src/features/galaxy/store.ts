@@ -69,6 +69,26 @@ function loadPersistedVisuals(): GalaxyVisualSettings {
     return { showOrbitPaths: true, showOrbitalAxes: false };
 }
 
+function initLocalStorageDefaultsIfEmpty() {
+    try {
+        if (!localStorage.getItem(STORAGE_KEY)) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(cloneDefaultPlanets()));
+        }
+        if (!localStorage.getItem(ASTEROID_BELT_KEY)) {
+            localStorage.setItem(ASTEROID_BELT_KEY, JSON.stringify(cloneDefaultAsteroidBelt()));
+        }
+        if (!localStorage.getItem(SUN_KEY)) {
+            localStorage.setItem(SUN_KEY, JSON.stringify(cloneDefaultSun()));
+        }
+        if (!localStorage.getItem(VISUALS_KEY)) {
+            localStorage.setItem(VISUALS_KEY, JSON.stringify({ showOrbitPaths: true, showOrbitalAxes: false }));
+        }
+    } catch {
+    }
+}
+
+initLocalStorageDefaultsIfEmpty();
+
 class GalaxyStore {
     private planets: OrbitConfig[] = loadPersistedPlanets();
     private asteroidBelt: AsteroidBeltConfig = loadPersistedAsteroidBelt();
@@ -99,15 +119,29 @@ class GalaxyStore {
         };
     };
 
-    private notify() {
-        try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(this.planets));
-            localStorage.setItem(ASTEROID_BELT_KEY, JSON.stringify(this.asteroidBelt));
-            localStorage.setItem(SUN_KEY, JSON.stringify(this.sun));
-            localStorage.setItem(VISUALS_KEY, JSON.stringify(this.visuals));
-        } catch {
+    private notify(persist = false) {
+        if (persist) {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(this.planets));
+                localStorage.setItem(ASTEROID_BELT_KEY, JSON.stringify(this.asteroidBelt));
+                localStorage.setItem(SUN_KEY, JSON.stringify(this.sun));
+                localStorage.setItem(VISUALS_KEY, JSON.stringify(this.visuals));
+            } catch {
+            }
         }
         this.listeners.forEach((l) => l());
+    }
+
+    saveCustomizations() {
+        this.notify(true);
+    }
+
+    revertToPersisted() {
+        this.planets = loadPersistedPlanets();
+        this.asteroidBelt = loadPersistedAsteroidBelt();
+        this.sun = loadPersistedSun();
+        this.visuals = loadPersistedVisuals();
+        this.notify(false);
     }
 
     updatePlanet(id: string, updates: Partial<OrbitConfig>) {
@@ -124,7 +158,7 @@ class GalaxyStore {
             }
             return p;
         });
-        this.notify();
+        this.notify(false);
     }
 
     updateAsteroidBelt(updates: Partial<AsteroidBeltConfig>) {
@@ -132,7 +166,7 @@ class GalaxyStore {
             ...this.asteroidBelt,
             ...updates,
         };
-        this.notify();
+        this.notify(false);
     }
 
     updateSun(updates: Partial<SunConfig>) {
@@ -141,22 +175,22 @@ class GalaxyStore {
             ...updates,
             palette: updates.palette ? { ...this.sun.palette, ...updates.palette } : this.sun.palette,
         };
-        this.notify();
+        this.notify(false);
     }
 
-    setPlanets(newPlanets: OrbitConfig[]) {
+    setPlanets(newPlanets: OrbitConfig[], persist = false) {
         this.planets = newPlanets;
-        this.notify();
+        this.notify(persist);
     }
 
-    setAsteroidBelt(newBelt: AsteroidBeltConfig) {
+    setAsteroidBelt(newBelt: AsteroidBeltConfig, persist = false) {
         this.asteroidBelt = newBelt;
-        this.notify();
+        this.notify(persist);
     }
 
-    setSun(newSun: SunConfig) {
+    setSun(newSun: SunConfig, persist = false) {
         this.sun = newSun;
-        this.notify();
+        this.notify(persist);
     }
 
     resetPlanet(id: string) {
@@ -165,17 +199,17 @@ class GalaxyStore {
         if (!defaultPlanet) return;
 
         this.planets = this.planets.map((p) => (p.id === id ? defaultPlanet : p));
-        this.notify();
+        this.notify(false);
     }
 
     resetAsteroidBelt() {
         this.asteroidBelt = cloneDefaultAsteroidBelt();
-        this.notify();
+        this.notify(false);
     }
 
     resetSun() {
         this.sun = cloneDefaultSun();
-        this.notify();
+        this.notify(false);
     }
 
     resetAll() {

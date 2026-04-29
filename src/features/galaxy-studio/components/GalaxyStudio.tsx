@@ -1,4 +1,5 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import type { AsteroidBeltConfig, OrbitConfig, SunConfig } from "../../galaxy";
 import {
     galaxyStore,
@@ -8,6 +9,9 @@ import {
     useGalaxyVisuals,
     detectAllGalaxyCollisions,
     resolveGalaxyCollisions,
+    ORBIT_LAYOUT,
+    DEFAULT_SUN,
+    DEFAULT_ASTEROID_BELT,
 } from "../../galaxy";
 import { generateRandomGalaxy } from "../presets";
 import GalaxyToolbar from "./GalaxyToolbar";
@@ -38,6 +42,7 @@ export interface GalaxyStudioProps {
 }
 
 export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
+    const navigate = useNavigate();
     const storePlanets = useGalaxyPlanets();
     const storeBelt = useGalaxyAsteroidBelt();
     const storeSun = useGalaxySun();
@@ -56,11 +61,13 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
         JSON.stringify({ planets: storePlanets, asteroidBelt: storeBelt, sun: storeSun })
     );
 
+    const isSavedRef = useRef<boolean>(false);
     const selectedId = focusId || "home";
     const [activeTab, setActiveTab] = useState<PlanetTab>("appearance");
     const [activeMoonIndex, setActiveMoonIndex] = useState<number>(0);
     const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
     const [isDataModalOpen, setIsDataModalOpen] = useState<boolean>(false);
+    const [isConfirmExitOpen, setIsConfirmExitOpen] = useState<boolean>(false);
     const [toastMessage, setToastMessage] = useState<string | null>(null);
 
     const isDirty =
@@ -68,7 +75,41 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
         savedSnapshot;
 
     const currentPlanet = draftPlanets.find((p) => p.id === selectedId);
+    const defaultPlanetConfig = ORBIT_LAYOUT.find((p) => p.id === selectedId);
     const allWarnings = detectAllGalaxyCollisions(draftPlanets, draftBelt);
+
+    useEffect(() => {
+        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+            if (isDirty) {
+                e.preventDefault();
+                e.returnValue = "";
+            }
+        };
+        window.addEventListener("beforeunload", handleBeforeUnload);
+        return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+    }, [isDirty]);
+
+    useEffect(() => {
+        const handlePopState = () => {
+            if (isDirty) {
+                window.history.pushState(null, "", window.location.href);
+                setIsConfirmExitOpen(true);
+            }
+        };
+
+        window.addEventListener("popstate", handlePopState);
+        return () => {
+            window.removeEventListener("popstate", handlePopState);
+        };
+    }, [isDirty]);
+
+    useEffect(() => {
+        return () => {
+            if (!isSavedRef.current) {
+                galaxyStore.revertToPersisted();
+            }
+        };
+    }, []);
 
     const showToast = (msg: string) => {
         setToastMessage(msg);
@@ -82,7 +123,7 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
     const updatePlanet = useCallback((updater: (prev: OrbitConfig) => OrbitConfig) => {
         setDraftPlanets((prevList) => {
             const nextList = prevList.map((p) => (p.id === selectedId ? updater(p) : p));
-            galaxyStore.setPlanets(nextList);
+            galaxyStore.setPlanets(nextList, false);
             return nextList;
         });
     }, [selectedId]);
@@ -90,7 +131,7 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
     const updateBelt = useCallback((updater: (prev: AsteroidBeltConfig) => AsteroidBeltConfig) => {
         setDraftBelt((prev) => {
             const next = updater(prev);
-            galaxyStore.setAsteroidBelt(next);
+            galaxyStore.setAsteroidBelt(next, false);
             return next;
         });
     }, []);
@@ -98,15 +139,17 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
     const updateSun = useCallback((updater: (prev: SunConfig) => SunConfig) => {
         setDraftSun((prev) => {
             const next = updater(prev);
-            galaxyStore.setSun(next);
+            galaxyStore.setSun(next, false);
             return next;
         });
     }, []);
 
     const handleSaveAndApply = () => {
-        galaxyStore.setPlanets(draftPlanets);
-        galaxyStore.setAsteroidBelt(draftBelt);
-        galaxyStore.setSun(draftSun);
+        galaxyStore.setPlanets(draftPlanets, true);
+        galaxyStore.setAsteroidBelt(draftBelt, true);
+        galaxyStore.setSun(draftSun, true);
+        galaxyStore.saveCustomizations();
+        isSavedRef.current = true;
         setSavedSnapshot(JSON.stringify({ planets: draftPlanets, asteroidBelt: draftBelt, sun: draftSun }));
         showToast("Galaxy changes saved successfully.");
     };
@@ -116,10 +159,24 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
         setDraftPlanets(snap.planets);
         setDraftBelt(snap.asteroidBelt);
         setDraftSun(snap.sun);
-        galaxyStore.setPlanets(snap.planets);
-        galaxyStore.setAsteroidBelt(snap.asteroidBelt);
-        galaxyStore.setSun(snap.sun);
-        showToast("Changes discarded.");
+        galaxyStore.setPlanets(snap.planets, false);
+        galaxyStore.setAsteroidBelt(snap.asteroidBelt, false);
+        galaxyStore.setSun(snap.sun, false);
+        showToast("Reverted working draft to saved galaxy.");
+    };
+
+    const handleExitStudio = () => {
+        if (isDirty) {
+            setIsConfirmExitOpen(true);
+        } else {
+            navigate("/");
+        }
+    };
+
+    const handleConfirmDiscardAndExit = () => {
+        galaxyStore.revertToPersisted();
+        isSavedRef.current = true;
+        navigate("/");
     };
 
     const handleRandomizeAll = () => {
@@ -127,16 +184,16 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
         setDraftPlanets(randomized.planets);
         setDraftBelt(randomized.asteroidBelt);
         setDraftSun(randomized.sun);
-        galaxyStore.setPlanets(randomized.planets);
-        galaxyStore.setAsteroidBelt(randomized.asteroidBelt);
-        galaxyStore.setSun(randomized.sun);
+        galaxyStore.setPlanets(randomized.planets, false);
+        galaxyStore.setAsteroidBelt(randomized.asteroidBelt, false);
+        galaxyStore.setSun(randomized.sun, false);
         showToast("Generated new procedural galaxy.");
     };
 
     const handleResolveCollisions = () => {
         const { resolvedPlanets } = resolveGalaxyCollisions(draftPlanets, draftBelt);
         setDraftPlanets(resolvedPlanets);
-        galaxyStore.setPlanets(resolvedPlanets);
+        galaxyStore.setPlanets(resolvedPlanets, false);
         showToast("Auto-adjusted orbits to eliminate collisions.");
     };
 
@@ -147,29 +204,51 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
     }) => {
         if (data.planets) {
             setDraftPlanets(data.planets);
-            galaxyStore.setPlanets(data.planets);
+            galaxyStore.setPlanets(data.planets, false);
         }
         if (data.asteroidBelt) {
             setDraftBelt(data.asteroidBelt);
-            galaxyStore.setAsteroidBelt(data.asteroidBelt);
+            galaxyStore.setAsteroidBelt(data.asteroidBelt, false);
         }
         if (data.sun) {
             setDraftSun(data.sun);
-            galaxyStore.setSun(data.sun);
+            galaxyStore.setSun(data.sun, false);
         }
         showToast("System JSON imported successfully.");
     };
 
+    const handleResetCurrentPlanet = () => {
+        if (!defaultPlanetConfig || !currentPlanet) return;
+        const fresh = structuredClone(defaultPlanetConfig);
+        updatePlanet(() => fresh);
+        showToast(`Reset ${TARGET_LIST.find((t) => t.id === selectedId)?.label || selectedId} to original defaults.`);
+    };
+
+    const handleResetSun = () => {
+        const freshSun = structuredClone(DEFAULT_SUN);
+        setDraftSun(freshSun);
+        galaxyStore.setSun(freshSun, false);
+        showToast("Reset Sun to original defaults.");
+    };
+
+    const handleResetBelt = () => {
+        const freshBelt = structuredClone(DEFAULT_ASTEROID_BELT);
+        setDraftBelt(freshBelt);
+        galaxyStore.setAsteroidBelt(freshBelt, false);
+        showToast("Reset Asteroid Belt to original defaults.");
+    };
+
     const handleResetAllDefaults = () => {
-        galaxyStore.resetAll();
-        const freshPlanets = galaxyStore.getSnapshot();
-        const freshBelt = galaxyStore.getAsteroidBeltSnapshot();
-        const freshSun = galaxyStore.getSunSnapshot();
-        setDraftPlanets(structuredClone(freshPlanets));
-        setDraftBelt(structuredClone(freshBelt));
-        setDraftSun(structuredClone(freshSun));
-        setSavedSnapshot(JSON.stringify({ planets: freshPlanets, asteroidBelt: freshBelt, sun: freshSun }));
-        showToast("Reset entire system to defaults.");
+        const freshPlanets = structuredClone(ORBIT_LAYOUT);
+        const freshBelt = structuredClone(DEFAULT_ASTEROID_BELT);
+        const freshSun = structuredClone(DEFAULT_SUN);
+        setDraftPlanets(freshPlanets);
+        setDraftBelt(freshBelt);
+        setDraftSun(freshSun);
+        galaxyStore.setPlanets(freshPlanets, false);
+        galaxyStore.setAsteroidBelt(freshBelt, false);
+        galaxyStore.setSun(freshSun, false);
+        showToast("Reset entire galaxy to original default configuration.");
     };
 
     return (
@@ -181,10 +260,12 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
                 onToggleOrbitPaths={() => galaxyStore.toggleOrbitPaths()}
                 onToggleOrbitalAxes={() => galaxyStore.toggleOrbitalAxes()}
                 onRandomizeAll={handleRandomizeAll}
+                onResetGalaxy={handleResetAllDefaults}
                 onResolveCollisions={handleResolveCollisions}
                 onOpenDataModal={() => setIsDataModalOpen(true)}
                 onSaveAndApply={handleSaveAndApply}
                 onDiscard={handleDiscard}
+                onExit={handleExitStudio}
             />
 
             <TargetSelector
@@ -221,6 +302,37 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
                                     {TARGET_LIST.find((t) => t.id === selectedId)?.label || selectedId}
                                 </h2>
                             </div>
+
+                            <div className="studio-sidebar__header-actions">
+                                {selectedId === "home" || selectedId === "sun" ? (
+                                    <button
+                                        type="button"
+                                        className="studio-btn studio-btn--ghost studio-btn--sm"
+                                        onClick={handleResetSun}
+                                        title="Reset star to original default configuration"
+                                    >
+                                        Reset to Default
+                                    </button>
+                                ) : selectedId === "asteroid-belt" ? (
+                                    <button
+                                        type="button"
+                                        className="studio-btn studio-btn--ghost studio-btn--sm"
+                                        onClick={handleResetBelt}
+                                        title="Reset asteroid belt to original default configuration"
+                                    >
+                                        Reset to Default
+                                    </button>
+                                ) : currentPlanet ? (
+                                    <button
+                                        type="button"
+                                        className="studio-btn studio-btn--ghost studio-btn--sm"
+                                        onClick={handleResetCurrentPlanet}
+                                        title="Reset this planet to original default configuration"
+                                    >
+                                        Reset to Default
+                                    </button>
+                                ) : null}
+                            </div>
                         </div>
 
                         {selectedId === "home" || selectedId === "sun" ? (
@@ -228,10 +340,6 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
                                 <SunPanel
                                     sun={draftSun}
                                     onChange={updateSun}
-                                    onReset={() => {
-                                        galaxyStore.resetSun();
-                                        setDraftSun(galaxyStore.getSunSnapshot());
-                                    }}
                                 />
                             </div>
                         ) : selectedId === "asteroid-belt" ? (
@@ -239,10 +347,6 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
                                 <AsteroidBeltPanel
                                     config={draftBelt}
                                     onChange={updateBelt}
-                                    onReset={() => {
-                                        galaxyStore.resetAsteroidBelt();
-                                        setDraftBelt(galaxyStore.getAsteroidBeltSnapshot());
-                                    }}
                                 />
                             </div>
                         ) : currentPlanet ? (
@@ -275,17 +379,6 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
                                         <AppearancePanel
                                             planet={currentPlanet}
                                             onChange={updatePlanet}
-                                            onReset={() => {
-                                                galaxyStore.resetPlanet(currentPlanet.id);
-                                                const resetPlanet = galaxyStore
-                                                    .getSnapshot()
-                                                    .find((p) => p.id === currentPlanet.id);
-                                                if (resetPlanet) {
-                                                    setDraftPlanets((prev) =>
-                                                        prev.map((p) => (p.id === currentPlanet.id ? resetPlanet : p))
-                                                    );
-                                                }
-                                            }}
                                         />
                                     )}
 
@@ -317,6 +410,45 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
                     </div>
                 )}
             </aside>
+
+            {isConfirmExitOpen && (
+                <div
+                    className="studio-modal-backdrop"
+                    onClick={() => setIsConfirmExitOpen(false)}
+                >
+                    <div
+                        className="studio-confirm-dialog"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="studio-confirm-title">
+                            Unsaved Changes
+                        </div>
+                        <div className="studio-confirm-text">
+                            You have unsaved modifications in Galaxy Studio. Are you sure you want to discard them and exit?
+                        </div>
+                        <div className="studio-confirm-actions">
+                            <button
+                                type="button"
+                                className="studio-btn studio-btn--secondary studio-btn--sm"
+                                onClick={() => setIsConfirmExitOpen(false)}
+                            >
+                                Keep Editing
+                            </button>
+                            <button
+                                type="button"
+                                className="studio-btn studio-btn--primary studio-btn--sm"
+                                style={{
+                                    background: "var(--destructive)",
+                                    borderColor: "var(--destructive)",
+                                }}
+                                onClick={handleConfirmDiscardAndExit}
+                            >
+                                Discard & Exit
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {toastMessage && (
                 <div className="studio-toast" role="status">
