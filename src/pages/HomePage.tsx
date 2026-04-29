@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { GalaxyScene } from "../features/galaxy";
 import { HomeOverlay } from "../features/sections";
-import { PlanetStudioModal } from "../features/planet-creator";
 import type { SectionId } from "../features/sections";
 
 export function HomePage() {
@@ -27,7 +27,14 @@ export function HomePage() {
                 registerTrigger={registerTrigger}
             />
 
-            <PlanetStudioModal focusId={focusId} />
+            <Link
+                to="/studio"
+                className="studio-launcher-btn"
+                title="Launch 3D Galaxy Studio"
+                aria-label="Launch 3D Galaxy Studio"
+            >
+                <span className="studio-launcher-btn__text">Galaxy Studio</span>
+            </Link>
         </div>
     );
 }

@@ -5,9 +5,10 @@ import * as THREE from "three";
 interface SunGlowProps {
     radius: number;
     color?: string;
+    glowIntensity?: number;
 }
 
-export function SunGlow({ radius, color = "#ffd76b" }: SunGlowProps) {
+export function SunGlow({ radius, color = "#ffd76b", glowIntensity = 1.0 }: SunGlowProps) {
     const innerGlowRef = useRef<THREE.Mesh>(null);
     const outerGlowRef = useRef<THREE.Mesh>(null);
 
@@ -63,7 +64,7 @@ export function SunGlow({ radius, color = "#ffd76b" }: SunGlowProps) {
                     map={glowTexture}
                     color={brightColor}
                     transparent
-                    opacity={0.65}
+                    opacity={0.65 * glowIntensity}
                     blending={THREE.AdditiveBlending}
                     depthWrite={false}
                 />
@@ -75,7 +76,7 @@ export function SunGlow({ radius, color = "#ffd76b" }: SunGlowProps) {
                     map={glowTexture}
                     color={warmOrangeColor}
                     transparent
-                    opacity={0.4}
+                    opacity={0.4 * glowIntensity}
                     blending={THREE.AdditiveBlending}
                     depthWrite={false}
                 />

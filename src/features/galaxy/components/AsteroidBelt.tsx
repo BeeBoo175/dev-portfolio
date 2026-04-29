@@ -26,6 +26,7 @@ export function AsteroidBelt({ config }: AsteroidBeltProps) {
         orbitSpeed = 0.09,
         heightSpread = 0.6,
         inclination = 0.035,
+        ascendingNode = 0,
         color = "#9ca3af",
         secondaryColor = "#57534e",
         seed = 101,
@@ -121,7 +122,7 @@ export function AsteroidBelt({ config }: AsteroidBeltProps) {
     if (!enabled || count <= 0) return null;
 
     return (
-        <group rotation={[inclination, 0, 0]}>
+        <group rotation={[inclination, ascendingNode, 0]}>
             <group ref={groupRef}>
                 <instancedMesh
                     ref={meshRef}
