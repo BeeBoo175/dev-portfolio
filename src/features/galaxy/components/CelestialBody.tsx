@@ -23,12 +23,20 @@ export const CelestialBody = forwardRef<THREE.Group, CelestialBodyProps>(
         const visuals = useGalaxyVisuals();
         const effectiveColor = color ?? body.color ?? "white";
 
-        useImperativeHandle(ref, () => positionRef.current as THREE.Group);
+        useImperativeHandle(ref, () => {
+            if (positionRef.current && bodyRef.current) {
+                positionRef.current.userData.surfaceMesh = bodyRef.current;
+            }
+            return positionRef.current as THREE.Group;
+        });
 
         const orbitConfig = body as OrbitConfig;
         const sunConfig = body as SunConfig;
 
         useFrame((_, delta) => {
+            if (positionRef.current && bodyRef.current && !positionRef.current.userData.surfaceMesh) {
+                positionRef.current.userData.surfaceMesh = bodyRef.current;
+            }
             if (orbitRef.current && orbitConfig.orbitSpeed) {
                 orbitRef.current.rotation.y += orbitConfig.orbitSpeed * delta;
             }
@@ -54,7 +62,15 @@ export const CelestialBody = forwardRef<THREE.Group, CelestialBodyProps>(
                 )}
 
                 <group ref={orbitRef} rotation={[0, orbitConfig.initialAngle ?? 0, 0]}>
-                    <group ref={positionRef} position={[orbitConfig.orbitRadius ?? 0, 0, 0]}>
+                    <group
+                        ref={(groupInstance) => {
+                            positionRef.current = groupInstance;
+                            if (groupInstance && bodyRef.current) {
+                                groupInstance.userData.surfaceMesh = bodyRef.current;
+                            }
+                        }}
+                        position={[orbitConfig.orbitRadius ?? 0, 0, 0]}
+                    >
                         <group rotation={[axialTilt, 0, 0]}>
                             <LowPolyPlanet
                                 ref={(meshInstance) => {
