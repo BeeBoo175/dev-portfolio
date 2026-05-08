@@ -222,23 +222,34 @@ export function resolveGalaxyCollisions(
         let currentMoons = p.children ? [...p.children] : undefined;
 
         if (currentMoons && currentMoons.length > 0) {
-            let safeDistance = safeBase + 0.45;
-            currentMoons = currentMoons.map((moon) => {
-                const minRequired = Number((safeDistance + moon.radius + 0.15).toFixed(2));
-                const currentOrbit = moon.orbitRadius ?? 2.0;
+            const indexedMoons = currentMoons.map((moon, idx) => ({ ...moon, origIndex: idx }));
+            indexedMoons.sort((a, b) => (a.orbitRadius ?? 2.0) - (b.orbitRadius ?? 2.0));
 
-                if (currentOrbit < minRequired) {
-                    pChanged = true;
-                    safeDistance = Number((minRequired + 0.1).toFixed(2));
-                    return {
-                        ...moon,
-                        orbitRadius: minRequired,
-                    };
+            for (let mIdx = 0; mIdx < indexedMoons.length; mIdx++) {
+                const moon = indexedMoons[mIdx];
+                const curMoonOrbit = moon.orbitRadius ?? 2.0;
+
+                if (mIdx === 0) {
+                    const minSafeSurface = Number((safeBase + moon.radius + 0.35).toFixed(2));
+                    if (curMoonOrbit < minSafeSurface) {
+                        pChanged = true;
+                        moon.orbitRadius = minSafeSurface;
+                    }
                 } else {
-                    safeDistance = Number((currentOrbit + moon.radius + 0.15).toFixed(2));
-                    return moon;
+                    const prevMoon = indexedMoons[mIdx - 1];
+                    const prevMoonOrbit = prevMoon.orbitRadius ?? 2.0;
+                    const minSafeDist = prevMoon.radius + moon.radius + 0.3;
+                    const minSafeOrbit = Number((prevMoonOrbit + minSafeDist).toFixed(2));
+
+                    if (curMoonOrbit < minSafeOrbit) {
+                        pChanged = true;
+                        moon.orbitRadius = minSafeOrbit;
+                    }
                 }
-            });
+            }
+
+            indexedMoons.sort((a, b) => a.origIndex - b.origIndex);
+            currentMoons = indexedMoons.map(({ origIndex: _, ...m }) => m as OrbitConfig);
         }
 
         if (pChanged) changedCount++;
@@ -260,47 +271,42 @@ export function resolveGalaxyCollisions(
         const curRing = item.p.ring?.outerRadius ?? 0;
         const curBaseReach = Math.max(curRad, curRing);
 
-        let curInnerReach = curBaseReach;
-        let curOuterReach = curBaseReach;
+        let curMaxMoonReach = 0;
         if (item.p.children && item.p.children.length > 0) {
             for (const m of item.p.children) {
                 const mReach = (m.orbitRadius ?? 2.0) + m.radius;
-                if (mReach > curInnerReach) curInnerReach = mReach;
-                if (mReach > curOuterReach) curOuterReach = mReach;
+                if (mReach > curMaxMoonReach) curMaxMoonReach = mReach;
             }
         }
+        const curReach = Math.max(curBaseReach, curMaxMoonReach);
 
-        if (i === 0) {
-            if (orbit < SUN_SAFE_ORBIT) {
-                orbit = SUN_SAFE_ORBIT;
-                if (orbit !== item.p.orbitRadius) changedCount++;
-                item.p.orbitRadius = orbit;
-            }
-        } else {
+        let minRequiredOrbit = SUN_SAFE_ORBIT;
+
+        if (i > 0) {
             const prevItem = indexed[i - 1];
             const prevOrbit = prevItem.p.orbitRadius ?? 7.0;
             const prevRad = prevItem.p.radius ?? 1.0;
             const prevRing = prevItem.p.ring?.outerRadius ?? 0;
             const prevBaseReach = Math.max(prevRad, prevRing);
 
-            let prevOuterReach = prevBaseReach;
+            let prevMaxMoonReach = 0;
             if (prevItem.p.children && prevItem.p.children.length > 0) {
                 for (const m of prevItem.p.children) {
                     const mReach = (m.orbitRadius ?? 2.0) + m.radius;
-                    if (mReach > prevOuterReach) prevOuterReach = mReach;
+                    if (mReach > prevMaxMoonReach) prevMaxMoonReach = mReach;
                 }
             }
+            const prevReach = Math.max(prevBaseReach, prevMaxMoonReach);
 
             const minSafeDist = Math.max(
                 prevBaseReach + curBaseReach + 0.35,
-                prevOuterReach + curInnerReach + 0.45
+                prevReach + curReach + 0.45
             );
+            minRequiredOrbit = Number((prevOrbit + minSafeDist).toFixed(1));
+        }
 
-            const minRequiredOrbit = Number((prevOrbit + minSafeDist).toFixed(1));
-
-            if (orbit < minRequiredOrbit) {
-                orbit = minRequiredOrbit;
-            }
+        if (orbit < minRequiredOrbit) {
+            orbit = minRequiredOrbit;
         }
 
         if (asteroidBelt && asteroidBelt.enabled && asteroidBelt.count > 0) {
@@ -308,14 +314,14 @@ export function resolveGalaxyCollisions(
             const beltOuter = asteroidBelt.outerRadius;
             const safeBeltBuffer = 0.3;
 
-            const minBeforeBelt = beltInner - curOuterReach - safeBeltBuffer;
-            const minAfterBelt = beltOuter + curInnerReach + safeBeltBuffer;
+            const minBeforeBelt = Number((beltInner - curReach - safeBeltBuffer).toFixed(1));
+            const minAfterBelt = Number((beltOuter + curReach + safeBeltBuffer).toFixed(1));
 
             if (orbit > minBeforeBelt && orbit < minAfterBelt) {
-                if (Math.abs(orbit - minBeforeBelt) < Math.abs(orbit - minAfterBelt) && (i === 0 || (indexed[i - 1].p.orbitRadius ?? 0) < minBeforeBelt - 1.0)) {
-                    orbit = Number(minBeforeBelt.toFixed(1));
+                if (minBeforeBelt >= minRequiredOrbit && Math.abs(orbit - minBeforeBelt) < Math.abs(orbit - minAfterBelt)) {
+                    orbit = minBeforeBelt;
                 } else {
-                    orbit = Number(minAfterBelt.toFixed(1));
+                    orbit = Math.max(minAfterBelt, minRequiredOrbit);
                 }
             }
         }

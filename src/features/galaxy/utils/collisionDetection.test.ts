@@ -188,5 +188,82 @@ describe("collisionDetection utils", () => {
         const warningsAfter = detectAllGalaxyCollisions(resolvedPlanets);
         expect(warningsAfter.some((w) => w.type === "planet-planet")).toBe(false);
     });
+
+    it("resolves multi-moon collisions and surface penetrations completely", () => {
+        const planetWithMultipleMoons: OrbitConfig[] = [
+            {
+                id: "jupiter",
+                radius: 1.8,
+                rotationSpeed: 0.01,
+                orbitRadius: 10.0,
+                children: [
+                    {
+                        id: "m1",
+                        radius: 0.3,
+                        rotationSpeed: 0.02,
+                        orbitRadius: 0.5,
+                    },
+                    {
+                        id: "m2",
+                        radius: 0.4,
+                        rotationSpeed: 0.02,
+                        orbitRadius: 0.6,
+                    },
+                    {
+                        id: "m3",
+                        radius: 0.25,
+                        rotationSpeed: 0.02,
+                        orbitRadius: 0.7,
+                    },
+                ],
+            },
+        ];
+
+        const warnings = detectAllGalaxyCollisions(planetWithMultipleMoons);
+        expect(warnings.length).toBeGreaterThan(0);
+
+        const { resolvedPlanets, changedCount } = resolveGalaxyCollisions(planetWithMultipleMoons);
+        expect(changedCount).toBeGreaterThan(0);
+
+        const warningsAfter = detectAllGalaxyCollisions(resolvedPlanets);
+        expect(warningsAfter).toHaveLength(0);
+    });
+
+    it("resolves asteroid belt collisions when previous planet constrains inner space", () => {
+        const asteroidBelt = {
+            enabled: true,
+            innerRadius: 12.0,
+            outerRadius: 15.0,
+            count: 300,
+            minSize: 0.05,
+            maxSize: 0.15,
+            orbitSpeed: 0.1,
+            heightSpread: 0.5,
+        };
+
+        const planets: OrbitConfig[] = [
+            {
+                id: "planet-1",
+                radius: 1.0,
+                rotationSpeed: 0.01,
+                orbitRadius: 10.5,
+            },
+            {
+                id: "planet-2",
+                radius: 1.2,
+                rotationSpeed: 0.01,
+                orbitRadius: 13.0,
+            },
+        ];
+
+        const warnings = detectAllGalaxyCollisions(planets, asteroidBelt);
+        expect(warnings.length).toBeGreaterThan(0);
+
+        const { resolvedPlanets, changedCount } = resolveGalaxyCollisions(planets, asteroidBelt);
+        expect(changedCount).toBeGreaterThan(0);
+
+        const warningsAfter = detectAllGalaxyCollisions(resolvedPlanets, asteroidBelt);
+        expect(warningsAfter).toHaveLength(0);
+    });
 });
 
