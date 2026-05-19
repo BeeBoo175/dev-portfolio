@@ -962,9 +962,8 @@
 }
 
 .ui-tooltip-bubble {
-    position: absolute;
-    bottom: calc(100% + 6px);
-    right: 0;
+    position: fixed;
+    transform: translate(-100%, calc(-100% - 6px));
     width: 220px;
     padding: 6px 10px;
     background: var(--bg-surface-elevated);
@@ -973,8 +972,8 @@
     color: var(--text-secondary);
     font-size: 11px;
     line-height: 1.4;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7);
-    z-index: 100;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.85);
+    z-index: 9999;
     pointer-events: none;
     white-space: normal;
 }
