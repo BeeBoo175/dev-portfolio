@@ -2,7 +2,7 @@ import { useRef, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { ORBIT_LAYOUT } from "../data";
-import { useGalaxyPlanets } from "../store";
+import { useGalaxyPlanets, useGalaxyDefaultPlanetId } from "../store";
 
 export interface SpaceshipProps {
     focusId: string;
@@ -11,7 +11,6 @@ export interface SpaceshipProps {
 
 const SUN_SAFE_RADIUS = 8.5;
 const HOVER_ALTITUDE = 0.20;
-const DEFAULT_PLANET_ID = "about";
 
 const TAKEOFF_PHASE_END = 0.22;
 const LANDING_PHASE_START = 0.78;
@@ -84,10 +83,11 @@ function computeForwardRotation(
 export function Spaceship({ focusId, bodyRefs }: SpaceshipProps) {
     const groupRef = useRef<THREE.Group>(null);
     const planets = useGalaxyPlanets();
+    const defaultPlanetId = useGalaxyDefaultPlanetId();
 
-    const originPlanetId = useRef<string>(DEFAULT_PLANET_ID);
-    const currentPlanetId = useRef<string>(DEFAULT_PLANET_ID);
-    const targetPlanetId = useRef<string>(DEFAULT_PLANET_ID);
+    const originPlanetId = useRef<string>(defaultPlanetId);
+    const currentPlanetId = useRef<string>(defaultPlanetId);
+    const targetPlanetId = useRef<string>(defaultPlanetId);
     const isFlying = useRef<boolean>(false);
     const isMidFlightRedirect = useRef<boolean>(false);
     const flightElapsed = useRef<number>(0);
@@ -121,17 +121,17 @@ export function Spaceship({ focusId, bodyRefs }: SpaceshipProps) {
     };
 
     useEffect(() => {
-        if (focusId === "home") return;
+        const activeTargetId = focusId === "home" ? defaultPlanetId : focusId;
         const targetPlanet =
-            planets.find((p) => p.id === focusId) ??
-            ORBIT_LAYOUT.find((p) => p.id === focusId);
+            planets.find((p) => p.id === activeTargetId) ??
+            ORBIT_LAYOUT.find((p) => p.id === activeTargetId);
         if (!targetPlanet) return;
 
-        if (focusId !== targetPlanetId.current) {
+        if (activeTargetId !== targetPlanetId.current) {
             const wasAlreadyFlying = isFlying.current;
-            targetPlanetId.current = focusId;
+            targetPlanetId.current = activeTargetId;
 
-            const destSurface = getSurfaceMesh(focusId);
+            const destSurface = getSurfaceMesh(activeTargetId);
             if (destSurface && groupRef.current) {
                 if (wasAlreadyFlying) {
                     isMidFlightRedirect.current = true;
@@ -161,7 +161,7 @@ export function Spaceship({ focusId, bodyRefs }: SpaceshipProps) {
                     .clone()
                     .transformDirection(invDestMatrix)
                     .normalize();
-                const radius = getPlanetRadius(focusId);
+                const radius = getPlanetRadius(activeTargetId);
 
                 targetLocalPos.current
                     .copy(localNormal)
@@ -186,14 +186,19 @@ export function Spaceship({ focusId, bodyRefs }: SpaceshipProps) {
                 isFlying.current = true;
             }
         }
-    }, [focusId, planets, bodyRefs]);
+    }, [focusId, defaultPlanetId, planets, bodyRefs]);
 
     useFrame((_, delta) => {
         if (!groupRef.current) return;
 
         if (!isInitialized.current) {
-            const initialSurface = getSurfaceMesh(DEFAULT_PLANET_ID);
+            const initialPlanetId = defaultPlanetId;
+            const initialSurface = getSurfaceMesh(initialPlanetId);
             if (initialSurface) {
+                currentPlanetId.current = initialPlanetId;
+                targetPlanetId.current = initialPlanetId;
+                originPlanetId.current = initialPlanetId;
+
                 initialSurface.updateWorldMatrix(true, false);
                 const initialCenter = new THREE.Vector3();
                 initialSurface.getWorldPosition(initialCenter);
@@ -209,7 +214,7 @@ export function Spaceship({ focusId, bodyRefs }: SpaceshipProps) {
                 const initialNormal = cameraFacingDirWorld
                     .transformDirection(invInitialMatrix)
                     .normalize();
-                const radius = getPlanetRadius(DEFAULT_PLANET_ID);
+                const radius = getPlanetRadius(initialPlanetId);
 
                 originLocalPos.current
                     .copy(initialNormal)

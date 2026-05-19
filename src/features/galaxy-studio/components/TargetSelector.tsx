@@ -14,6 +14,7 @@ export interface TargetSelectorProps {
     onSelectTarget: (id: string) => void;
     sun: SunConfig;
     planets: OrbitConfig[];
+    defaultPlanetId?: string;
 }
 
 export function TargetSelector({
@@ -22,6 +23,7 @@ export function TargetSelector({
     onSelectTarget,
     sun,
     planets,
+    defaultPlanetId,
 }: TargetSelectorProps) {
     const getColor = (target: TargetItem) => {
         if (target.id === "home" || target.id === "sun") return sun.color;
@@ -36,6 +38,7 @@ export function TargetSelector({
                 {targets.map((target) => {
                     const isSelected = selectedId === target.id;
                     const color = getColor(target);
+                    const isSpaceshipBase = target.id === defaultPlanetId;
 
                     return (
                         <button
@@ -59,6 +62,11 @@ export function TargetSelector({
                                 style={{ backgroundColor: color }}
                             />
                             <span className="studio-target-chip__label">{target.label}</span>
+                            {isSpaceshipBase && (
+                                <span className="studio-target-chip__badge studio-target-chip__badge--station" title="Spaceship Default Station">
+                                    Ship Base
+                                </span>
+                            )}
                             {target.badge && (
                                 <span className="studio-target-chip__badge">{target.badge}</span>
                             )}

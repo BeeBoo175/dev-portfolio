@@ -1,11 +1,12 @@
 import { useSyncExternalStore } from "react";
 import type { AsteroidBeltConfig, GalaxyVisualSettings, OrbitConfig, SunConfig } from "./types";
-import { DEFAULT_ASTEROID_BELT, DEFAULT_SUN, ORBIT_LAYOUT } from "./data";
+import { DEFAULT_ASTEROID_BELT, DEFAULT_SUN, DEFAULT_SPACESHIP_PLANET_ID, ORBIT_LAYOUT } from "./data";
 
 const STORAGE_KEY = "portfolio_custom_planets_v1";
 const VISUALS_KEY = "portfolio_galaxy_visuals_v1";
 const ASTEROID_BELT_KEY = "portfolio_asteroid_belt_v1";
 const SUN_KEY = "portfolio_sun_config_v1";
+const DEFAULT_PLANET_KEY = "portfolio_default_planet_v1";
 
 function cloneDefaultPlanets(): OrbitConfig[] {
     return structuredClone(ORBIT_LAYOUT);
@@ -69,6 +70,15 @@ function loadPersistedVisuals(): GalaxyVisualSettings {
     return { showOrbitPaths: true, showOrbitalAxes: false };
 }
 
+function loadPersistedDefaultPlanetId(): string {
+    try {
+        const raw = localStorage.getItem(DEFAULT_PLANET_KEY);
+        if (raw) return raw;
+    } catch {
+    }
+    return DEFAULT_SPACESHIP_PLANET_ID;
+}
+
 function initLocalStorageDefaultsIfEmpty() {
     try {
         if (!localStorage.getItem(STORAGE_KEY)) {
@@ -83,6 +93,9 @@ function initLocalStorageDefaultsIfEmpty() {
         if (!localStorage.getItem(VISUALS_KEY)) {
             localStorage.setItem(VISUALS_KEY, JSON.stringify({ showOrbitPaths: true, showOrbitalAxes: false }));
         }
+        if (!localStorage.getItem(DEFAULT_PLANET_KEY)) {
+            localStorage.setItem(DEFAULT_PLANET_KEY, DEFAULT_SPACESHIP_PLANET_ID);
+        }
     } catch {
     }
 }
@@ -94,6 +107,7 @@ class GalaxyStore {
     private asteroidBelt: AsteroidBeltConfig = loadPersistedAsteroidBelt();
     private sun: SunConfig = loadPersistedSun();
     private visuals: GalaxyVisualSettings = loadPersistedVisuals();
+    private defaultPlanetId: string = loadPersistedDefaultPlanetId();
     private listeners = new Set<() => void>();
 
     getSnapshot = () => {
@@ -112,6 +126,10 @@ class GalaxyStore {
         return this.visuals;
     };
 
+    getDefaultPlanetIdSnapshot = () => {
+        return this.defaultPlanetId;
+    };
+
     subscribe = (listener: () => void) => {
         this.listeners.add(listener);
         return () => {
@@ -126,6 +144,7 @@ class GalaxyStore {
                 localStorage.setItem(ASTEROID_BELT_KEY, JSON.stringify(this.asteroidBelt));
                 localStorage.setItem(SUN_KEY, JSON.stringify(this.sun));
                 localStorage.setItem(VISUALS_KEY, JSON.stringify(this.visuals));
+                localStorage.setItem(DEFAULT_PLANET_KEY, this.defaultPlanetId);
             } catch {
             }
         }
@@ -141,6 +160,7 @@ class GalaxyStore {
         this.asteroidBelt = loadPersistedAsteroidBelt();
         this.sun = loadPersistedSun();
         this.visuals = loadPersistedVisuals();
+        this.defaultPlanetId = loadPersistedDefaultPlanetId();
         this.notify(false);
     }
 
@@ -193,6 +213,11 @@ class GalaxyStore {
         this.notify(persist);
     }
 
+    setDefaultPlanetId(id: string, persist = false) {
+        this.defaultPlanetId = id;
+        this.notify(persist);
+    }
+
     resetPlanet(id: string) {
         const defaults = cloneDefaultPlanets();
         const defaultPlanet = defaults.find((p) => p.id === id);
@@ -212,16 +237,23 @@ class GalaxyStore {
         this.notify(false);
     }
 
+    resetDefaultPlanetId() {
+        this.defaultPlanetId = DEFAULT_SPACESHIP_PLANET_ID;
+        this.notify(false);
+    }
+
     resetAll() {
         this.planets = cloneDefaultPlanets();
         this.asteroidBelt = cloneDefaultAsteroidBelt();
         this.sun = cloneDefaultSun();
         this.visuals = { showOrbitPaths: true, showOrbitalAxes: false };
+        this.defaultPlanetId = DEFAULT_SPACESHIP_PLANET_ID;
         try {
             localStorage.removeItem(STORAGE_KEY);
             localStorage.removeItem(ASTEROID_BELT_KEY);
             localStorage.removeItem(SUN_KEY);
             localStorage.removeItem(VISUALS_KEY);
+            localStorage.removeItem(DEFAULT_PLANET_KEY);
         } catch {
         }
         this.listeners.forEach((l) => l());
@@ -248,6 +280,7 @@ class GalaxyStore {
                 planets: this.planets,
                 asteroidBelt: this.asteroidBelt,
                 sun: this.sun,
+                defaultPlanetId: this.defaultPlanetId,
             },
             null,
             2
@@ -269,6 +302,9 @@ class GalaxyStore {
                 }
                 if (parsed.sun && typeof parsed.sun === "object") {
                     this.sun = { ...cloneDefaultSun(), ...parsed.sun };
+                }
+                if (typeof parsed.defaultPlanetId === "string") {
+                    this.defaultPlanetId = parsed.defaultPlanetId;
                 }
                 this.notify();
                 return true;
@@ -296,5 +332,9 @@ export function useGalaxySun(): SunConfig {
 
 export function useGalaxyVisuals(): GalaxyVisualSettings {
     return useSyncExternalStore(galaxyStore.subscribe, galaxyStore.getVisualsSnapshot);
+}
+
+export function useGalaxyDefaultPlanetId(): string {
+    return useSyncExternalStore(galaxyStore.subscribe, galaxyStore.getDefaultPlanetIdSnapshot);
 }
 
