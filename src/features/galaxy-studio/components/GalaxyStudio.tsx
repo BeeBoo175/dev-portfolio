@@ -282,6 +282,8 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
                 visuals={visuals}
                 isDirty={isDirty}
                 warningCount={allWarnings.length}
+                isCameraOrbitPaused={!!visuals.freezeCameraOrbit}
+                onTogglePauseCameraOrbit={() => galaxyStore.toggleFreezeCameraOrbit()}
                 onToggleOrbitPaths={() => galaxyStore.toggleOrbitPaths()}
                 onToggleOrbitalAxes={() => galaxyStore.toggleOrbitalAxes()}
                 onRandomizeAll={handleRandomizeAll}

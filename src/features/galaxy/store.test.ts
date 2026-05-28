@@ -28,11 +28,16 @@ describe("galaxyStore", () => {
     });
 
     it("updates visuals settings", () => {
-        galaxyStore.setVisualSettings({ showOrbitPaths: false, showOrbitalAxes: true });
-        const visuals = galaxyStore.getVisualsSnapshot();
+        galaxyStore.setVisualSettings({ showOrbitPaths: false, showOrbitalAxes: true, freezeCameraOrbit: true });
+        let visuals = galaxyStore.getVisualsSnapshot();
 
         expect(visuals.showOrbitPaths).toBe(false);
         expect(visuals.showOrbitalAxes).toBe(true);
+        expect(visuals.freezeCameraOrbit).toBe(true);
+
+        galaxyStore.toggleFreezeCameraOrbit();
+        visuals = galaxyStore.getVisualsSnapshot();
+        expect(visuals.freezeCameraOrbit).toBe(false);
     });
 
     it("notifies subscribers on store update", () => {
@@ -85,16 +90,18 @@ describe("galaxyStore", () => {
     });
 
     it("updates and resets sun configuration", () => {
-        galaxyStore.updateSun({ radius: 4.8, color: "#ff5500", glowIntensity: 1.6 });
+        galaxyStore.updateSun({ radius: 4.8, color: "#ff5500", glowIntensity: 1.6, cameraOrbitSpeed: -0.08 });
         let sun = galaxyStore.getSunSnapshot();
         expect(sun.radius).toBe(4.8);
         expect(sun.color).toBe("#ff5500");
         expect(sun.glowIntensity).toBe(1.6);
+        expect(sun.cameraOrbitSpeed).toBe(-0.08);
 
         galaxyStore.resetSun();
         sun = galaxyStore.getSunSnapshot();
         expect(sun.radius).toBe(3.5);
         expect(sun.color).toBe("#ffe59e");
+        expect(sun.cameraOrbitSpeed).toBe(-0.045);
     });
 
     it("handles default spaceship planet configuration and persistence", () => {

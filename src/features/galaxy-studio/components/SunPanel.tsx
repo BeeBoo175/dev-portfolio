@@ -111,6 +111,29 @@ export function SunPanel({ sun, onChange }: SunPanelProps) {
             </div>
 
             <div className="studio-panel__section">
+                <span className="studio-panel__title">System View Camera Orbit</span>
+                <div className="studio-field">
+                    <div className="studio-field__label-row">
+                        <label htmlFor="sun-camera-orbit">Camera Orbit Speed</label>
+                        <span className="studio-field__value">{(sun.cameraOrbitSpeed ?? -0.045).toFixed(3)}</span>
+                        <Tooltip text="Ambient camera revolution speed around the solar system in system overview." />
+                    </div>
+                    <input
+                        id="sun-camera-orbit"
+                        type="range"
+                        min="-0.15"
+                        max="0.15"
+                        step="0.005"
+                        value={sun.cameraOrbitSpeed ?? -0.045}
+                        onChange={(e) => {
+                            const val = parseFloat(e.target.value);
+                            onChange((prev) => ({ ...prev, cameraOrbitSpeed: val }));
+                        }}
+                    />
+                </div>
+            </div>
+
+            <div className="studio-panel__section">
                 <span className="studio-panel__title">Stellar Palette</span>
 
                 <div className="studio-palette-grid">
