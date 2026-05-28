@@ -5,11 +5,12 @@ import CelestialBody from "./components/CelestialBody";
 import CameraRig from "./components/CameraRig";
 import Spaceship from "./components/Spaceship";
 import AsteroidBelt from "./components/AsteroidBelt";
-import { useGalaxyAsteroidBelt, useGalaxyPlanets, useGalaxySun } from "./store";
+import { useGalaxyAsteroidBelt, useGalaxyPlanets, useGalaxySun, useGalaxyVisuals } from "./store";
 
 export interface GalaxySceneProps {
     focusId: string;
     isEditorMode?: boolean;
+    isCameraOrbitPaused?: boolean;
     onSelect?: (id: string) => void;
 }
 
@@ -72,11 +73,22 @@ function CameraFillLight({
     );
 }
 
-function GalaxyScene({ focusId, isEditorMode = false, onSelect }: GalaxySceneProps) {
+function GalaxyScene({
+    focusId,
+    isEditorMode = false,
+    isCameraOrbitPaused,
+    onSelect,
+}: GalaxySceneProps) {
     const bodyRefs = useRef<Record<string, THREE.Group | null>>({});
     const sun = useGalaxySun();
     const planets = useGalaxyPlanets();
     const asteroidBelt = useGalaxyAsteroidBelt();
+    const visuals = useGalaxyVisuals();
+
+    const effectiveCameraOrbitPaused =
+        isEditorMode
+            ? (isCameraOrbitPaused !== undefined ? isCameraOrbitPaused : !!visuals.freezeCameraOrbit)
+            : false;
 
     return (
         <Canvas
@@ -114,6 +126,9 @@ function GalaxyScene({ focusId, isEditorMode = false, onSelect }: GalaxyScenePro
                 centralId="home"
                 bodyRefs={bodyRefs}
                 allowManualOrbit={isEditorMode}
+                cameraOrbitSpeed={sun.cameraOrbitSpeed}
+                isCameraOrbitPaused={effectiveCameraOrbitPaused}
+                onFocusChange={onSelect}
             />
 
             <Spaceship

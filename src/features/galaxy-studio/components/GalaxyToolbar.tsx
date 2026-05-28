@@ -4,6 +4,8 @@ export interface GalaxyToolbarProps {
     visuals: GalaxyVisualSettings;
     isDirty: boolean;
     warningCount: number;
+    isCameraOrbitPaused?: boolean;
+    onTogglePauseCameraOrbit?: () => void;
     onToggleOrbitPaths: () => void;
     onToggleOrbitalAxes: () => void;
     onRandomizeAll: () => void;
@@ -19,6 +21,8 @@ export function GalaxyToolbar({
     visuals,
     isDirty,
     warningCount,
+    isCameraOrbitPaused,
+    onTogglePauseCameraOrbit,
     onToggleOrbitPaths,
     onToggleOrbitalAxes,
     onRandomizeAll,
@@ -86,6 +90,17 @@ export function GalaxyToolbar({
                     title="Toggle planetary axial tilt lines"
                 >
                     Axial Poles
+                </button>
+
+                <button
+                    type="button"
+                    className={`studio-toolbar__toggle-btn ${
+                        isCameraOrbitPaused ? "studio-toolbar__toggle-btn--active" : ""
+                    }`}
+                    onClick={onTogglePauseCameraOrbit}
+                    title="Freeze camera orbit in editor only to observe planetary motion (editor preview only, not saved)"
+                >
+                    Freeze Cam (Editor)
                 </button>
 
                 <div className="studio-toolbar__divider" />

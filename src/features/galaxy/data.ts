@@ -25,6 +25,7 @@ export const DEFAULT_SUN: SunConfig = {
     color: "#ffe59e",
     glowIntensity: 1.3,
     lightIntensity: 6,
+    cameraOrbitSpeed: -0.045,
     palette: {
         water: "#ffe59e",
         peak: "#fffbeb",
