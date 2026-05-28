@@ -49,6 +49,12 @@
     letter-spacing: -0.01em;
 }
 
+.studio-toolbar__history-group {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
 .studio-toolbar__warning-btn {
     display: flex;
     align-items: center;
