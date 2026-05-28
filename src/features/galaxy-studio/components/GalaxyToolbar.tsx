@@ -4,6 +4,10 @@ export interface GalaxyToolbarProps {
     visuals: GalaxyVisualSettings;
     isDirty: boolean;
     warningCount: number;
+    canUndo?: boolean;
+    canRedo?: boolean;
+    onUndo?: () => void;
+    onRedo?: () => void;
     isCameraOrbitPaused?: boolean;
     onTogglePauseCameraOrbit?: () => void;
     onToggleOrbitPaths: () => void;
@@ -21,6 +25,10 @@ export function GalaxyToolbar({
     visuals,
     isDirty,
     warningCount,
+    canUndo = false,
+    canRedo = false,
+    onUndo,
+    onRedo,
     isCameraOrbitPaused,
     onTogglePauseCameraOrbit,
     onToggleOrbitPaths,
@@ -37,6 +45,29 @@ export function GalaxyToolbar({
         <header className="studio-toolbar">
             <div className="studio-toolbar__left">
                 <span className="studio-toolbar__brand-text">Galaxy Studio</span>
+
+                <div className="studio-toolbar__history-group">
+                    <button
+                        type="button"
+                        className="studio-btn studio-btn--secondary studio-btn--sm"
+                        onClick={onUndo}
+                        disabled={!canUndo}
+                        title="Undo change (Ctrl+Z)"
+                        aria-label="Undo change"
+                    >
+                        Undo
+                    </button>
+                    <button
+                        type="button"
+                        className="studio-btn studio-btn--secondary studio-btn--sm"
+                        onClick={onRedo}
+                        disabled={!canRedo}
+                        title="Redo change (Ctrl+Y or Ctrl+Shift+Z)"
+                        aria-label="Redo change"
+                    >
+                        Redo
+                    </button>
+                </div>
 
                 {warningCount > 0 && (
                     <button
