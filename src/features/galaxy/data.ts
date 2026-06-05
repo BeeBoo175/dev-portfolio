@@ -13,6 +13,7 @@ export const DEFAULT_ASTEROID_BELT: AsteroidBeltConfig = {
     heightSpread: 0.6,
     inclination: 0.035,
     ascendingNode: 0,
+    argument: 0,
     color: "#9ca3af",
     secondaryColor: "#57534e",
     seed: 101,

@@ -490,6 +490,7 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
                 onSelectTarget={handleSelectTarget}
                 sun={draftSun}
                 planets={draftPlanets}
+                asteroidBelt={draftBelt}
                 defaultPlanetId={draftDefaultPlanetId}
             />
 

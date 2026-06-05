@@ -5,6 +5,8 @@ import type { AsteroidBeltConfig } from "../types";
 
 export interface AsteroidBeltProps {
     config: AsteroidBeltConfig;
+    isEditorMode?: boolean;
+    onSelect?: (id: string) => void;
 }
 
 function pseudoRandom(seed: number) {
@@ -12,7 +14,7 @@ function pseudoRandom(seed: number) {
     return x - Math.floor(x);
 }
 
-export function AsteroidBelt({ config }: AsteroidBeltProps) {
+export function AsteroidBelt({ config, isEditorMode = false, onSelect }: AsteroidBeltProps) {
     const groupRef = useRef<THREE.Group>(null);
     const meshRef = useRef<THREE.InstancedMesh>(null);
 
@@ -27,6 +29,7 @@ export function AsteroidBelt({ config }: AsteroidBeltProps) {
         heightSpread = 0.6,
         inclination = 0.035,
         ascendingNode = 0,
+        argument = 0,
         color = "#9ca3af",
         secondaryColor = "#57534e",
         seed = 101,
@@ -84,6 +87,11 @@ export function AsteroidBelt({ config }: AsteroidBeltProps) {
         return new THREE.DodecahedronGeometry(1, 0);
     }, []);
 
+    const hitGeometry = useMemo(() => {
+        if (!isEditorMode) return null;
+        return new THREE.RingGeometry(Math.max(0.1, innerRadius - 0.4), outerRadius + 0.4, 64);
+    }, [innerRadius, isEditorMode, outerRadius]);
+
     useEffect(() => {
         const mesh = meshRef.current;
         if (!mesh || !enabled) return;
@@ -110,8 +118,9 @@ export function AsteroidBelt({ config }: AsteroidBeltProps) {
     useEffect(() => {
         return () => {
             geometry.dispose();
+            hitGeometry?.dispose();
         };
-    }, [geometry]);
+    }, [geometry, hitGeometry]);
 
     useFrame((_, delta) => {
         if (groupRef.current) {
@@ -122,7 +131,7 @@ export function AsteroidBelt({ config }: AsteroidBeltProps) {
     if (!enabled || count <= 0) return null;
 
     return (
-        <group rotation={[inclination, ascendingNode, 0]}>
+        <group rotation={[inclination, ascendingNode, argument]}>
             <group ref={groupRef}>
                 <instancedMesh
                     key={`belt-${seed}-${count}-${enabled ? "on" : "off"}`}
@@ -136,6 +145,28 @@ export function AsteroidBelt({ config }: AsteroidBeltProps) {
                         flatShading
                     />
                 </instancedMesh>
+
+                {isEditorMode && hitGeometry && (
+                    <mesh
+                        geometry={hitGeometry}
+                        rotation={[-Math.PI / 2, 0, 0]}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onSelect?.("asteroid-belt");
+                        }}
+                        onPointerOver={() => {
+                            document.body.style.cursor = "pointer";
+                        }}
+                        onPointerOut={() => {
+                            document.body.style.cursor = "default";
+                        }}
+                    >
+                        <meshBasicMaterial
+                            visible={false}
+                            side={THREE.DoubleSide}
+                        />
+                    </mesh>
+                )}
             </group>
         </group>
     );
