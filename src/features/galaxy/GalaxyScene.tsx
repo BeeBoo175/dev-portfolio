@@ -108,7 +108,11 @@ function GalaxyScene({
                 onSelect={onSelect}
             />
 
-            <AsteroidBelt config={asteroidBelt} />
+            <AsteroidBelt
+                config={asteroidBelt}
+                isEditorMode={isEditorMode}
+                onSelect={onSelect}
+            />
 
             {planets.map((body) => (
                 <CelestialBody

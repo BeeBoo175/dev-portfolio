@@ -62,6 +62,7 @@ export interface AsteroidBeltConfig {
     heightSpread: number;
     inclination?: number;
     ascendingNode?: number;
+    argument?: number;
     color?: string;
     secondaryColor?: string;
     seed?: number;

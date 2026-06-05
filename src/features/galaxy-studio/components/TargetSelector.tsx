@@ -1,4 +1,4 @@
-import type { OrbitConfig, SunConfig } from "../../galaxy";
+import type { AsteroidBeltConfig, OrbitConfig, SunConfig } from "../../galaxy";
 
 export interface TargetItem {
     id: string;
@@ -14,6 +14,7 @@ export interface TargetSelectorProps {
     onSelectTarget: (id: string) => void;
     sun: SunConfig;
     planets: OrbitConfig[];
+    asteroidBelt?: AsteroidBeltConfig;
     defaultPlanetId?: string;
 }
 
@@ -23,11 +24,12 @@ export function TargetSelector({
     onSelectTarget,
     sun,
     planets,
+    asteroidBelt,
     defaultPlanetId,
 }: TargetSelectorProps) {
     const getColor = (target: TargetItem) => {
         if (target.id === "home" || target.id === "sun") return sun.color;
-        if (target.id === "asteroid-belt") return "#9ca3af";
+        if (target.id === "asteroid-belt") return asteroidBelt?.color || "#9ca3af";
         const planet = planets.find((p) => p.id === target.id);
         return planet?.color || target.color || "#38bdf8";
     };

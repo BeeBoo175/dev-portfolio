@@ -164,8 +164,8 @@ export function AsteroidBeltPanel({
                     <input
                         id="belt-inclination"
                         type="range"
-                        min="-30"
-                        max="30"
+                        min="-45"
+                        max="45"
                         step="0.5"
                         value={(config.inclination ?? 0) * RAD_TO_DEG}
                         onChange={(e) => {
@@ -191,6 +191,26 @@ export function AsteroidBeltPanel({
                         onChange={(e) => {
                             const val = parseFloat(e.target.value) * DEG_TO_RAD;
                             onChange((prev) => ({ ...prev, ascendingNode: val }));
+                        }}
+                    />
+                </div>
+
+                <div className="studio-field">
+                    <div className="studio-field__label-row">
+                        <label htmlFor="belt-argument">3D Plane Argument (Roll Z)</label>
+                        <span className="studio-field__value">{((config.argument ?? 0) * RAD_TO_DEG).toFixed(1)} deg</span>
+                        <Tooltip text="In-plane roll orientation angle of the asteroid belt (Z axis)." />
+                    </div>
+                    <input
+                        id="belt-argument"
+                        type="range"
+                        min="-45"
+                        max="45"
+                        step="0.5"
+                        value={(config.argument ?? 0) * RAD_TO_DEG}
+                        onChange={(e) => {
+                            const val = parseFloat(e.target.value) * DEG_TO_RAD;
+                            onChange((prev) => ({ ...prev, argument: val }));
                         }}
                     />
                 </div>
