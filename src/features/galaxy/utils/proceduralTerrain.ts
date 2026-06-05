@@ -115,7 +115,9 @@ export function createLowPolyPlanetGeometry(options: LowPolyOptions): THREE.Buff
     const seed = (terrain.seed ?? 42) * 17.13;
 
     let baseGeom: THREE.BufferGeometry = new THREE.IcosahedronGeometry(radius, detail);
-    baseGeom = baseGeom.toNonIndexed();
+    if (baseGeom.index) {
+        baseGeom = baseGeom.toNonIndexed();
+    }
 
     const posAttr = baseGeom.getAttribute("position");
     const count = posAttr.count;
