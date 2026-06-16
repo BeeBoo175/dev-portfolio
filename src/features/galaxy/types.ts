@@ -71,5 +71,7 @@ export interface AsteroidBeltConfig {
 export interface GalaxyVisualSettings {
     showOrbitPaths: boolean;
     showOrbitalAxes: boolean;
+    showSelectionGlow?: boolean;
+    showPlanetNames?: boolean;
     freezeCameraOrbit?: boolean;
 }
