@@ -1,4 +1,4 @@
-import { useMemo, useEffect, useRef } from "react";
+import { useMemo, useEffect, useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import type { AsteroidBeltConfig } from "../types";
@@ -6,6 +6,7 @@ import type { AsteroidBeltConfig } from "../types";
 export interface AsteroidBeltProps {
     config: AsteroidBeltConfig;
     isEditorMode?: boolean;
+    isSelected?: boolean;
     onSelect?: (id: string) => void;
 }
 
@@ -14,9 +15,11 @@ function pseudoRandom(seed: number) {
     return x - Math.floor(x);
 }
 
-export function AsteroidBelt({ config, isEditorMode = false, onSelect }: AsteroidBeltProps) {
+export function AsteroidBelt({ config, isEditorMode = false, isSelected = false, onSelect }: AsteroidBeltProps) {
     const groupRef = useRef<THREE.Group>(null);
     const meshRef = useRef<THREE.InstancedMesh>(null);
+    const highlightMeshRef = useRef<THREE.Mesh>(null);
+    const [isHovered, setIsHovered] = useState(false);
 
     const {
         enabled = true,
@@ -115,16 +118,59 @@ export function AsteroidBelt({ config, isEditorMode = false, onSelect }: Asteroi
         if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
     }, [asteroidData, enabled]);
 
+    const innerBoundaryGeom = useMemo(() => {
+        if (!isEditorMode) return null;
+        const points: THREE.Vector3[] = [];
+        const segments = 128;
+        for (let i = 0; i <= segments; i++) {
+            const theta = (i / segments) * Math.PI * 2;
+            points.push(new THREE.Vector3(Math.cos(theta) * innerRadius, 0, Math.sin(theta) * innerRadius));
+        }
+        return new THREE.BufferGeometry().setFromPoints(points);
+    }, [innerRadius, isEditorMode]);
+
+    const outerBoundaryGeom = useMemo(() => {
+        if (!isEditorMode) return null;
+        const points: THREE.Vector3[] = [];
+        const segments = 128;
+        for (let i = 0; i <= segments; i++) {
+            const theta = (i / segments) * Math.PI * 2;
+            points.push(new THREE.Vector3(Math.cos(theta) * outerRadius, 0, Math.sin(theta) * outerRadius));
+        }
+        return new THREE.BufferGeometry().setFromPoints(points);
+    }, [outerRadius, isEditorMode]);
+
     useEffect(() => {
         return () => {
             geometry.dispose();
             hitGeometry?.dispose();
+            innerBoundaryGeom?.dispose();
+            outerBoundaryGeom?.dispose();
         };
-    }, [geometry, hitGeometry]);
+    }, [geometry, hitGeometry, innerBoundaryGeom, outerBoundaryGeom]);
 
-    useFrame((_, delta) => {
+    useFrame((state, delta) => {
         if (groupRef.current) {
             groupRef.current.rotation.y += orbitSpeed * delta;
+        }
+
+        if (highlightMeshRef.current && isEditorMode) {
+            const targetOpacity = isSelected ? 0.8 : isHovered ? 0.45 : 0;
+            highlightMeshRef.current.children.forEach((child) => {
+                const line = child as THREE.Line;
+                if (line.material) {
+                    const mat = line.material as THREE.LineBasicMaterial;
+                    mat.opacity = THREE.MathUtils.damp(mat.opacity, targetOpacity, 10, delta);
+                    mat.visible = mat.opacity > 0.01;
+                }
+            });
+
+            if (isSelected) {
+                const pulse = 1 + Math.sin(state.clock.getElapsedTime() * 3) * 0.005;
+                highlightMeshRef.current.scale.set(pulse, 1, pulse);
+            } else {
+                highlightMeshRef.current.scale.set(1, 1, 1);
+            }
         }
     });
 
@@ -146,26 +192,50 @@ export function AsteroidBelt({ config, isEditorMode = false, onSelect }: Asteroi
                     />
                 </instancedMesh>
 
-                {isEditorMode && hitGeometry && (
-                    <mesh
-                        geometry={hitGeometry}
-                        rotation={[-Math.PI / 2, 0, 0]}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onSelect?.("asteroid-belt");
-                        }}
-                        onPointerOver={() => {
-                            document.body.style.cursor = "pointer";
-                        }}
-                        onPointerOut={() => {
-                            document.body.style.cursor = "default";
-                        }}
-                    >
-                        <meshBasicMaterial
-                            visible={false}
-                            side={THREE.DoubleSide}
-                        />
-                    </mesh>
+                {isEditorMode && hitGeometry && innerBoundaryGeom && outerBoundaryGeom && (
+                    <>
+                        <group ref={highlightMeshRef}>
+                            <lineLoop geometry={innerBoundaryGeom}>
+                                <lineBasicMaterial
+                                    color="#38bdf8"
+                                    transparent
+                                    opacity={0}
+                                    depthWrite={false}
+                                />
+                            </lineLoop>
+
+                            <lineLoop geometry={outerBoundaryGeom}>
+                                <lineBasicMaterial
+                                    color="#38bdf8"
+                                    transparent
+                                    opacity={0}
+                                    depthWrite={false}
+                                />
+                            </lineLoop>
+                        </group>
+
+                        <mesh
+                            geometry={hitGeometry}
+                            rotation={[-Math.PI / 2, 0, 0]}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onSelect?.("asteroid-belt");
+                            }}
+                            onPointerOver={() => {
+                                setIsHovered(true);
+                                document.body.style.cursor = "pointer";
+                            }}
+                            onPointerOut={() => {
+                                setIsHovered(false);
+                                document.body.style.cursor = "default";
+                            }}
+                        >
+                            <meshBasicMaterial
+                                visible={false}
+                                side={THREE.DoubleSide}
+                            />
+                        </mesh>
+                    </>
                 )}
             </group>
         </group>

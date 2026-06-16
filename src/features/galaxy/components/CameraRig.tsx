@@ -2,8 +2,8 @@ import { useEffect, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 
-const RADIAL_OFFSET = 6;
-const HEIGHT_OFFSET = 3;
+const RADIAL_OFFSET = 8.5;
+const HEIGHT_OFFSET = 4.25;
 const ORBIT_DISTANCE = Math.hypot(RADIAL_OFFSET, HEIGHT_OFFSET);
 const HOME_RADIAL = 52;
 const HOME_HEIGHT = 30;
