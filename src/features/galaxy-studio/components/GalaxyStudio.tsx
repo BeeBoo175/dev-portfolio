@@ -513,8 +513,8 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
                                     {selectedId === "home" || selectedId === "sun"
                                         ? "Star"
                                         : selectedId === "asteroid-belt"
-                                        ? "Debris Belt"
-                                        : "Planet"}
+                                            ? "Debris Belt"
+                                            : "Planet"}
                                 </span>
                                 <h2 className="studio-sidebar__target-name">
                                     {TARGET_LIST.find((t) => t.id === selectedId)?.label || selectedId}
@@ -525,11 +525,10 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
                                 {currentPlanet && (
                                     <button
                                         type="button"
-                                        className={`studio-btn studio-btn--sm ${
-                                            draftDefaultPlanetId === currentPlanet.id
+                                        className={`studio-btn studio-btn--sm ${draftDefaultPlanetId === currentPlanet.id
                                                 ? "studio-btn--station-active"
                                                 : "studio-btn--ghost"
-                                        }`}
+                                            }`}
                                         onClick={() => handleSetDefaultPlanetId(currentPlanet.id)}
                                         title={
                                             draftDefaultPlanetId === currentPlanet.id
@@ -602,9 +601,8 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
                                         <button
                                             key={tab.id}
                                             type="button"
-                                            className={`studio-tab ${
-                                                activeTab === tab.id ? "studio-tab--active" : ""
-                                            }`}
+                                            className={`studio-tab ${activeTab === tab.id ? "studio-tab--active" : ""
+                                                }`}
                                             onClick={() => setActiveTab(tab.id as PlanetTab)}
                                         >
                                             {tab.label}

@@ -105,12 +105,14 @@ function GalaxyScene({
                 }}
                 body={sun}
                 isSun
+                isSelected={focusId === "home" || focusId === "sun"}
                 onSelect={onSelect}
             />
 
             <AsteroidBelt
                 config={asteroidBelt}
                 isEditorMode={isEditorMode}
+                isSelected={focusId === "asteroid-belt"}
                 onSelect={onSelect}
             />
 
@@ -121,6 +123,7 @@ function GalaxyScene({
                         bodyRefs.current[body.id] = instance;
                     }}
                     body={body}
+                    isSelected={focusId === body.id}
                     onSelect={onSelect}
                 />
             ))}

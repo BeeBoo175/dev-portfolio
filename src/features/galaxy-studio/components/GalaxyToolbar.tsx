@@ -103,9 +103,8 @@ export function GalaxyToolbar({
 
                 <button
                     type="button"
-                    className={`studio-toolbar__toggle-btn ${
-                        visuals.showOrbitPaths ? "studio-toolbar__toggle-btn--active" : ""
-                    }`}
+                    className={`studio-toolbar__toggle-btn ${visuals.showOrbitPaths ? "studio-toolbar__toggle-btn--active" : ""
+                        }`}
                     onClick={onToggleOrbitPaths}
                     title="Toggle orbital ellipse trail lines"
                 >
@@ -114,9 +113,8 @@ export function GalaxyToolbar({
 
                 <button
                     type="button"
-                    className={`studio-toolbar__toggle-btn ${
-                        visuals.showOrbitalAxes ? "studio-toolbar__toggle-btn--active" : ""
-                    }`}
+                    className={`studio-toolbar__toggle-btn ${visuals.showOrbitalAxes ? "studio-toolbar__toggle-btn--active" : ""
+                        }`}
                     onClick={onToggleOrbitalAxes}
                     title="Toggle planetary axial tilt lines"
                 >
@@ -125,9 +123,8 @@ export function GalaxyToolbar({
 
                 <button
                     type="button"
-                    className={`studio-toolbar__toggle-btn ${
-                        isCameraOrbitPaused ? "studio-toolbar__toggle-btn--active" : ""
-                    }`}
+                    className={`studio-toolbar__toggle-btn ${isCameraOrbitPaused ? "studio-toolbar__toggle-btn--active" : ""
+                        }`}
                     onClick={onTogglePauseCameraOrbit}
                     title="Freeze camera orbit in editor only to observe planetary motion (editor preview only, not saved)"
                 >
