@@ -64,10 +64,25 @@ function loadPersistedSun(): SunConfig {
 function loadPersistedVisuals(): GalaxyVisualSettings {
     try {
         const raw = localStorage.getItem(VISUALS_KEY);
-        if (raw) return { showOrbitPaths: true, showOrbitalAxes: false, freezeCameraOrbit: false, ...JSON.parse(raw) };
+        if (raw) {
+            return {
+                showOrbitPaths: true,
+                showOrbitalAxes: false,
+                showSelectionGlow: true,
+                showPlanetNames: true,
+                freezeCameraOrbit: false,
+                ...JSON.parse(raw),
+            };
+        }
     } catch {
     }
-    return { showOrbitPaths: true, showOrbitalAxes: false, freezeCameraOrbit: false };
+    return {
+        showOrbitPaths: true,
+        showOrbitalAxes: false,
+        showSelectionGlow: true,
+        showPlanetNames: true,
+        freezeCameraOrbit: false,
+    };
 }
 
 function loadPersistedDefaultPlanetId(): string {
@@ -91,7 +106,7 @@ function initLocalStorageDefaultsIfEmpty() {
             localStorage.setItem(SUN_KEY, JSON.stringify(cloneDefaultSun()));
         }
         if (!localStorage.getItem(VISUALS_KEY)) {
-            localStorage.setItem(VISUALS_KEY, JSON.stringify({ showOrbitPaths: true, showOrbitalAxes: false }));
+            localStorage.setItem(VISUALS_KEY, JSON.stringify({ showOrbitPaths: true, showOrbitalAxes: false, showSelectionGlow: true, showPlanetNames: true }));
         }
         if (!localStorage.getItem(DEFAULT_PLANET_KEY)) {
             localStorage.setItem(DEFAULT_PLANET_KEY, DEFAULT_SPACESHIP_PLANET_ID);
@@ -246,7 +261,13 @@ class GalaxyStore {
         this.planets = cloneDefaultPlanets();
         this.asteroidBelt = cloneDefaultAsteroidBelt();
         this.sun = cloneDefaultSun();
-        this.visuals = { showOrbitPaths: true, showOrbitalAxes: false };
+        this.visuals = {
+            showOrbitPaths: true,
+            showOrbitalAxes: false,
+            showSelectionGlow: true,
+            showPlanetNames: true,
+            freezeCameraOrbit: false,
+        };
         this.defaultPlanetId = DEFAULT_SPACESHIP_PLANET_ID;
         try {
             localStorage.removeItem(STORAGE_KEY);
@@ -266,6 +287,18 @@ class GalaxyStore {
 
     toggleOrbitalAxes() {
         this.visuals = { ...this.visuals, showOrbitalAxes: !this.visuals.showOrbitalAxes };
+        this.notify(true);
+    }
+
+    toggleSelectionGlow() {
+        const current = this.visuals.showSelectionGlow !== false;
+        this.visuals = { ...this.visuals, showSelectionGlow: !current };
+        this.notify(true);
+    }
+
+    togglePlanetNames() {
+        const current = this.visuals.showPlanetNames !== false;
+        this.visuals = { ...this.visuals, showPlanetNames: !current };
         this.notify(true);
     }
 

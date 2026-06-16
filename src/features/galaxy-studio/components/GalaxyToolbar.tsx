@@ -12,6 +12,8 @@ export interface GalaxyToolbarProps {
     onTogglePauseCameraOrbit?: () => void;
     onToggleOrbitPaths: () => void;
     onToggleOrbitalAxes: () => void;
+    onToggleSelectionGlow?: () => void;
+    onTogglePlanetNames?: () => void;
     onRandomizeAll: () => void;
     onResetGalaxy: () => void;
     onResolveCollisions: () => void;
@@ -33,6 +35,8 @@ export function GalaxyToolbar({
     onTogglePauseCameraOrbit,
     onToggleOrbitPaths,
     onToggleOrbitalAxes,
+    onToggleSelectionGlow,
+    onTogglePlanetNames,
     onRandomizeAll,
     onResetGalaxy,
     onResolveCollisions,
@@ -41,6 +45,9 @@ export function GalaxyToolbar({
     onDiscard,
     onExit,
 }: GalaxyToolbarProps) {
+    const isSelectionGlowActive = visuals.showSelectionGlow !== false;
+    const isPlanetNamesActive = visuals.showPlanetNames !== false;
+
     return (
         <header className="studio-toolbar">
             <div className="studio-toolbar__left">
@@ -119,6 +126,26 @@ export function GalaxyToolbar({
                     title="Toggle planetary axial tilt lines"
                 >
                     Axial Poles
+                </button>
+
+                <button
+                    type="button"
+                    className={`studio-toolbar__toggle-btn ${isSelectionGlowActive ? "studio-toolbar__toggle-btn--active" : ""
+                        }`}
+                    onClick={onToggleSelectionGlow}
+                    title="Toggle selection glow brackets and reticles"
+                >
+                    Selection Glow
+                </button>
+
+                <button
+                    type="button"
+                    className={`studio-toolbar__toggle-btn ${isPlanetNamesActive ? "studio-toolbar__toggle-btn--active" : ""
+                        }`}
+                    onClick={onTogglePlanetNames}
+                    title="Toggle celestial body name labels"
+                >
+                    Names
                 </button>
 
                 <button

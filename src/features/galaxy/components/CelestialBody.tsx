@@ -15,11 +15,12 @@ export interface CelestialBodyProps {
     isSun?: boolean;
     isMoon?: boolean;
     isSelected?: boolean;
+    isEditorMode?: boolean;
     onSelect?: (id: string) => void;
 }
 
 export const CelestialBody = forwardRef<THREE.Group, CelestialBodyProps>(
-    ({ body, color, isSun, isMoon = false, isSelected = false, onSelect }, ref) => {
+    ({ body, color, isSun, isMoon = false, isSelected = false, isEditorMode = false, onSelect }, ref) => {
         const orbitRef = useRef<THREE.Group>(null);
         const positionRef = useRef<THREE.Group>(null);
         const bodyRef = useRef<THREE.Mesh>(null);
@@ -105,10 +106,9 @@ export const CelestialBody = forwardRef<THREE.Group, CelestialBodyProps>(
                             <SelectionGlow
                                 radius={body.radius}
                                 color={effectiveColor}
-                                label={!isSun && !isMoon && hasOrbit ? labelText : undefined}
-                                isSelected={isSelected}
-                                isHovered={isHovered}
-                                isSun={isSun}
+                                label={isSun ? (isEditorMode ? "SUN" : undefined) : (!isMoon && hasOrbit ? labelText : undefined)}
+                                isSelected={isSun ? (isEditorMode && isSelected) : isSelected}
+                                isHovered={isSun ? (isEditorMode && isHovered) : isHovered}
                             />
 
                             {visuals.showOrbitalAxes && !isSun && (
