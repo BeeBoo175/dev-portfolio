@@ -212,12 +212,13 @@ export function resolveGalaxyCollisions(
     resolvedPlanets: OrbitConfig[];
     changedCount: number;
 } {
-    let changedCount = 0;
+    let totalChangedCount = 0;
+    const SUN_SAFE_ORBIT = 6.8;
 
-    const clone: OrbitConfig[] = planets.map((p) => {
+    const workingPlanets: OrbitConfig[] = planets.map((p) => {
         const pRad = p.radius ?? 1.0;
         const pRing = p.ring?.outerRadius ?? 0;
-        const safeBase = Math.max(pRad, pRing);
+        const safeBase = pRing > pRad ? pRing + 0.25 : pRad;
         let pChanged = false;
         let currentMoons = p.children ? [...p.children] : undefined;
 
@@ -252,89 +253,92 @@ export function resolveGalaxyCollisions(
             currentMoons = indexedMoons.map(({ origIndex: _, ...m }) => m as OrbitConfig);
         }
 
-        if (pChanged) changedCount++;
+        if (pChanged) totalChangedCount++;
         return {
             ...p,
             children: currentMoons,
         };
     });
 
-    const indexed = clone.map((p, idx) => ({ p: { ...p }, idx }));
-    indexed.sort((a, b) => (a.p.orbitRadius ?? 0) - (b.p.orbitRadius ?? 0));
+    const maxPasses = 5;
+    for (let pass = 0; pass < maxPasses; pass++) {
+        let passChanged = false;
+        const indexed = workingPlanets.map((p, idx) => ({ p, idx }));
+        indexed.sort((a, b) => (a.p.orbitRadius ?? 0) - (b.p.orbitRadius ?? 0));
 
-    const SUN_SAFE_ORBIT = 6.8;
+        for (let i = 0; i < indexed.length; i++) {
+            const item = indexed[i];
+            let orbit = item.p.orbitRadius ?? 7.0;
+            const curRad = item.p.radius ?? 1.0;
+            const curRing = item.p.ring?.outerRadius ?? 0;
+            const curBaseReach = Math.max(curRad, curRing);
 
-    for (let i = 0; i < indexed.length; i++) {
-        const item = indexed[i];
-        let orbit = item.p.orbitRadius ?? 7.0;
-        const curRad = item.p.radius ?? 1.0;
-        const curRing = item.p.ring?.outerRadius ?? 0;
-        const curBaseReach = Math.max(curRad, curRing);
-
-        let curMaxMoonReach = 0;
-        if (item.p.children && item.p.children.length > 0) {
-            for (const m of item.p.children) {
-                const mReach = (m.orbitRadius ?? 2.0) + m.radius;
-                if (mReach > curMaxMoonReach) curMaxMoonReach = mReach;
-            }
-        }
-        const curReach = Math.max(curBaseReach, curMaxMoonReach);
-
-        let minRequiredOrbit = SUN_SAFE_ORBIT;
-
-        if (i > 0) {
-            const prevItem = indexed[i - 1];
-            const prevOrbit = prevItem.p.orbitRadius ?? 7.0;
-            const prevRad = prevItem.p.radius ?? 1.0;
-            const prevRing = prevItem.p.ring?.outerRadius ?? 0;
-            const prevBaseReach = Math.max(prevRad, prevRing);
-
-            let prevMaxMoonReach = 0;
-            if (prevItem.p.children && prevItem.p.children.length > 0) {
-                for (const m of prevItem.p.children) {
+            let curMaxMoonReach = 0;
+            if (item.p.children && item.p.children.length > 0) {
+                for (const m of item.p.children) {
                     const mReach = (m.orbitRadius ?? 2.0) + m.radius;
-                    if (mReach > prevMaxMoonReach) prevMaxMoonReach = mReach;
+                    if (mReach > curMaxMoonReach) curMaxMoonReach = mReach;
                 }
             }
-            const prevReach = Math.max(prevBaseReach, prevMaxMoonReach);
+            const curReach = Math.max(curBaseReach, curMaxMoonReach);
 
-            const minSafeDist = Math.max(
-                prevBaseReach + curBaseReach + 0.35,
-                prevReach + curReach + 0.45
-            );
-            minRequiredOrbit = Number((prevOrbit + minSafeDist).toFixed(1));
-        }
+            let minRequiredOrbit = SUN_SAFE_ORBIT;
 
-        if (orbit < minRequiredOrbit) {
-            orbit = minRequiredOrbit;
-        }
+            if (i > 0) {
+                const prevItem = indexed[i - 1];
+                const prevOrbit = prevItem.p.orbitRadius ?? 7.0;
+                const prevRad = prevItem.p.radius ?? 1.0;
+                const prevRing = prevItem.p.ring?.outerRadius ?? 0;
+                const prevBaseReach = Math.max(prevRad, prevRing);
 
-        if (asteroidBelt && asteroidBelt.enabled && asteroidBelt.count > 0) {
-            const beltInner = asteroidBelt.innerRadius;
-            const beltOuter = asteroidBelt.outerRadius;
-            const safeBeltBuffer = 0.3;
-
-            const minBeforeBelt = Number((beltInner - curReach - safeBeltBuffer).toFixed(1));
-            const minAfterBelt = Number((beltOuter + curReach + safeBeltBuffer).toFixed(1));
-
-            if (orbit > minBeforeBelt && orbit < minAfterBelt) {
-                if (minBeforeBelt >= minRequiredOrbit && Math.abs(orbit - minBeforeBelt) < Math.abs(orbit - minAfterBelt)) {
-                    orbit = minBeforeBelt;
-                } else {
-                    orbit = Math.max(minAfterBelt, minRequiredOrbit);
+                let prevMaxMoonReach = 0;
+                if (prevItem.p.children && prevItem.p.children.length > 0) {
+                    for (const m of prevItem.p.children) {
+                        const mReach = (m.orbitRadius ?? 2.0) + m.radius;
+                        if (mReach > prevMaxMoonReach) prevMaxMoonReach = mReach;
+                    }
                 }
+
+                const minSafeDist = Math.max(
+                    prevBaseReach + curBaseReach + 0.35,
+                    prevMaxMoonReach + curBaseReach + 0.35,
+                    prevBaseReach + curMaxMoonReach + 0.35,
+                    prevMaxMoonReach + curMaxMoonReach + 0.45
+                );
+                minRequiredOrbit = Number((prevOrbit + minSafeDist).toFixed(1));
+            }
+
+            if (orbit < minRequiredOrbit) {
+                orbit = minRequiredOrbit;
+            }
+
+            if (asteroidBelt && asteroidBelt.enabled && asteroidBelt.count > 0) {
+                const beltInner = asteroidBelt.innerRadius;
+                const beltOuter = asteroidBelt.outerRadius;
+                const safeBeltBuffer = 0.3;
+
+                const minBeforeBelt = Number((beltInner - curReach - safeBeltBuffer).toFixed(1));
+                const minAfterBelt = Number((beltOuter + curReach + safeBeltBuffer).toFixed(1));
+
+                if (orbit > minBeforeBelt && orbit < minAfterBelt) {
+                    if (minBeforeBelt >= minRequiredOrbit && Math.abs(orbit - minBeforeBelt) < Math.abs(orbit - minAfterBelt)) {
+                        orbit = minBeforeBelt;
+                    } else {
+                        orbit = Math.max(minAfterBelt, minRequiredOrbit);
+                    }
+                }
+            }
+
+            if (orbit !== item.p.orbitRadius) {
+                passChanged = true;
+                totalChangedCount++;
+                item.p.orbitRadius = orbit;
             }
         }
 
-        if (orbit !== item.p.orbitRadius) {
-            changedCount++;
-            item.p.orbitRadius = orbit;
-        }
+        if (!passChanged) break;
     }
 
-    indexed.sort((a, b) => a.idx - b.idx);
-    const resolvedPlanets = indexed.map((item) => item.p);
-
-    return { resolvedPlanets, changedCount };
+    return { resolvedPlanets: workingPlanets, changedCount: totalChangedCount };
 }
 
