@@ -6,17 +6,18 @@
 
 .sections-overlay__section {
     height: 100vh;
-    height: 100svh;
+    height: 100dvh;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0 24px;
+    padding: 0 max(16px, var(--sar)) 0 max(16px, var(--sal));
 }
 
 .sections-overlay__card {
     --card-blur: blur(10px);
+    width: 100%;
     max-width: 480px;
-    padding: 32px 36px;
+    padding: clamp(20px, 4vw, 36px);
     text-align: center;
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -24,50 +25,43 @@
     -webkit-backdrop-filter: var(--card-blur);
     backdrop-filter: var(--card-blur);
     pointer-events: auto;
+    box-sizing: border-box;
 }
 
 .sections-overlay__section--home .sections-overlay__card {
     --card-blur: none;
     background: transparent;
     border: none;
+    max-width: 600px;
 }
 
 .sections-overlay__title {
-    font-size: 44px;
+    font-size: clamp(28px, 6vw, 44px);
     margin-bottom: 12px;
     color: var(--text-primary);
+    line-height: 1.15;
+    word-break: break-word;
 }
 
 .sections-overlay__section--home .sections-overlay__title {
-    font-size: 64px;
+    font-size: clamp(36px, 9vw, 64px);
+    letter-spacing: -0.03em;
 }
 
 .sections-overlay__subtitle {
-    font-size: 16px;
+    font-size: clamp(14px, 2.5vw, 16px);
     line-height: 1.5;
     color: var(--text-secondary);
 }
 
-@media (max-width: 640px) {
-    .sections-overlay__title {
-        font-size: 32px;
-    }
-
-    .sections-overlay__section--home .sections-overlay__title {
-        font-size: 44px;
-    }
-
-    .sections-overlay__card {
-        padding: 24px;
-    }
-}
-
 .scroll-to-top {
     position: fixed;
-    bottom: 28px;
-    right: 28px;
+    bottom: max(20px, var(--sab));
+    right: max(20px, var(--sar));
     width: 48px;
     height: 48px;
+    min-width: 44px;
+    min-height: 44px;
     border-radius: 50%;
     background: transparent;
     border: none;
@@ -97,7 +91,7 @@
 }
 
 .scroll-to-top:active {
-    transform: translateY(0);
+    transform: translateY(0) scale(0.95);
 }
 
 .scroll-to-top__corona {
@@ -197,10 +191,14 @@
 }
 
 @media (max-width: 640px) {
+    .sections-overlay__section {
+        padding: 0 max(12px, var(--sar)) 0 max(12px, var(--sal));
+    }
+
     .scroll-to-top {
-        bottom: 20px;
-        right: 20px;
-        width: 42px;
-        height: 42px;
+        bottom: max(16px, var(--sab));
+        right: max(16px, var(--sar));
+        width: 44px;
+        height: 44px;
     }
 }

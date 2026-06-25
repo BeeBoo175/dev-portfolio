@@ -89,85 +89,91 @@ export function GalaxyToolbar({
             </div>
 
             <div className="studio-toolbar__center">
-                <button
-                    type="button"
-                    className="studio-toolbar__action-btn studio-toolbar__action-btn--glow"
-                    onClick={onRandomizeAll}
-                >
-                    Randomize Galaxy
-                </button>
+                <div className="studio-toolbar__group">
+                    <button
+                        type="button"
+                        className="studio-toolbar__action-btn studio-toolbar__action-btn--glow"
+                        onClick={onRandomizeAll}
+                    >
+                        Randomize Galaxy
+                    </button>
 
-                <button
-                    type="button"
-                    className="studio-toolbar__action-btn"
-                    onClick={onResetGalaxy}
-                    title="Reset all planets, star, and asteroid belt to original default configuration"
-                >
-                    Reset to Defaults
-                </button>
-
-                <div className="studio-toolbar__divider" />
-
-                <button
-                    type="button"
-                    className={`studio-toolbar__toggle-btn ${visuals.showOrbitPaths ? "studio-toolbar__toggle-btn--active" : ""
-                        }`}
-                    onClick={onToggleOrbitPaths}
-                    title="Toggle orbital ellipse trail lines"
-                >
-                    Orbit Lines
-                </button>
-
-                <button
-                    type="button"
-                    className={`studio-toolbar__toggle-btn ${visuals.showOrbitalAxes ? "studio-toolbar__toggle-btn--active" : ""
-                        }`}
-                    onClick={onToggleOrbitalAxes}
-                    title="Toggle planetary axial tilt lines"
-                >
-                    Axial Poles
-                </button>
-
-                <button
-                    type="button"
-                    className={`studio-toolbar__toggle-btn ${isSelectionGlowActive ? "studio-toolbar__toggle-btn--active" : ""
-                        }`}
-                    onClick={onToggleSelectionGlow}
-                    title="Toggle selection glow brackets and reticles"
-                >
-                    Selection Glow
-                </button>
-
-                <button
-                    type="button"
-                    className={`studio-toolbar__toggle-btn ${isPlanetNamesActive ? "studio-toolbar__toggle-btn--active" : ""
-                        }`}
-                    onClick={onTogglePlanetNames}
-                    title="Toggle celestial body name labels"
-                >
-                    Names
-                </button>
-
-                <button
-                    type="button"
-                    className={`studio-toolbar__toggle-btn ${isCameraOrbitPaused ? "studio-toolbar__toggle-btn--active" : ""
-                        }`}
-                    onClick={onTogglePauseCameraOrbit}
-                    title="Freeze camera orbit in editor only to observe planetary motion (editor preview only, not saved)"
-                >
-                    Freeze Cam (Editor)
-                </button>
+                    <button
+                        type="button"
+                        className="studio-toolbar__action-btn"
+                        onClick={onResetGalaxy}
+                        title="Reset all planets, star, and asteroid belt to original default configuration"
+                    >
+                        Reset to Defaults
+                    </button>
+                </div>
 
                 <div className="studio-toolbar__divider" />
 
-                <button
-                    type="button"
-                    className="studio-toolbar__icon-btn"
-                    onClick={onOpenDataModal}
-                    title="Import or Export JSON system configurations"
-                >
-                    <span>Data JSON</span>
-                </button>
+                <div className="studio-toolbar__group studio-toolbar__group--toggles">
+                    <button
+                        type="button"
+                        className={`studio-toolbar__toggle-btn ${visuals.showOrbitPaths ? "studio-toolbar__toggle-btn--active" : ""
+                            }`}
+                        onClick={onToggleOrbitPaths}
+                        title="Toggle orbital ellipse trail lines"
+                    >
+                        Orbit Lines
+                    </button>
+
+                    <button
+                        type="button"
+                        className={`studio-toolbar__toggle-btn ${visuals.showOrbitalAxes ? "studio-toolbar__toggle-btn--active" : ""
+                            }`}
+                        onClick={onToggleOrbitalAxes}
+                        title="Toggle planetary axial tilt lines"
+                    >
+                        Axial Poles
+                    </button>
+
+                    <button
+                        type="button"
+                        className={`studio-toolbar__toggle-btn ${isSelectionGlowActive ? "studio-toolbar__toggle-btn--active" : ""
+                            }`}
+                        onClick={onToggleSelectionGlow}
+                        title="Toggle selection glow brackets and reticles"
+                    >
+                        Selection Glow
+                    </button>
+
+                    <button
+                        type="button"
+                        className={`studio-toolbar__toggle-btn ${isPlanetNamesActive ? "studio-toolbar__toggle-btn--active" : ""
+                            }`}
+                        onClick={onTogglePlanetNames}
+                        title="Toggle celestial body name labels"
+                    >
+                        Names
+                    </button>
+
+                    <button
+                        type="button"
+                        className={`studio-toolbar__toggle-btn ${isCameraOrbitPaused ? "studio-toolbar__toggle-btn--active" : ""
+                            }`}
+                        onClick={onTogglePauseCameraOrbit}
+                        title="Freeze camera orbit in editor only to observe planetary motion (editor preview only, not saved)"
+                    >
+                        Freeze Cam
+                    </button>
+                </div>
+
+                <div className="studio-toolbar__divider" />
+
+                <div className="studio-toolbar__group">
+                    <button
+                        type="button"
+                        className="studio-toolbar__icon-btn"
+                        onClick={onOpenDataModal}
+                        title="Import or Export JSON system configurations"
+                    >
+                        <span>Data JSON</span>
+                    </button>
+                </div>
             </div>
 
             <div className="studio-toolbar__right">

@@ -38,6 +38,11 @@
 
     --transition-fast: 0.15s ease;
     --transition-normal: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+    --sat: env(safe-area-inset-top, 0px);
+    --sar: env(safe-area-inset-right, 0px);
+    --sab: env(safe-area-inset-bottom, 0px);
+    --sal: env(safe-area-inset-left, 0px);
 }
 
 * {
@@ -50,6 +55,7 @@ body,
     height: 100%;
     margin: 0;
     overscroll-behavior-y: none;
+    -webkit-text-size-adjust: 100%;
 }
 
 html {
@@ -62,6 +68,7 @@ body {
     font-family: var(--font-sans);
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
+    touch-action: manipulation;
 }
 
 h1,

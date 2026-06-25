@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import type { AsteroidBeltConfig, OrbitConfig, SunConfig } from "../../galaxy";
 
 export interface TargetItem {
@@ -16,6 +17,8 @@ export interface TargetSelectorProps {
     planets: OrbitConfig[];
     asteroidBelt?: AsteroidBeltConfig;
     defaultPlanetId?: string;
+    isSidebarOpen?: boolean;
+    onToggleSidebar?: () => void;
 }
 
 export function TargetSelector({
@@ -26,7 +29,21 @@ export function TargetSelector({
     planets,
     asteroidBelt,
     defaultPlanetId,
+    isSidebarOpen,
+    onToggleSidebar,
 }: TargetSelectorProps) {
+    const activeChipRef = useRef<HTMLButtonElement | null>(null);
+
+    useEffect(() => {
+        if (activeChipRef.current && typeof activeChipRef.current.scrollIntoView === "function") {
+            activeChipRef.current.scrollIntoView({
+                behavior: "smooth",
+                inline: "center",
+                block: "nearest",
+            });
+        }
+    }, [selectedId]);
+
     const getColor = (target: TargetItem) => {
         if (target.id === "home" || target.id === "sun") return sun.color;
         if (target.id === "asteroid-belt") return asteroidBelt?.color || "#9ca3af";
@@ -36,6 +53,17 @@ export function TargetSelector({
 
     return (
         <nav className="studio-target-dock" aria-label="Celestial Body Selector">
+            {onToggleSidebar && !isSidebarOpen && (
+                <button
+                    type="button"
+                    className="studio-dock__expand-tab"
+                    onClick={onToggleSidebar}
+                    aria-label="Expand inspector"
+                    title="Expand inspector"
+                >
+                    ▲ Inspector
+                </button>
+            )}
             <div className="studio-target-dock__track">
                 {targets.map((target) => {
                     const isSelected = selectedId === target.id;
@@ -45,6 +73,7 @@ export function TargetSelector({
                     return (
                         <button
                             key={target.id}
+                            ref={isSelected ? activeChipRef : null}
                             type="button"
                             className={`studio-target-chip ${
                                 isSelected ? "studio-target-chip--active" : ""
