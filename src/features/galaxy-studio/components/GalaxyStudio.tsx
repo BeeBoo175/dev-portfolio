@@ -494,6 +494,8 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
                 planets={draftPlanets}
                 asteroidBelt={draftBelt}
                 defaultPlanetId={draftDefaultPlanetId}
+                isSidebarOpen={isSidebarOpen}
+                onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
             />
 
             <aside className={`studio-sidebar ${isSidebarOpen ? "studio-sidebar--open" : "studio-sidebar--collapsed"}`}>
@@ -504,7 +506,12 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
                     title={isSidebarOpen ? "Collapse Inspector" : "Expand Inspector"}
                     aria-label="Toggle inspector panel"
                 >
-                    {isSidebarOpen ? ">" : "<"}
+                    <span className="studio-sidebar__toggle-icon studio-sidebar__toggle-icon--desktop">
+                        {isSidebarOpen ? ">" : "<"}
+                    </span>
+                    <span className="studio-sidebar__toggle-label studio-sidebar__toggle-label--mobile">
+                        {isSidebarOpen ? "▼ Inspector" : "▲ Inspector"}
+                    </span>
                 </button>
 
                 {isSidebarOpen && (

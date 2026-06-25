@@ -16,12 +16,14 @@
 
 .studio-launcher-btn {
     position: fixed;
-    top: 1.25rem;
-    right: 1.25rem;
+    top: max(1rem, var(--sat));
+    right: max(1rem, var(--sar));
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 0.5rem;
-    padding: 0.5rem 0.9rem;
+    min-height: 44px;
+    padding: 0.5rem 1rem;
     background: var(--bg-surface-elevated);
     border: 1px solid var(--border-default);
     border-radius: var(--radius-sm);
@@ -32,6 +34,8 @@
     z-index: 40;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
     transition: all var(--transition-fast);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
 }
 
 .studio-launcher-btn:hover {
@@ -39,5 +43,18 @@
     border-color: var(--border-hover);
     box-shadow: 0 0 16px var(--accent-glow);
     color: var(--accent-cyan);
+}
+
+.studio-launcher-btn:active {
+    transform: scale(0.98);
+}
+
+@media (max-width: 480px) {
+    .studio-launcher-btn {
+        top: max(0.625rem, var(--sat));
+        right: max(0.625rem, var(--sar));
+        padding: 0.4rem 0.75rem;
+        font-size: 0.8rem;
+    }
 }
 
