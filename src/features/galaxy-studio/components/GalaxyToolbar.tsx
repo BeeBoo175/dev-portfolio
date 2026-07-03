@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { GalaxyVisualSettings } from "../../galaxy";
 
 export interface GalaxyToolbarProps {
@@ -45,50 +46,95 @@ export function GalaxyToolbar({
     onDiscard,
     onExit,
 }: GalaxyToolbarProps) {
+    const [isMobileToolsOpen, setIsMobileToolsOpen] = useState(false);
     const isSelectionGlowActive = visuals.showSelectionGlow !== false;
     const isPlanetNamesActive = visuals.showPlanetNames !== false;
 
     return (
-        <header className="studio-toolbar">
-            <div className="studio-toolbar__left">
+        <header className={`studio-toolbar ${isMobileToolsOpen ? "studio-toolbar--mobile-open" : ""}`}>
+            <div className="studio-toolbar__brand-row">
                 <span className="studio-toolbar__brand-text">Galaxy Studio</span>
-
-                <div className="studio-toolbar__history-group">
-                    <button
-                        type="button"
-                        className="studio-btn studio-btn--secondary studio-btn--sm"
-                        onClick={onUndo}
-                        disabled={!canUndo}
-                        title="Undo change (Ctrl+Z)"
-                        aria-label="Undo change"
-                    >
-                        Undo
-                    </button>
-                    <button
-                        type="button"
-                        className="studio-btn studio-btn--secondary studio-btn--sm"
-                        onClick={onRedo}
-                        disabled={!canRedo}
-                        title="Redo change (Ctrl+Y or Ctrl+Shift+Z)"
-                        aria-label="Redo change"
-                    >
-                        Redo
-                    </button>
-                </div>
-
-                {warningCount > 0 && (
-                    <button
-                        type="button"
-                        className="studio-toolbar__warning-btn"
-                        onClick={onResolveCollisions}
-                        title="Click to automatically space out intersecting orbits"
-                    >
-                        {warningCount} Collision{warningCount > 1 ? "s" : ""} detected - Auto-Fix
-                    </button>
-                )}
             </div>
 
-            <div className="studio-toolbar__center">
+            <div className="studio-toolbar__controls-row">
+                <div className="studio-toolbar__primary-actions">
+                    <button
+                        type="button"
+                        className={`studio-toolbar__mobile-toggle-btn ${isMobileToolsOpen ? "studio-toolbar__mobile-toggle-btn--active" : ""}`}
+                        onClick={() => setIsMobileToolsOpen(!isMobileToolsOpen)}
+                        aria-label="Toggle studio tools ribbon"
+                        title={isMobileToolsOpen ? "Hide Tools Menu" : "Show Tools Menu"}
+                    >
+                        {isMobileToolsOpen ? "Hide Tools" : "Tools"}
+                    </button>
+
+                    <div className="studio-toolbar__history-group">
+                        <button
+                            type="button"
+                            className="studio-btn studio-btn--secondary studio-btn--sm"
+                            onClick={onUndo}
+                            disabled={!canUndo}
+                            title="Undo change (Ctrl+Z)"
+                            aria-label="Undo change"
+                        >
+                            Undo
+                        </button>
+                        <button
+                            type="button"
+                            className="studio-btn studio-btn--secondary studio-btn--sm"
+                            onClick={onRedo}
+                            disabled={!canRedo}
+                            title="Redo change (Ctrl+Y or Ctrl+Shift+Z)"
+                            aria-label="Redo change"
+                        >
+                            Redo
+                        </button>
+                    </div>
+
+                    {warningCount > 0 && (
+                        <button
+                            type="button"
+                            className="studio-toolbar__warning-btn"
+                            onClick={onResolveCollisions}
+                            title="Click to automatically space out intersecting orbits"
+                        >
+                            {warningCount} Collision{warningCount > 1 ? "s" : ""}
+                        </button>
+                    )}
+                </div>
+
+                <div className="studio-toolbar__right">
+                    {isDirty && (
+                        <button
+                            type="button"
+                            className="studio-btn studio-btn--ghost studio-btn--sm"
+                            onClick={onDiscard}
+                            title="Discard working changes and revert to your saved galaxy in storage"
+                        >
+                            Revert
+                        </button>
+                    )}
+
+                    <button
+                        type="button"
+                        className="studio-btn studio-btn--primary studio-btn--sm"
+                        onClick={onSaveAndApply}
+                        disabled={!isDirty}
+                    >
+                        Save & Apply
+                    </button>
+
+                    <button
+                        type="button"
+                        className="studio-btn studio-btn--outline studio-btn--sm"
+                        onClick={onExit}
+                    >
+                        Exit Studio
+                    </button>
+                </div>
+            </div>
+
+            <div className={`studio-toolbar__center ${isMobileToolsOpen ? "studio-toolbar__center--visible" : ""}`}>
                 <div className="studio-toolbar__group">
                     <button
                         type="button"
@@ -174,36 +220,6 @@ export function GalaxyToolbar({
                         <span>Data JSON</span>
                     </button>
                 </div>
-            </div>
-
-            <div className="studio-toolbar__right">
-                {isDirty && (
-                    <button
-                        type="button"
-                        className="studio-btn studio-btn--ghost studio-btn--sm"
-                        onClick={onDiscard}
-                        title="Discard working changes and revert to your saved galaxy in storage"
-                    >
-                        Revert to Saved
-                    </button>
-                )}
-
-                <button
-                    type="button"
-                    className="studio-btn studio-btn--primary studio-btn--sm"
-                    onClick={onSaveAndApply}
-                    disabled={!isDirty}
-                >
-                    Save & Apply
-                </button>
-
-                <button
-                    type="button"
-                    className="studio-btn studio-btn--outline studio-btn--sm"
-                    onClick={onExit}
-                >
-                    Exit Studio
-                </button>
             </div>
         </header>
     );

@@ -119,7 +119,12 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
     const selectedId = focusId || "home";
     const [activeTab, setActiveTab] = useState<PlanetTab>("appearance");
     const [activeMoonIndex, setActiveMoonIndex] = useState<number>(0);
-    const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
+    const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(() => {
+        if (typeof window !== "undefined" && window.innerWidth <= 1280) {
+            return false;
+        }
+        return true;
+    });
     const [isDataModalOpen, setIsDataModalOpen] = useState<boolean>(false);
     const [isConfirmExitOpen, setIsConfirmExitOpen] = useState<boolean>(false);
     const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -171,6 +176,36 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
         });
     }, []);
 
+    const [isInteracting, setIsInteracting] = useState<boolean>(false);
+
+    useEffect(() => {
+        const handleInteractionStart = (e: PointerEvent | TouchEvent) => {
+            const target = e.target as HTMLElement | null;
+            if (target && target.tagName.toLowerCase() === "input" && target.getAttribute("type") === "range") {
+                setIsInteracting(true);
+                return;
+            }
+            if (target && (target.closest(".studio-toolbar") || target.closest(".studio-sidebar") || target.closest(".studio-target-dock") || target.closest(".studio-confirm-dialog") || target.closest(".studio-modal-content"))) {
+                return;
+            }
+            setIsInteracting(true);
+        };
+
+        const handleInteractionEnd = () => {
+            setIsInteracting(false);
+        };
+
+        window.addEventListener("pointerdown", handleInteractionStart);
+        window.addEventListener("pointerup", handleInteractionEnd);
+        window.addEventListener("pointercancel", handleInteractionEnd);
+
+        return () => {
+            window.removeEventListener("pointerdown", handleInteractionStart);
+            window.removeEventListener("pointerup", handleInteractionEnd);
+            window.removeEventListener("pointercancel", handleInteractionEnd);
+        };
+    }, []);
+
     useEffect(() => {
         const handleInteractionRelease = () => {
             const current = currentDraftRef.current;
@@ -178,7 +213,7 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
             const curIdx = historyIndexRef.current;
             const latestCommitted = curHistory[curIdx];
 
-            if (latestCommitted && JSON.stringify(latestCommitted) !== JSON.stringify(current)) {
+            if (JSON.stringify(current) !== JSON.stringify(latestCommitted)) {
                 pushHistory(current);
             }
         };
@@ -462,7 +497,7 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
     };
 
     return (
-        <div className="galaxy-studio-container">
+        <div className={`galaxy-studio-container ${isInteracting ? "galaxy-studio-container--zen" : ""}`}>
             <GalaxyToolbar
                 visuals={visuals}
                 isDirty={isDirty}

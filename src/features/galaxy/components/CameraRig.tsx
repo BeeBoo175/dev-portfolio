@@ -249,13 +249,19 @@ export function CameraRig({
             Math.PI - 0.1
         );
 
+        const isMobileScreen = typeof window !== "undefined" && window.innerWidth <= 1280;
+        const mobileTargetPos = currentTargetPos.current.clone();
+        if (isMobileScreen && allowManualOrbit && !isHome && !isBelt) {
+            mobileTargetPos.y -= 1.4;
+        }
+
         desiredPos.current
             .set(
                 distance * Math.sin(activePhi) * Math.sin(activeTheta),
                 distance * Math.cos(activePhi),
                 distance * Math.sin(activePhi) * Math.cos(activeTheta)
             )
-            .add(currentTargetPos.current);
+            .add(mobileTargetPos);
 
         if (isTransitioning.current) {
             transitionElapsed.current += frameDelta;
