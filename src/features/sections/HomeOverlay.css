@@ -190,15 +190,28 @@
     }
 }
 
+@media (max-width: 1280px) {
+    .sections-overlay__section {
+        padding: 0 max(16px, var(--sar)) 0 max(16px, var(--sal));
+    }
+
+    .scroll-to-top {
+        bottom: calc(max(8px, var(--sab)) + 52px);
+        right: max(16px, var(--sar));
+    }
+}
+
 @media (max-width: 640px) {
     .sections-overlay__section {
         padding: 0 max(12px, var(--sar)) 0 max(12px, var(--sal));
     }
 
     .scroll-to-top {
-        bottom: max(16px, var(--sab));
-        right: max(16px, var(--sar));
-        width: 44px;
-        height: 44px;
+        bottom: calc(max(8px, var(--sab)) + 52px);
+        right: max(12px, var(--sar));
+        width: 42px;
+        height: 42px;
+        min-width: 40px;
+        min-height: 40px;
     }
 }
