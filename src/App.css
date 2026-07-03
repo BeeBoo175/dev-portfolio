@@ -11,7 +11,7 @@
     height: 100svh;
     z-index: 0;
     overflow: hidden;
-    pointer-events: none;
+    pointer-events: auto;
 }
 
 .studio-launcher-btn {

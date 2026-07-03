@@ -12,4 +12,5 @@ export * from "./utils/proceduralTerrain";
 export * from "./utils/collisionDetection";
 export * from "./types";
 export * from "./data";
+export * from "./cameraConfig";
 export * from "./store";
