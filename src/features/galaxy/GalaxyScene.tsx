@@ -93,7 +93,7 @@ function GalaxyScene({
     return (
         <Canvas
             camera={{ position: [0, 20, 42], fov: 50, near: 0.1, far: 2000 }}
-            style={{ touchAction: "pan-y" }}
+            style={{ touchAction: isEditorMode ? "none" : "pan-y" }}
         >
             <ambientLight intensity={0.15} />
             <CameraFillLight focusId={focusId} bodyRefs={bodyRefs} />

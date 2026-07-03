@@ -67,42 +67,15 @@ export function CameraRig({
     const userZoomOffset = useRef(0);
     const targetZoomOffset = useRef(0);
 
+    const activePointers = useRef<Map<number, { x: number; y: number }>>(new Map());
+    const lastPinchDistance = useRef<number | null>(null);
+
     useEffect(() => {
         if (!allowManualOrbit) return;
 
         const domElement = gl.domElement;
 
-        const handlePointerDown = (e: PointerEvent) => {
-            if (e.button !== 0) return;
-            isDragging.current = true;
-            lastPointerPos.current = { x: e.clientX, y: e.clientY };
-        };
-
-        const handlePointerMove = (e: PointerEvent) => {
-            if (!isDragging.current) return;
-            const deltaX = e.clientX - lastPointerPos.current.x;
-            const deltaY = e.clientY - lastPointerPos.current.y;
-            lastPointerPos.current = { x: e.clientX, y: e.clientY };
-
-            targetThetaOffset.current -= deltaX * 0.005;
-            targetPhiOffset.current = THREE.MathUtils.clamp(
-                targetPhiOffset.current - deltaY * 0.005,
-                -FIXED_POLAR_ANGLE + 0.1,
-                Math.PI - FIXED_POLAR_ANGLE - 0.1
-            );
-        };
-
-        const handlePointerUp = () => {
-            isDragging.current = false;
-        };
-
-        const handleContextMenu = (e: MouseEvent) => {
-            e.preventDefault();
-        };
-
-        const handleWheel = (e: WheelEvent) => {
-            e.preventDefault();
-            const zoomDelta = e.deltaY * 0.02;
+        const applyZoomDelta = (zoomDelta: number) => {
             const isHome = focusId === centralId || focusId === "sun";
             const minZoom = isHome ? -30 : -4.5;
             const maxZoom = isHome ? 80 : 35;
@@ -118,6 +91,77 @@ export function CameraRig({
                 targetZoomOffset.current = 0;
                 onFocusChange("home");
             }
+        };
+
+        const handlePointerDown = (e: PointerEvent) => {
+            activePointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+            if (activePointers.current.size === 1 && e.button === 0) {
+                isDragging.current = true;
+                lastPointerPos.current = { x: e.clientX, y: e.clientY };
+            } else if (activePointers.current.size === 2) {
+                isDragging.current = false;
+                const points = Array.from(activePointers.current.values());
+                lastPinchDistance.current = Math.hypot(
+                    points[0].x - points[1].x,
+                    points[0].y - points[1].y
+                );
+            }
+        };
+
+        const handlePointerMove = (e: PointerEvent) => {
+            if (activePointers.current.has(e.pointerId)) {
+                activePointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+            }
+
+            if (activePointers.current.size === 2 && lastPinchDistance.current !== null) {
+                const points = Array.from(activePointers.current.values());
+                const currentDistance = Math.hypot(
+                    points[0].x - points[1].x,
+                    points[0].y - points[1].y
+                );
+                const diff = lastPinchDistance.current - currentDistance;
+                lastPinchDistance.current = currentDistance;
+
+                applyZoomDelta(diff * 0.08);
+                return;
+            }
+
+            if (!isDragging.current) return;
+            const deltaX = e.clientX - lastPointerPos.current.x;
+            const deltaY = e.clientY - lastPointerPos.current.y;
+            lastPointerPos.current = { x: e.clientX, y: e.clientY };
+
+            targetThetaOffset.current -= deltaX * 0.005;
+            targetPhiOffset.current = THREE.MathUtils.clamp(
+                targetPhiOffset.current - deltaY * 0.005,
+                -FIXED_POLAR_ANGLE + 0.1,
+                Math.PI - FIXED_POLAR_ANGLE - 0.1
+            );
+        };
+
+        const handlePointerUp = (e: PointerEvent) => {
+            activePointers.current.delete(e.pointerId);
+
+            if (activePointers.current.size === 0) {
+                isDragging.current = false;
+                lastPinchDistance.current = null;
+            } else if (activePointers.current.size === 1) {
+                lastPinchDistance.current = null;
+                const remaining = Array.from(activePointers.current.values())[0];
+                lastPointerPos.current = { x: remaining.x, y: remaining.y };
+                isDragging.current = true;
+            }
+        };
+
+        const handleContextMenu = (e: MouseEvent) => {
+            e.preventDefault();
+        };
+
+        const handleWheel = (e: WheelEvent) => {
+            e.preventDefault();
+            const zoomDelta = e.deltaY * 0.02;
+            applyZoomDelta(zoomDelta);
         };
 
         domElement.addEventListener("pointerdown", handlePointerDown);
