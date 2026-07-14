@@ -54,6 +54,16 @@ export function GalaxyToolbar({
         <header className={`studio-toolbar ${isMobileToolsOpen ? "studio-toolbar--mobile-open" : ""}`}>
             <div className="studio-toolbar__brand-row">
                 <span className="studio-toolbar__brand-text">Galaxy Studio</span>
+                {isDirty && (
+                    <button
+                        type="button"
+                        className="studio-btn studio-btn--ghost studio-btn--sm studio-toolbar__revert-btn--mobile"
+                        onClick={onDiscard}
+                        title="Discard working changes and revert to your saved galaxy in storage"
+                    >
+                        Revert
+                    </button>
+                )}
             </div>
 
             <div className="studio-toolbar__controls-row">
@@ -107,7 +117,7 @@ export function GalaxyToolbar({
                     {isDirty && (
                         <button
                             type="button"
-                            className="studio-btn studio-btn--ghost studio-btn--sm"
+                            className="studio-btn studio-btn--ghost studio-btn--sm studio-toolbar__revert-btn--desktop"
                             onClick={onDiscard}
                             title="Discard working changes and revert to your saved galaxy in storage"
                         >
@@ -120,8 +130,10 @@ export function GalaxyToolbar({
                         className="studio-btn studio-btn--primary studio-btn--sm"
                         onClick={onSaveAndApply}
                         disabled={!isDirty}
+                        title="Save & apply changes to galaxy"
                     >
-                        Save & Apply
+                        <span className="studio-btn__label--desktop">Save & Apply</span>
+                        <span className="studio-btn__label--mobile">Save</span>
                     </button>
 
                     <button
@@ -129,7 +141,8 @@ export function GalaxyToolbar({
                         className="studio-btn studio-btn--outline studio-btn--sm"
                         onClick={onExit}
                     >
-                        Exit Studio
+                        <span className="studio-btn__label--desktop">Exit Studio</span>
+                        <span className="studio-btn__label--mobile">Exit</span>
                     </button>
                 </div>
             </div>
