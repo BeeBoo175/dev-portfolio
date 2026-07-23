@@ -64,7 +64,7 @@ export function GalaxyDataDialog({
                 return;
             }
             setErrorMsg("Invalid JSON structure.");
-        } catch (e) {
+        } catch {
             setErrorMsg("Invalid JSON format.");
         }
     };

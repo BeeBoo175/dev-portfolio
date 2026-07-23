@@ -65,13 +65,13 @@ function computeForwardRotation(
     const f = forward.clone().normalize();
     if (f.lengthSq() < 0.001) return new THREE.Quaternion();
 
-    let up = preferredUp.clone().normalize();
-    if (Math.abs(f.dot(up)) > 0.92) {
-        up.set(0, 0, 1);
-        if (Math.abs(f.dot(up)) > 0.92) {
-            up.set(1, 0, 0);
-        }
-    }
+    const initialUp = preferredUp.clone().normalize();
+    const up =
+        Math.abs(f.dot(initialUp)) > 0.92
+            ? Math.abs(f.dot(new THREE.Vector3(0, 0, 1))) > 0.92
+                ? new THREE.Vector3(1, 0, 0)
+                : new THREE.Vector3(0, 0, 1)
+            : initialUp;
 
     const right = new THREE.Vector3().crossVectors(up, f).normalize();
     const correctedUp = new THREE.Vector3().crossVectors(f, right).normalize();
@@ -186,6 +186,7 @@ export function Spaceship({ focusId, bodyRefs }: SpaceshipProps) {
                 isFlying.current = true;
             }
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [focusId, defaultPlanetId, planets, bodyRefs]);
 
     useFrame((_, delta) => {
