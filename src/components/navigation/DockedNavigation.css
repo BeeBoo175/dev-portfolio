@@ -172,12 +172,14 @@
         transition: all var(--transition-fast);
     }
 
-    .docked-navigation__expand-tab:hover {
-        color: var(--accent-cyan);
-        background: var(--bg-surface-elevated);
-        border-color: var(--accent-cyan);
-        box-shadow: 0 -8px 28px rgba(0, 240, 255, 0.6), inset 0 0 16px rgba(0, 240, 255, 0.35);
-        transform: translateY(-2px);
+    @media (hover: hover) and (pointer: fine) {
+        .docked-navigation__expand-tab:hover {
+            color: var(--accent-cyan);
+            background: var(--bg-surface-elevated);
+            border-color: var(--accent-cyan);
+            box-shadow: 0 -8px 28px rgba(0, 240, 255, 0.6), inset 0 0 16px rgba(0, 240, 255, 0.35);
+            transform: translateY(-2px);
+        }
     }
 
     .docked-navigation__expand-tab:active {

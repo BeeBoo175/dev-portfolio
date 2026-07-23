@@ -65,7 +65,11 @@ export function DockedNavigation({
                 <button
                     type="button"
                     className="docked-navigation__expand-tab"
-                    onClick={onToggleSidebar}
+                    onClick={(e) => {
+                        onToggleSidebar();
+                        e.currentTarget.blur();
+                    }}
+                    aria-expanded={false}
                     aria-label="Expand inspector"
                     title="Expand inspector"
                 >

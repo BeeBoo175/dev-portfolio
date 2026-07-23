@@ -200,7 +200,7 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
                 setIsInteracting(true);
                 return;
             }
-            if (target && (target.closest(".studio-toolbar") || target.closest(".studio-sidebar") || target.closest(".studio-target-dock") || target.closest(".studio-confirm-dialog") || target.closest(".studio-modal-content"))) {
+            if (target && (target.closest(".studio-header-area") || target.closest(".studio-toolbar") || target.closest(".studio-collision-banner") || target.closest(".studio-sidebar") || target.closest(".studio-target-dock") || target.closest(".studio-confirm-dialog") || target.closest(".studio-modal-content") || target.closest(".studio-toast"))) {
                 return;
             }
             setIsInteracting(true);
@@ -511,28 +511,48 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
 
     return (
         <div className={`galaxy-studio-container ${isInteracting ? "galaxy-studio-container--zen" : ""}`}>
-            <GalaxyToolbar
-                visuals={visuals}
-                isDirty={isDirty}
-                warningCount={allWarnings.length}
-                canUndo={historyIndex > 0}
-                canRedo={historyIndex < history.length - 1}
-                onUndo={handleUndo}
-                onRedo={handleRedo}
-                isCameraOrbitPaused={!!visuals?.freezeCameraOrbit}
-                onTogglePauseCameraOrbit={() => galaxyStore.toggleFreezeCameraOrbit()}
-                onToggleOrbitPaths={() => galaxyStore.toggleOrbitPaths()}
-                onToggleOrbitalAxes={() => galaxyStore.toggleOrbitalAxes()}
-                onToggleSelectionGlow={() => galaxyStore.toggleSelectionGlow()}
-                onTogglePlanetNames={() => galaxyStore.togglePlanetNames()}
-                onRandomizeAll={handleRandomizeAll}
-                onResetGalaxy={handleResetAllDefaults}
-                onResolveCollisions={handleResolveCollisions}
-                onOpenDataModal={() => setIsDataModalOpen(true)}
-                onSaveAndApply={handleSaveAndApply}
-                onDiscard={handleDiscard}
-                onExit={handleExitStudio}
-            />
+            <div className="studio-header-area">
+                <GalaxyToolbar
+                    visuals={visuals}
+                    isDirty={isDirty}
+                    canUndo={historyIndex > 0}
+                    canRedo={historyIndex < history.length - 1}
+                    onUndo={handleUndo}
+                    onRedo={handleRedo}
+                    isCameraOrbitPaused={!!visuals?.freezeCameraOrbit}
+                    onTogglePauseCameraOrbit={() => galaxyStore.toggleFreezeCameraOrbit()}
+                    onToggleOrbitPaths={() => galaxyStore.toggleOrbitPaths()}
+                    onToggleOrbitalAxes={() => galaxyStore.toggleOrbitalAxes()}
+                    onToggleSelectionGlow={() => galaxyStore.toggleSelectionGlow()}
+                    onTogglePlanetNames={() => galaxyStore.togglePlanetNames()}
+                    onRandomizeAll={handleRandomizeAll}
+                    onResetGalaxy={handleResetAllDefaults}
+                    onOpenDataModal={() => setIsDataModalOpen(true)}
+                    onSaveAndApply={handleSaveAndApply}
+                    onDiscard={handleDiscard}
+                    onExit={handleExitStudio}
+                />
+
+                {allWarnings.length > 0 && (
+                    <aside
+                        className="studio-collision-banner"
+                        role="alert"
+                        aria-label="Orbit collision warning"
+                    >
+                        <span className="studio-collision-banner__text">
+                            {allWarnings.length === 1 ? "1 Orbit Collision Detected" : `${allWarnings.length} Orbit Collisions Detected`}
+                        </span>
+                        <button
+                            type="button"
+                            className="studio-collision-banner__btn"
+                            onClick={handleResolveCollisions}
+                            title="Automatically space out intersecting orbits to safe orbital distances"
+                        >
+                            Fix Orbits
+                        </button>
+                    </aside>
+                )}
+            </div>
 
             <TargetSelector
                 targets={TARGET_LIST}
@@ -550,7 +570,11 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
                 <button
                     type="button"
                     className="studio-sidebar__toggle-btn"
-                    onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                    onClick={(e) => {
+                        setIsSidebarOpen(!isSidebarOpen);
+                        e.currentTarget.blur();
+                    }}
+                    aria-expanded={isSidebarOpen}
                     title={isSidebarOpen ? "Collapse Inspector" : "Expand Inspector"}
                     aria-label="Toggle inspector panel"
                 >
@@ -577,8 +601,8 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
                             </h2>
                         </div>
 
-                            <div className="studio-sidebar__header-actions">
-                                {currentPlanet && (
+                        <div className="studio-sidebar__header-actions">
+                            {currentPlanet && (
                                     <button
                                         type="button"
                                         className={`studio-btn studio-btn--sm ${draftDefaultPlanetId === currentPlanet.id
