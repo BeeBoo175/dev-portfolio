@@ -4,7 +4,6 @@ import type { GalaxyVisualSettings } from "../../galaxy";
 export interface GalaxyToolbarProps {
     visuals: GalaxyVisualSettings;
     isDirty: boolean;
-    warningCount: number;
     canUndo?: boolean;
     canRedo?: boolean;
     onUndo?: () => void;
@@ -17,7 +16,6 @@ export interface GalaxyToolbarProps {
     onTogglePlanetNames?: () => void;
     onRandomizeAll: () => void;
     onResetGalaxy: () => void;
-    onResolveCollisions: () => void;
     onOpenDataModal: () => void;
     onSaveAndApply: () => void;
     onDiscard: () => void;
@@ -33,7 +31,6 @@ export function GalaxyToolbar({
         freezeCameraOrbit: false,
     },
     isDirty,
-    warningCount,
     canUndo = false,
     canRedo = false,
     onUndo,
@@ -46,7 +43,6 @@ export function GalaxyToolbar({
     onTogglePlanetNames,
     onRandomizeAll,
     onResetGalaxy,
-    onResolveCollisions,
     onOpenDataModal,
     onSaveAndApply,
     onDiscard,
@@ -60,16 +56,19 @@ export function GalaxyToolbar({
         <header className={`studio-toolbar ${isMobileToolsOpen ? "studio-toolbar--mobile-open" : ""}`}>
             <div className="studio-toolbar__brand-row">
                 <span className="studio-toolbar__brand-text">Galaxy Studio</span>
-                {isDirty && (
-                    <button
-                        type="button"
-                        className="studio-btn studio-btn--ghost studio-btn--sm studio-toolbar__revert-btn--mobile"
-                        onClick={onDiscard}
-                        title="Discard working changes and revert to your saved galaxy in storage"
-                    >
-                        Revert
-                    </button>
-                )}
+
+                <div className="studio-toolbar__brand-actions">
+                    {isDirty && (
+                        <button
+                            type="button"
+                            className="studio-btn studio-btn--ghost studio-btn--sm studio-toolbar__revert-btn--mobile"
+                            onClick={onDiscard}
+                            title="Discard working changes and revert to your saved galaxy in storage"
+                        >
+                            Revert
+                        </button>
+                    )}
+                </div>
             </div>
 
             <div className="studio-toolbar__controls-row">
@@ -77,7 +76,12 @@ export function GalaxyToolbar({
                     <button
                         type="button"
                         className={`studio-toolbar__mobile-toggle-btn ${isMobileToolsOpen ? "studio-toolbar__mobile-toggle-btn--active" : ""}`}
-                        onClick={() => setIsMobileToolsOpen(!isMobileToolsOpen)}
+                        onClick={(e) => {
+                            setIsMobileToolsOpen(!isMobileToolsOpen);
+                            e.currentTarget.blur();
+                        }}
+                        aria-expanded={isMobileToolsOpen}
+                        aria-controls="studio-toolbar-tools-panel"
                         aria-label="Toggle studio tools ribbon"
                         title={isMobileToolsOpen ? "Hide Tools Menu" : "Show Tools Menu"}
                     >
@@ -106,17 +110,6 @@ export function GalaxyToolbar({
                             Redo
                         </button>
                     </div>
-
-                    {warningCount > 0 && (
-                        <button
-                            type="button"
-                            className="studio-toolbar__warning-btn"
-                            onClick={onResolveCollisions}
-                            title="Click to automatically space out intersecting orbits"
-                        >
-                            {warningCount} Collision{warningCount > 1 ? "s" : ""}
-                        </button>
-                    )}
                 </div>
 
                 <div className="studio-toolbar__right">
@@ -153,12 +146,16 @@ export function GalaxyToolbar({
                 </div>
             </div>
 
-            <div className={`studio-toolbar__center ${isMobileToolsOpen ? "studio-toolbar__center--visible" : ""}`}>
+            <div
+                id="studio-toolbar-tools-panel"
+                className={`studio-toolbar__center ${isMobileToolsOpen ? "studio-toolbar__center--visible" : ""}`}
+            >
                 <div className="studio-toolbar__group">
                     <button
                         type="button"
-                        className="studio-toolbar__action-btn studio-toolbar__action-btn--glow"
+                        className="studio-toolbar__action-btn"
                         onClick={onRandomizeAll}
+                        title="Generate random planet sizes, colors, and orbit parameters"
                     >
                         Randomize Galaxy
                     </button>
