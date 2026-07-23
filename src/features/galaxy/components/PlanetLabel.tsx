@@ -109,6 +109,7 @@ export function PlanetLabel({
     const activeColor = useMemo(() => new THREE.Color(color), [color]);
     const idleColor = useMemo(() => new THREE.Color("#cbd5e1"), []);
     const worldPos = useRef(new THREE.Vector3());
+    const lineRef = useRef<THREE.Line>(null);
 
     useFrame((state, delta) => {
         const targetOpacity = isSelected ? 0.95 : isHovered ? 0.88 : 0.45;
@@ -133,15 +134,17 @@ export function PlanetLabel({
             );
         }
 
-        const lineMat = lineObj.material as THREE.LineBasicMaterial;
-        const lineTargetOpacity = isSelected ? 0.6 : isHovered ? 0.45 : 0.2;
-        lineMat.opacity = THREE.MathUtils.damp(lineMat.opacity, lineTargetOpacity, 10, delta);
-        lineMat.color.lerp(isSelected || isHovered ? activeColor : idleColor, 0.15);
+        if (lineRef.current) {
+            const lineMat = lineRef.current.material as THREE.LineBasicMaterial;
+            const lineTargetOpacity = isSelected ? 0.6 : isHovered ? 0.45 : 0.2;
+            lineMat.opacity = THREE.MathUtils.damp(lineMat.opacity, lineTargetOpacity, 10, delta);
+            lineMat.color.lerp(isSelected || isHovered ? activeColor : idleColor, 0.15);
+        }
     });
 
     return (
         <group ref={groupRef}>
-            <primitive object={lineObj} renderOrder={998} />
+            <primitive ref={lineRef} object={lineObj} renderOrder={998} />
             <sprite
                 ref={spriteRef}
                 position={[0, stemHeight + 0.35, 0]}
