@@ -555,7 +555,7 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
                     aria-label="Toggle inspector panel"
                 >
                     <span className="studio-sidebar__toggle-icon studio-sidebar__toggle-icon--desktop">
-                        {isSidebarOpen ? ">" : "<"}
+                        {isSidebarOpen ? "▸" : "◂"}
                     </span>
                     <span className="studio-sidebar__toggle-label studio-sidebar__toggle-label--mobile">
                         {isSidebarOpen ? "▼ Inspector" : "▲ Inspector"}

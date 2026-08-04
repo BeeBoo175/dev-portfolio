@@ -44,10 +44,12 @@
     align-items: center;
     justify-content: space-between;
     padding: 6px 14px;
-    background: var(--bg-surface-elevated);
-    border: 1px solid var(--border-default);
-    border-radius: var(--radius-sm);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    background: var(--obsidian-bg);
+    border: 1px solid var(--obsidian-border);
+    border-radius: var(--radius-xs);
+    box-shadow: var(--glass-shadow);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
     z-index: 60;
     gap: 8px;
     pointer-events: auto;
@@ -68,13 +70,15 @@
 }
 
 .studio-toolbar__brand-text {
-    color: var(--text-primary);
-    font-weight: 600;
+    color: #ffffff;
+    font-family: inherit;
+    font-weight: 700;
     font-size: 14px;
     letter-spacing: -0.01em;
     height: 30px;
     display: inline-flex;
     align-items: center;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
 }
 
 .studio-btn__label--mobile {
@@ -482,10 +486,12 @@
     align-items: center;
     gap: 6px;
     padding: 6px 8px;
-    background: var(--bg-surface-elevated);
-    border: 1px solid var(--border-default);
-    border-radius: var(--radius-sm);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+    background: var(--obsidian-bg);
+    border: 1px solid var(--obsidian-border);
+    border-radius: var(--radius-xs);
+    box-shadow: var(--glass-shadow);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
 }
 
 .studio-target-chip {
@@ -494,8 +500,8 @@
     gap: 6px;
     padding: 5px 10px;
     border-radius: var(--radius-xs);
-    border: 1px solid var(--border-subtle);
-    background: var(--bg-surface-subtle);
+    border: 1px solid var(--obsidian-border-subtle);
+    background: var(--obsidian-bg-subtle);
     color: var(--text-muted);
     font-size: 12px;
     font-weight: 500;
@@ -512,14 +518,16 @@
     .studio-target-chip:hover {
         background: var(--bg-surface-hover);
         color: var(--text-primary);
+        border-color: var(--glass-border-specular);
     }
 }
 
 .studio-target-chip--active {
     background: var(--accent-subtle);
-    border-color: rgba(56, 189, 248, 0.4);
+    border-color: rgba(56, 189, 248, 0.5);
     color: var(--accent-cyan);
     font-weight: 600;
+    box-shadow: 0 0 12px rgba(56, 189, 248, 0.2);
 }
 
 .studio-target-chip__dot {
@@ -564,12 +572,14 @@
     top: 68px;
     right: 12px;
     bottom: 68px;
-    width: 380px;
+    width: 390px;
     max-width: calc(100vw - 24px);
-    background: var(--bg-surface);
-    border: 1px solid var(--border-default);
+    background: var(--obsidian-bg-elevated);
+    border: 1px solid var(--obsidian-border);
     border-radius: var(--radius-sm);
-    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.7);
+    box-shadow: var(--glass-shadow-elevated);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
     display: flex;
     flex-direction: column;
     z-index: 60;
@@ -589,38 +599,44 @@
     transform: translateY(-50%);
     width: 38px;
     height: 64px;
-    background: var(--bg-surface-elevated);
-    border: 1px solid var(--border-hover);
+    background: var(--obsidian-bg-elevated);
+    border: 1px solid var(--obsidian-border);
     border-right: none;
     border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
     color: var(--text-primary);
-    font-size: 18px;
+    font-size: 25px;
     font-weight: 700;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     pointer-events: auto;
-    font-family: var(--font-mono);
-    box-shadow: -4px 0 16px rgba(0, 0, 0, 0.6), inset 0 0 0 1px rgba(93, 169, 255, 0.15);
+    font-family: inherit;
+    box-shadow: -4px 0 16px rgba(0, 0, 0, 0.6), inset 0 0 0 1px rgba(255, 255, 255, 0.1);
     z-index: 100;
-    transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
+    transition: all var(--transition-fast);
+    padding: 0;
 }
 
 .studio-sidebar--collapsed .studio-sidebar__toggle-btn {
     pointer-events: auto;
+    left: -40px;
+    width: 40px;
 }
 
 .studio-sidebar__toggle-btn:hover {
-    color: var(--accent-cyan);
-    background: var(--bg-surface-elevated);
-    border-color: var(--accent-cyan);
-    box-shadow: -6px 0 20px rgba(0, 240, 255, 0.35), inset 0 0 10px rgba(0, 240, 255, 0.2);
+    color: #ffffff;
+    background: var(--obsidian-bg-hover);
+    border-color: var(--obsidian-border-highlight);
+    box-shadow: -6px 0 20px rgba(255, 255, 255, 0.2), inset 0 0 10px rgba(255, 255, 255, 0.1);
 }
 
 .studio-sidebar--collapsed .studio-sidebar__toggle-btn {
-    background: var(--bg-surface-elevated);
-    border-color: var(--accent-cyan);
+    background: var(--obsidian-bg-elevated);
+    border: 1px solid var(--accent-cyan);
+    border-right: none;
     color: var(--accent-cyan);
     box-shadow: -6px 0 24px rgba(0, 240, 255, 0.4), inset 0 0 12px rgba(0, 240, 255, 0.25);
     animation: studio-pulse-arrow 2.5s infinite ease-in-out;
@@ -628,6 +644,8 @@
 
 .studio-sidebar--collapsed .studio-sidebar__toggle-btn:hover {
     transform: translateY(-50%) translateX(-4px);
+    border-color: var(--accent-cyan);
+    color: var(--accent-cyan);
     box-shadow: -8px 0 28px rgba(0, 240, 255, 0.6), inset 0 0 16px rgba(0, 240, 255, 0.35);
 }
 
@@ -648,7 +666,16 @@
 }
 
 .studio-sidebar__toggle-icon--desktop {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    line-height: 1;
+}
+
+.studio-sidebar--collapsed .studio-sidebar__toggle-icon--desktop {
+    transform: translateX(-2px);
 }
 
 .studio-sidebar__toggle-label--mobile {
@@ -669,8 +696,8 @@
     align-items: center;
     justify-content: space-between;
     padding: 10px 14px;
-    border-bottom: 1px solid var(--border-subtle);
-    background: var(--bg-surface-elevated);
+    border-bottom: 1px solid var(--glass-border-subtle);
+    background: var(--glass-bg-interactive);
     border-top-left-radius: inherit;
     border-top-right-radius: inherit;
     gap: 8px;
@@ -716,15 +743,15 @@
     display: flex;
     gap: 4px;
     padding: 6px 14px 0;
-    border-bottom: 1px solid var(--border-subtle);
-    background: var(--bg-surface-subtle);
+    border-bottom: 1px solid var(--hud-border-subtle);
+    background: var(--hud-bg-subtle);
     overflow-x: auto;
 }
 
 .studio-tab {
-    padding: 6px 10px;
+    padding: 7px 12px;
     font-size: 12px;
-    font-weight: 500;
+    font-weight: 600;
     border: none;
     border-bottom: 2px solid transparent;
     background: transparent;
@@ -732,6 +759,7 @@
     cursor: pointer;
     white-space: nowrap;
     font-family: inherit;
+    letter-spacing: 0.02em;
     transition: all var(--transition-fast);
     outline: none;
     -webkit-tap-highlight-color: transparent;
@@ -744,30 +772,31 @@
 }
 
 .studio-tab--active {
-    color: var(--accent-cyan);
-    border-bottom-color: var(--accent-cyan);
-    font-weight: 600;
+    color: var(--hud-cyan);
+    border-bottom-color: var(--hud-cyan);
+    font-weight: 700;
+    text-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
 }
 
 .studio-tab-body {
     flex: 1;
     overflow-y: auto;
-    padding: 14px 16px;
+    padding: 16px 18px;
 }
 
 .studio-panel {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 18px;
     padding-bottom: 24px;
 }
 
 .studio-panel__section {
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    padding-bottom: 12px;
-    border-bottom: 1px solid var(--border-subtle);
+    gap: 14px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--hud-border-subtle);
 }
 
 .studio-panel__section:last-child {
@@ -782,15 +811,18 @@
 }
 
 .studio-panel__title {
-    font-size: 13px;
-    font-weight: 600;
+    font-size: 13.5px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
     color: var(--text-primary);
 }
 
 .studio-panel__subtitle {
     font-size: 12px;
     font-weight: 600;
-    color: var(--text-secondary);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--hud-cyan);
 }
 
 .studio-panel__actions {
@@ -816,16 +848,18 @@
 
 .studio-field__value {
     font-family: var(--font-mono);
-    color: var(--accent-cyan);
-    font-size: 11px;
+    color: var(--hud-cyan);
+    font-size: 11.5px;
+    font-weight: 600;
 }
 
 .studio-field input[type="range"] {
     -webkit-appearance: none;
     appearance: none;
     width: 100%;
-    height: 4px;
-    background: rgba(255, 255, 255, 0.15);
+    height: 6px;
+    background: rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: var(--radius-xs);
     outline: none;
     cursor: pointer;
@@ -835,11 +869,28 @@
 .studio-field input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 14px;
-    height: 14px;
-    border-radius: var(--radius-xs);
-    background: var(--accent-cyan);
-    box-shadow: 0 0 8px rgba(56, 189, 248, 0.5);
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 2px solid var(--accent-cyan);
+    box-shadow: 0 0 12px rgba(56, 189, 248, 0.8), 0 2px 4px rgba(0, 0, 0, 0.6);
+    cursor: pointer;
+    transition: transform var(--transition-fast), background-color var(--transition-fast);
+}
+
+.studio-field input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.15);
+    background: #e0f2fe;
+}
+
+.studio-field input[type="range"]::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 2px solid var(--accent-cyan);
+    box-shadow: 0 0 12px rgba(56, 189, 248, 0.8), 0 2px 4px rgba(0, 0, 0, 0.6);
     cursor: pointer;
 }
 
@@ -851,19 +902,21 @@
 .studio-field input[type="number"],
 .studio-textarea {
     width: 100%;
-    padding: 6px 8px;
-    background: rgba(0, 0, 0, 0.35);
-    border: 1px solid var(--border-default);
+    padding: 7px 10px;
+    background: rgba(3, 7, 18, 0.6);
+    border: 1px solid var(--hud-border);
     border-radius: var(--radius-xs);
     color: var(--text-primary);
     font-size: 12px;
     font-family: var(--font-mono);
     outline: none;
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .studio-field input[type="number"]:focus,
 .studio-textarea:focus {
-    border-color: var(--border-focus);
+    border-color: var(--hud-cyan);
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.35);
 }
 
 .studio-presets-grid {
@@ -877,8 +930,8 @@
     align-items: center;
     gap: 6px;
     padding: 6px 8px;
-    background: var(--bg-surface-subtle);
-    border: 1px solid var(--border-subtle);
+    background: var(--hud-bg-subtle);
+    border: 1px solid var(--hud-border-subtle);
     border-left-width: 3px;
     border-radius: var(--radius-xs);
     color: var(--text-secondary);
@@ -894,7 +947,7 @@
 }
 
 .studio-preset-chip:hover {
-    background: var(--bg-surface-hover);
+    background: var(--hud-bg-interactive);
     color: var(--text-primary);
     border-color: var(--border-hover);
 }
@@ -902,7 +955,7 @@
 .studio-preset-chip__dot {
     width: 6px;
     height: 6px;
-    border-radius: var(--radius-xs);
+    border-radius: 50%;
     flex-shrink: 0;
 }
 
@@ -1018,11 +1071,13 @@
 .studio-confirm-dialog {
     width: 100%;
     max-width: 400px;
-    background: var(--bg-surface-elevated);
-    border: 1px solid var(--border-default);
+    background: var(--glass-bg-elevated);
+    border: 1px solid var(--glass-border);
     border-radius: var(--radius-md);
     padding: 18px;
-    box-shadow: 0 20px 48px rgba(0, 0, 0, 0.85);
+    box-shadow: var(--glass-shadow-elevated);
+    backdrop-filter: var(--glass-blur-lg);
+    -webkit-backdrop-filter: var(--glass-blur-lg);
     display: flex;
     flex-direction: column;
     gap: 14px;
@@ -1053,8 +1108,8 @@
     align-items: center;
     text-align: center;
     padding: 24px 16px;
-    background: var(--bg-surface-subtle);
-    border: 1px dashed var(--border-default);
+    background: var(--glass-bg-subtle);
+    border: 1px dashed var(--glass-border);
     border-radius: var(--radius-sm);
     gap: 8px;
     margin: 4px 0 8px;
@@ -1116,8 +1171,8 @@
     align-items: center;
     gap: 6px;
     padding: 5px 8px;
-    background: var(--bg-surface-subtle);
-    border: 1px solid var(--border-subtle);
+    background: var(--glass-bg-subtle);
+    border: 1px solid var(--glass-border-subtle);
     border-radius: var(--radius-xs);
     color: var(--text-muted);
     font-size: 11px;
@@ -1138,7 +1193,7 @@
     .studio-moon-tab:hover {
         background: var(--bg-surface-hover);
         color: var(--text-primary);
-        border-color: var(--border-hover);
+        border-color: var(--glass-border-specular);
     }
 }
 
@@ -1149,7 +1204,7 @@
 
 .studio-moon-tab--active {
     background: var(--accent-subtle);
-    border-color: rgba(56, 189, 248, 0.4);
+    border-color: rgba(56, 189, 248, 0.5);
     color: var(--accent-cyan);
     font-weight: 600;
 }
@@ -1227,8 +1282,9 @@
 .studio-modal-backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.75);
-    backdrop-filter: blur(8px);
+    background: rgba(3, 7, 18, 0.7);
+    backdrop-filter: var(--glass-blur-sm);
+    -webkit-backdrop-filter: var(--glass-blur-sm);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1239,10 +1295,12 @@
 .studio-modal {
     width: 100%;
     max-width: 520px;
-    background: var(--bg-surface-elevated);
-    border: 1px solid var(--border-default);
+    background: var(--glass-bg-elevated);
+    border: 1px solid var(--glass-border);
     border-radius: var(--radius-md);
-    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.8);
+    box-shadow: var(--glass-shadow-elevated);
+    backdrop-filter: var(--glass-blur-lg);
+    -webkit-backdrop-filter: var(--glass-blur-lg);
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -1625,19 +1683,20 @@
         height: 30px;
         padding: 0 18px;
         margin-bottom: -1px;
-        background: var(--bg-surface-elevated);
+        background: var(--obsidian-bg-elevated);
         border: 1px solid var(--accent-cyan);
         border-bottom: none;
-        border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+        border-radius: var(--radius-xs) var(--radius-xs) 0 0;
         color: var(--accent-cyan);
-        font-family: var(--font-sans);
+        font-family: inherit;
         font-size: 11px;
         font-weight: 600;
         letter-spacing: 0.04em;
         text-transform: uppercase;
         cursor: pointer;
         box-shadow: 0 -6px 24px rgba(0, 240, 255, 0.4), inset 0 0 12px rgba(0, 240, 255, 0.25);
-        z-index: 101;
+        z-index: 1;
+        position: relative;
         animation: studio-pulse-arrow-up 2.5s infinite ease-in-out;
         transition: all var(--transition-fast);
     }
@@ -1645,7 +1704,7 @@
     @media (hover: hover) and (pointer: fine) {
         .studio-dock__expand-tab:hover {
             color: var(--accent-cyan);
-            background: var(--bg-surface-elevated);
+            background: var(--obsidian-bg-hover);
             border-color: var(--accent-cyan);
             box-shadow: 0 -8px 28px rgba(0, 240, 255, 0.6), inset 0 0 16px rgba(0, 240, 255, 0.35);
             transform: translateY(-2px);
@@ -1673,12 +1732,15 @@
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
         padding: 5px 8px;
-        background: rgba(17, 29, 61, 0.95);
-        -webkit-backdrop-filter: blur(12px);
-        backdrop-filter: blur(12px);
-        border: 1px solid var(--border-default);
-        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.7);
+        background: var(--obsidian-bg);
+        -webkit-backdrop-filter: var(--glass-blur);
+        backdrop-filter: var(--glass-blur);
+        border: 1px solid var(--obsidian-border);
+        border-radius: var(--radius-xs);
+        box-shadow: var(--glass-shadow-subtle);
         scrollbar-width: none;
+        position: relative;
+        z-index: 2;
     }
 
     .studio-target-dock__track::-webkit-scrollbar {
@@ -1694,11 +1756,11 @@
         width: auto;
         max-width: none;
         height: min(44dvh, 380px);
-        background: rgba(11, 19, 41, 0.96);
-        -webkit-backdrop-filter: blur(16px);
-        backdrop-filter: blur(16px);
-        border: 1px solid var(--border-hover);
-        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.85);
+        background: var(--obsidian-bg-elevated);
+        -webkit-backdrop-filter: var(--glass-blur-lg);
+        backdrop-filter: var(--glass-blur-lg);
+        border: 1px solid var(--obsidian-border);
+        box-shadow: var(--glass-shadow-elevated);
         border-radius: var(--radius-sm);
         overflow: visible;
         z-index: 90;
@@ -1717,32 +1779,35 @@
         top: -34px;
         left: 50%;
         transform: translateX(-50%);
-        width: 130px;
+        width: 140px;
         height: 34px;
-        background: var(--bg-surface-elevated);
-        border: 1px solid var(--border-hover);
+        background: var(--obsidian-bg-elevated);
+        border: 1px solid var(--obsidian-border-highlight);
         border-bottom: none;
         border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+        backdrop-filter: var(--glass-blur);
+        -webkit-backdrop-filter: var(--glass-blur);
         color: var(--text-primary);
-        font-size: 11px;
+        font-size: 11.5px;
         font-weight: 600;
-        font-family: var(--font-sans);
+        font-family: inherit;
         letter-spacing: 0.04em;
         text-transform: uppercase;
-        box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.6), inset 0 0 0 1px rgba(93, 169, 255, 0.15);
+        box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.2);
         z-index: 100;
         gap: 6px;
-        padding: 0 12px;
+        padding: 0 14px;
         white-space: nowrap;
         pointer-events: auto;
+        transition: all var(--transition-fast);
     }
 
     @media (hover: hover) and (pointer: fine) {
         .studio-sidebar__toggle-btn:hover {
-            color: var(--accent-cyan);
-            background: var(--bg-surface-elevated);
-            border-color: var(--accent-cyan);
-            box-shadow: 0 -6px 20px rgba(0, 240, 255, 0.35), inset 0 0 10px rgba(0, 240, 255, 0.2);
+            color: #ffffff;
+            background: var(--obsidian-bg-hover);
+            border-color: #ffffff;
+            box-shadow: 0 -8px 24px rgba(255, 255, 255, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.3);
         }
     }
 
