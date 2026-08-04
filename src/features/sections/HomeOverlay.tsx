@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import * as THREE from "three";
-import { useGalaxySun } from "../galaxy";
+import { useGalaxyPlanets, useGalaxySun } from "../galaxy";
 import { ALL_SECTIONS } from "./data";
 import { useSectionScroll } from "./useSectionScroll";
 import type { SectionId } from "./types";
@@ -17,6 +17,7 @@ export function HomeOverlay({ onFocusChange, registerTrigger }: HomeOverlayProps
         registerTrigger,
     });
     const sun = useGalaxySun();
+    const dynamicPlanets = useGalaxyPlanets();
 
     const sunStyle = useMemo(() => {
         const baseHex = sun.color || "#ffe59e";
@@ -44,6 +45,15 @@ export function HomeOverlay({ onFocusChange, registerTrigger }: HomeOverlayProps
         } as React.CSSProperties;
     }, [sun.color, sun.palette?.peak]);
 
+    const getSectionCardStyle = (sectionId: string): React.CSSProperties => {
+        if (sectionId === "home") return {};
+        const planet = dynamicPlanets.find((p) => p.id === sectionId);
+        const planetColor = planet?.color || (sectionId === "about" ? "#ffb15d" : sectionId === "skills" ? "#5da9ff" : sectionId === "projects" ? "#7dff9c" : "#ff5d8f");
+        return {
+            "--card-accent": planetColor,
+        } as React.CSSProperties;
+    };
+
     return (
         <div className="sections-overlay">
             {ALL_SECTIONS.map((section) => (
@@ -55,7 +65,7 @@ export function HomeOverlay({ onFocusChange, registerTrigger }: HomeOverlayProps
                     }}
                     className={`sections-overlay__section sections-overlay__section--${section.id}`}
                 >
-                    <div className="sections-overlay__card">
+                    <div className="sections-overlay__card" style={getSectionCardStyle(section.id)}>
                         <h1 className="sections-overlay__title">{section.label}</h1>
                         <p className="sections-overlay__subtitle">
                             Scroll or click a planet to explore.
