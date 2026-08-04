@@ -16,45 +16,53 @@
 
 .studio-launcher-btn {
     position: fixed;
-    top: max(1rem, var(--sat));
-    right: max(1rem, var(--sar));
-    display: flex;
+    top: max(16px, var(--sat));
+    right: max(16px, var(--sar));
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
-    min-height: 44px;
-    padding: 0.5rem 1rem;
+    height: 36px;
+    padding: 0 16px;
     background: var(--bg-surface-elevated);
     border: 1px solid var(--border-default);
     border-radius: var(--radius-sm);
-    color: var(--text-primary);
-    font-size: 0.85rem;
-    font-weight: 600;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+    color: var(--text-secondary);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
     text-decoration: none;
-    z-index: 40;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
-    transition: all var(--transition-fast);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    white-space: nowrap;
+    z-index: 60;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
 }
 
 .studio-launcher-btn:hover {
     background: var(--bg-surface-hover);
     border-color: var(--border-hover);
-    box-shadow: 0 0 16px var(--accent-glow);
-    color: var(--accent-cyan);
+    color: var(--text-primary);
 }
 
 .studio-launcher-btn:active {
-    transform: scale(0.98);
+    filter: brightness(0.88);
 }
 
-@media (max-width: 480px) {
+.studio-launcher-btn:focus-visible {
+    outline: 2px solid var(--accent-cyan);
+    outline-offset: 2px;
+}
+
+@media (max-width: 1280px) {
     .studio-launcher-btn {
-        top: max(0.625rem, var(--sat));
-        right: max(0.625rem, var(--sar));
-        padding: 0.4rem 0.75rem;
-        font-size: 0.8rem;
+        top: max(8px, var(--sat));
+        right: max(8px, var(--sar));
+        height: 32px;
+        padding: 0 12px;
+        font-size: 12px;
+        background: rgba(17, 29, 61, 0.95);
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.7);
     }
 }
 

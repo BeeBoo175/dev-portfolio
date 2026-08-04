@@ -71,33 +71,47 @@ export function MoonsPanel({
                 </div>
 
                 {moons.length === 0 ? (
-                    <div className="studio-empty-state">
-                        <p>No moons orbiting {planet.id}.</p>
+                    <div className="studio-moons-empty">
+                        <div className="studio-moons-empty__icon" aria-hidden="true">
+                            <span className="studio-moons-empty__ring" />
+                            <span className="studio-moons-empty__planet" />
+                        </div>
+                        <div className="studio-moons-empty__title">No Satellites Configured</div>
+                        <p className="studio-moons-empty__desc">
+                            {planet.id.toUpperCase()} has no orbiting moons. Spawn procedural moons to configure custom orbital radii, terrain profiles, and axial spins.
+                        </p>
                         <button
                             type="button"
-                            className="studio-btn studio-btn--secondary studio-btn--sm"
+                            className="studio-btn studio-btn--primary studio-btn--sm"
                             onClick={handleAddMoon}
                         >
-                            Spawn Moon
+                            + Spawn First Moon
                         </button>
                     </div>
                 ) : (
                     <>
                         <div className="studio-moons-tabs">
                             {moons.map((moon, idx) => (
-                                <button
+                                <div
                                     key={moon.id}
-                                    type="button"
                                     className={`studio-moon-tab ${
                                         idx === activeMoonIndex ? "studio-moon-tab--active" : ""
                                     }`}
                                     onClick={() => onSelectMoon(idx)}
+                                    role="button"
+                                    tabIndex={0}
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Enter" || e.key === " ") {
+                                            e.preventDefault();
+                                            onSelectMoon(idx);
+                                        }
+                                    }}
                                 >
                                     <span
                                         className="studio-moon-tab__dot"
                                         style={{ backgroundColor: moon.color || "#cbd5e1" }}
                                     />
-                                    <span>Moon {idx + 1}</span>
+                                    <span className="studio-moon-tab__label">Moon {idx + 1}</span>
                                     <button
                                         type="button"
                                         className="studio-moon-tab__remove"
@@ -105,12 +119,12 @@ export function MoonsPanel({
                                             e.stopPropagation();
                                             handleRemoveMoon(idx);
                                         }}
-                                        title="Delete moon"
-                                        aria-label="Delete moon"
+                                        title={`Delete Moon ${idx + 1}`}
+                                        aria-label={`Delete Moon ${idx + 1}`}
                                     >
                                         x
                                     </button>
-                                </button>
+                                </div>
                             ))}
                         </div>
 

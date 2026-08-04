@@ -3,11 +3,7 @@ import { useNavigate } from "react-router-dom";
 import type { AsteroidBeltConfig, OrbitConfig, SunConfig } from "../../galaxy";
 import {
     galaxyStore,
-    useGalaxyPlanets,
-    useGalaxyAsteroidBelt,
-    useGalaxySun,
     useGalaxyVisuals,
-    useGalaxyDefaultPlanetId,
     detectAllGalaxyCollisions,
     resolveGalaxyCollisions,
     ORBIT_LAYOUT,
@@ -69,20 +65,16 @@ export interface GalaxyStudioProps {
 
 export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
     const navigate = useNavigate();
-    const storePlanets = useGalaxyPlanets();
-    const storeBelt = useGalaxyAsteroidBelt();
-    const storeSun = useGalaxySun();
-    const storeDefaultPlanetId = useGalaxyDefaultPlanetId();
     const visuals = useGalaxyVisuals();
 
-    const initialSavedState: GalaxyDraftState = {
-        planets: storePlanets,
-        asteroidBelt: storeBelt,
-        sun: storeSun,
-        defaultPlanetId: storeDefaultPlanetId,
-    };
+    const initialSavedState: GalaxyDraftState = useMemo(() => ({
+        planets: galaxyStore.getSnapshot(),
+        asteroidBelt: galaxyStore.getAsteroidBeltSnapshot(),
+        sun: galaxyStore.getSunSnapshot(),
+        defaultPlanetId: galaxyStore.getDefaultPlanetIdSnapshot(),
+    }), []);
 
-    const initialDraft = loadInitialDraft(initialSavedState);
+    const initialDraft = useMemo(() => loadInitialDraft(initialSavedState), [initialSavedState]);
 
     const [draftPlanets, setDraftPlanets] = useState<OrbitConfig[]>(() =>
         structuredClone(initialDraft.planets)
@@ -101,12 +93,11 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
     );
 
     useEffect(() => {
-        galaxyStore.setPlanets(initialDraft.planets, false);
-        galaxyStore.setAsteroidBelt(initialDraft.asteroidBelt, false);
-        galaxyStore.setSun(initialDraft.sun, false);
-        galaxyStore.setDefaultPlanetId(initialDraft.defaultPlanetId, false);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+        galaxyStore.setPlanets(draftPlanets, false);
+        galaxyStore.setAsteroidBelt(draftBelt, false);
+        galaxyStore.setSun(draftSun, false);
+        galaxyStore.setDefaultPlanetId(draftDefaultPlanetId, false);
+    }, [draftPlanets, draftBelt, draftSun, draftDefaultPlanetId]);
 
     const [history, setHistory] = useState<GalaxyDraftState[]>([structuredClone(initialDraft)]);
     const [historyIndex, setHistoryIndex] = useState<number>(0);
@@ -251,10 +242,6 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
         setDraftBelt(state.asteroidBelt);
         setDraftSun(state.sun);
         setDraftDefaultPlanetId(state.defaultPlanetId);
-        galaxyStore.setPlanets(state.planets, false);
-        galaxyStore.setAsteroidBelt(state.asteroidBelt, false);
-        galaxyStore.setSun(state.sun, false);
-        galaxyStore.setDefaultPlanetId(state.defaultPlanetId, false);
         if (pushToHistory) {
             pushHistory(state);
         }
@@ -315,7 +302,7 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
 
     const currentPlanet = draftPlanets.find((p) => p.id === selectedId);
     const defaultPlanetConfig = ORBIT_LAYOUT.find((p) => p.id === selectedId);
-    const allWarnings = detectAllGalaxyCollisions(draftPlanets, draftBelt);
+    const allWarnings = detectAllGalaxyCollisions(draftPlanets, draftBelt, draftSun);
 
     useEffect(() => {
         const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -355,31 +342,20 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
 
     const updatePlanet = useCallback((updater: (prev: OrbitConfig) => OrbitConfig) => {
         setDraftPlanets((prevList) => {
-            const nextList = prevList.map((p) => (p.id === selectedId ? updater(p) : p));
-            galaxyStore.setPlanets(nextList, false);
-            return nextList;
+            return prevList.map((p) => (p.id === selectedId ? updater(p) : p));
         });
     }, [selectedId]);
 
     const updateBelt = useCallback((updater: (prev: AsteroidBeltConfig) => AsteroidBeltConfig) => {
-        setDraftBelt((prev) => {
-            const next = updater(prev);
-            galaxyStore.setAsteroidBelt(next, false);
-            return next;
-        });
+        setDraftBelt((prev) => updater(prev));
     }, []);
 
     const updateSun = useCallback((updater: (prev: SunConfig) => SunConfig) => {
-        setDraftSun((prev) => {
-            const next = updater(prev);
-            galaxyStore.setSun(next, false);
-            return next;
-        });
+        setDraftSun((prev) => updater(prev));
     }, []);
 
     const handleSetDefaultPlanetId = useCallback((id: string) => {
         setDraftDefaultPlanetId(id);
-        galaxyStore.setDefaultPlanetId(id, false);
         pushHistory({
             planets: draftPlanets,
             asteroidBelt: draftBelt,
@@ -454,7 +430,7 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
     };
 
     const handleResolveCollisions = () => {
-        const { resolvedPlanets } = resolveGalaxyCollisions(draftPlanets, draftBelt);
+        const { resolvedPlanets } = resolveGalaxyCollisions(draftPlanets, draftBelt, draftSun);
         applyDraftState({
             planets: resolvedPlanets,
             asteroidBelt: draftBelt,
@@ -603,127 +579,127 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
 
                         <div className="studio-sidebar__header-actions">
                             {currentPlanet && (
+                                <button
+                                    type="button"
+                                    className={`studio-btn studio-btn--sm ${draftDefaultPlanetId === currentPlanet.id
+                                        ? "studio-btn--station-active"
+                                        : "studio-btn--ghost"
+                                        }`}
+                                    onClick={() => handleSetDefaultPlanetId(currentPlanet.id)}
+                                    title={
+                                        draftDefaultPlanetId === currentPlanet.id
+                                            ? "Current default starting base for spaceship"
+                                            : "Set this planet as spaceship default starting base"
+                                    }
+                                    aria-pressed={draftDefaultPlanetId === currentPlanet.id}
+                                >
+                                    {draftDefaultPlanetId === currentPlanet.id ? "Ship Base" : "Set Ship Base"}
+                                </button>
+                            )}
+
+                            {selectedId === "home" || selectedId === "sun" ? (
+                                <button
+                                    type="button"
+                                    className="studio-btn studio-btn--ghost studio-btn--sm"
+                                    onClick={handleResetSun}
+                                    title="Reset star to original default configuration"
+                                >
+                                    Reset
+                                </button>
+                            ) : selectedId === "asteroid-belt" ? (
+                                <button
+                                    type="button"
+                                    className="studio-btn studio-btn--ghost studio-btn--sm"
+                                    onClick={handleResetBelt}
+                                    title="Reset asteroid belt to original default configuration"
+                                >
+                                    Reset
+                                </button>
+                            ) : currentPlanet ? (
+                                <button
+                                    type="button"
+                                    className="studio-btn studio-btn--ghost studio-btn--sm"
+                                    onClick={handleResetCurrentPlanet}
+                                    title="Reset this planet to original default configuration"
+                                >
+                                    Reset
+                                </button>
+                            ) : null}
+                        </div>
+                    </div>
+
+                    {selectedId === "home" || selectedId === "sun" ? (
+                        <div className="studio-tab-body">
+                            <SunPanel
+                                sun={draftSun}
+                                onChange={updateSun}
+                            />
+                        </div>
+                    ) : selectedId === "asteroid-belt" ? (
+                        <div className="studio-tab-body">
+                            <AsteroidBeltPanel
+                                config={draftBelt}
+                                onChange={updateBelt}
+                            />
+                        </div>
+                    ) : currentPlanet ? (
+                        <>
+                            <nav className="studio-tabs" aria-label="Planet categories">
+                                {[
+                                    { id: "appearance", label: "Appearance" },
+                                    { id: "orbit", label: "Orbit 3D" },
+                                    { id: "terrain", label: "Terrain" },
+                                    {
+                                        id: "moons",
+                                        label: `Moons (${currentPlanet.children?.length || 0})`,
+                                    },
+                                ].map((tab) => (
                                     <button
+                                        key={tab.id}
                                         type="button"
-                                        className={`studio-btn studio-btn--sm ${draftDefaultPlanetId === currentPlanet.id
-                                                ? "studio-btn--station-active"
-                                                : "studio-btn--ghost"
+                                        className={`studio-tab ${activeTab === tab.id ? "studio-tab--active" : ""
                                             }`}
-                                        onClick={() => handleSetDefaultPlanetId(currentPlanet.id)}
-                                        title={
-                                            draftDefaultPlanetId === currentPlanet.id
-                                                ? "Current default starting base for spaceship"
-                                                : "Set this planet as spaceship default starting base"
-                                        }
-                                        aria-pressed={draftDefaultPlanetId === currentPlanet.id}
+                                        onClick={() => setActiveTab(tab.id as PlanetTab)}
                                     >
-                                        {draftDefaultPlanetId === currentPlanet.id ? "Ship Base" : "Set Ship Base"}
+                                        {tab.label}
                                     </button>
+                                ))}
+                            </nav>
+
+                            <div className="studio-tab-body">
+                                {activeTab === "appearance" && (
+                                    <AppearancePanel
+                                        planet={currentPlanet}
+                                        onChange={updatePlanet}
+                                    />
                                 )}
 
-                                {selectedId === "home" || selectedId === "sun" ? (
-                                    <button
-                                        type="button"
-                                        className="studio-btn studio-btn--ghost studio-btn--sm"
-                                        onClick={handleResetSun}
-                                        title="Reset star to original default configuration"
-                                    >
-                                        Reset
-                                    </button>
-                                ) : selectedId === "asteroid-belt" ? (
-                                    <button
-                                        type="button"
-                                        className="studio-btn studio-btn--ghost studio-btn--sm"
-                                        onClick={handleResetBelt}
-                                        title="Reset asteroid belt to original default configuration"
-                                    >
-                                        Reset
-                                    </button>
-                                ) : currentPlanet ? (
-                                    <button
-                                        type="button"
-                                        className="studio-btn studio-btn--ghost studio-btn--sm"
-                                        onClick={handleResetCurrentPlanet}
-                                        title="Reset this planet to original default configuration"
-                                    >
-                                        Reset
-                                    </button>
-                                ) : null}
+                                {activeTab === "orbit" && (
+                                    <Orbit3DPanel
+                                        planet={currentPlanet}
+                                        onChange={updatePlanet}
+                                    />
+                                )}
+
+                                {activeTab === "terrain" && (
+                                    <TerrainPanel
+                                        planet={currentPlanet}
+                                        onChange={updatePlanet}
+                                    />
+                                )}
+
+                                {activeTab === "moons" && (
+                                    <MoonsPanel
+                                        planet={currentPlanet}
+                                        activeMoonIndex={activeMoonIndex}
+                                        onSelectMoon={setActiveMoonIndex}
+                                        onChange={updatePlanet}
+                                    />
+                                )}
                             </div>
-                        </div>
-
-                        {selectedId === "home" || selectedId === "sun" ? (
-                            <div className="studio-tab-body">
-                                <SunPanel
-                                    sun={draftSun}
-                                    onChange={updateSun}
-                                />
-                            </div>
-                        ) : selectedId === "asteroid-belt" ? (
-                            <div className="studio-tab-body">
-                                <AsteroidBeltPanel
-                                    config={draftBelt}
-                                    onChange={updateBelt}
-                                />
-                            </div>
-                        ) : currentPlanet ? (
-                            <>
-                                <nav className="studio-tabs" aria-label="Planet categories">
-                                    {[
-                                        { id: "appearance", label: "Appearance" },
-                                        { id: "orbit", label: "Orbit 3D" },
-                                        { id: "terrain", label: "Terrain" },
-                                        {
-                                            id: "moons",
-                                            label: `Moons (${currentPlanet.children?.length || 0})`,
-                                        },
-                                    ].map((tab) => (
-                                        <button
-                                            key={tab.id}
-                                            type="button"
-                                            className={`studio-tab ${activeTab === tab.id ? "studio-tab--active" : ""
-                                                }`}
-                                            onClick={() => setActiveTab(tab.id as PlanetTab)}
-                                        >
-                                            {tab.label}
-                                        </button>
-                                    ))}
-                                </nav>
-
-                                <div className="studio-tab-body">
-                                    {activeTab === "appearance" && (
-                                        <AppearancePanel
-                                            planet={currentPlanet}
-                                            onChange={updatePlanet}
-                                        />
-                                    )}
-
-                                    {activeTab === "orbit" && (
-                                        <Orbit3DPanel
-                                            planet={currentPlanet}
-                                            onChange={updatePlanet}
-                                        />
-                                    )}
-
-                                    {activeTab === "terrain" && (
-                                        <TerrainPanel
-                                            planet={currentPlanet}
-                                            onChange={updatePlanet}
-                                        />
-                                    )}
-
-                                    {activeTab === "moons" && (
-                                        <MoonsPanel
-                                            planet={currentPlanet}
-                                            activeMoonIndex={activeMoonIndex}
-                                            onSelectMoon={setActiveMoonIndex}
-                                            onChange={updatePlanet}
-                                        />
-                                    )}
-                                </div>
-                            </>
-                        ) : null}
-                    </div>
+                        </>
+                    ) : null}
+                </div>
             </aside>
 
             {isConfirmExitOpen && (
