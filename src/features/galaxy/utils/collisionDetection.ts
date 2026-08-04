@@ -1,8 +1,9 @@
-import type { AsteroidBeltConfig, OrbitConfig } from "../types";
+import type { AsteroidBeltConfig, OrbitConfig, SunConfig } from "../types";
+import { DEFAULT_SUN } from "../data";
 
 export interface CollisionWarning {
     id: string;
-    type: "planet-planet" | "planet-moon" | "moon-moon" | "cross-system" | "planet-belt" | "moon-belt";
+    type: "sun-planet" | "sun-moon" | "planet-planet" | "planet-moon" | "moon-moon" | "cross-system" | "planet-belt" | "moon-belt";
     title: string;
     description: string;
 }
@@ -10,7 +11,8 @@ export interface CollisionWarning {
 export function detectPlanetCollisions(
     planet: OrbitConfig,
     allPlanets: OrbitConfig[],
-    asteroidBelt?: AsteroidBeltConfig
+    asteroidBelt?: AsteroidBeltConfig,
+    sun?: SunConfig | { radius?: number }
 ): CollisionWarning[] {
     const warnings: CollisionWarning[] = [];
     const r1 = planet.radius ?? 1;
@@ -19,6 +21,32 @@ export function detectPlanetCollisions(
     const o1 = planet.orbitRadius ?? 0;
 
     if (o1 <= 0) return warnings;
+
+    const sunRadius = (sun && typeof sun.radius === "number") ? sun.radius : DEFAULT_SUN.radius;
+    const sunSafeDist = sunRadius + planet1Reach + 0.3;
+    if (o1 < sunSafeDist) {
+        warnings.push({
+            id: `sun-${planet.id}`,
+            type: "sun-planet",
+            title: `Solar Collision Warning (${planet.id.toUpperCase()})`,
+            description: `Orbit radius (${o1.toFixed(1)}) brings ${planet.id.toUpperCase()} (reach ${planet1Reach.toFixed(2)}) inside or too close to the Sun (radius ${sunRadius.toFixed(1)}).`,
+        });
+    }
+
+    const planetMoons = planet.children ?? [];
+    for (let m = 0; m < planetMoons.length; m++) {
+        const moon = planetMoons[m];
+        const moonReach = (moon.orbitRadius ?? 2.0) + moon.radius;
+        const moonClosestOrbit = o1 - moonReach;
+        if (moonClosestOrbit < sunRadius + 0.2 && o1 >= sunSafeDist) {
+            warnings.push({
+                id: `sun-moon-${planet.id}-${moon.id}`,
+                type: "sun-moon",
+                title: `Lunar Solar Intersection (${planet.id.toUpperCase()} Moon #${m + 1})`,
+                description: `Moon #${m + 1}'s orbit brings it within the Sun's perimeter (closest reach ${moonClosestOrbit.toFixed(2)}, Sun radius ${sunRadius.toFixed(1)}).`,
+            });
+        }
+    }
 
     for (const other of allPlanets) {
         if (other.id === planet.id) continue;
@@ -44,7 +72,6 @@ export function detectPlanetCollisions(
             });
         }
 
-        const planetMoons = planet.children ?? [];
         for (const moon of planetMoons) {
             const moonMaxReach = (moon.orbitRadius ?? 2.0) + moon.radius;
             const innerBound = o1 - moonMaxReach;
@@ -76,7 +103,6 @@ export function detectPlanetCollisions(
             });
         }
 
-        const planetMoons = planet.children ?? [];
         for (let m = 0; m < planetMoons.length; m++) {
             const moon = planetMoons[m];
             const moonReach = (moon.orbitRadius ?? 2.0) + moon.radius;
@@ -184,13 +210,14 @@ export function detectMoonCollisions(
 
 export function detectAllGalaxyCollisions(
     allPlanets: OrbitConfig[],
-    asteroidBelt?: AsteroidBeltConfig
+    asteroidBelt?: AsteroidBeltConfig,
+    sun?: SunConfig | { radius?: number }
 ): CollisionWarning[] {
     const seen = new Set<string>();
     const allWarnings: CollisionWarning[] = [];
 
     for (const planet of allPlanets) {
-        const warnings = detectPlanetCollisions(planet, allPlanets, asteroidBelt);
+        const warnings = detectPlanetCollisions(planet, allPlanets, asteroidBelt, sun);
         for (const w of warnings) {
             const normKey =
                 w.type === "planet-planet"
@@ -207,13 +234,14 @@ export function detectAllGalaxyCollisions(
 
 export function resolveGalaxyCollisions(
     planets: OrbitConfig[],
-    asteroidBelt?: AsteroidBeltConfig
+    asteroidBelt?: AsteroidBeltConfig,
+    sun?: SunConfig | { radius?: number }
 ): {
     resolvedPlanets: OrbitConfig[];
     changedCount: number;
 } {
     let totalChangedCount = 0;
-    const SUN_SAFE_ORBIT = 6.8;
+    const sunRadius = (sun && typeof sun.radius === "number") ? sun.radius : DEFAULT_SUN.radius;
 
     const workingPlanets: OrbitConfig[] = planets.map((p) => {
         const pRad = p.radius ?? 1.0;
@@ -286,7 +314,7 @@ export function resolveGalaxyCollisions(
             }
             const curReach = Math.max(curBaseReach, curMaxMoonReach);
 
-            let minRequiredOrbit = SUN_SAFE_ORBIT;
+            let minRequiredOrbit = Number((sunRadius + curReach + 0.5).toFixed(1));
 
             if (i > 0) {
                 const prevItem = indexed[i - 1];
@@ -309,7 +337,7 @@ export function resolveGalaxyCollisions(
                     prevBaseReach + curMaxMoonReach + 0.35,
                     prevMaxMoonReach + curMaxMoonReach + 0.45
                 );
-                minRequiredOrbit = Number((prevOrbit + minSafeDist).toFixed(1));
+                minRequiredOrbit = Math.max(minRequiredOrbit, Number((prevOrbit + minSafeDist).toFixed(1)));
             }
 
             if (orbit < minRequiredOrbit) {

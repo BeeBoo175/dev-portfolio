@@ -265,5 +265,54 @@ describe("collisionDetection utils", () => {
         const warningsAfter = detectAllGalaxyCollisions(resolvedPlanets, asteroidBelt);
         expect(warningsAfter).toHaveLength(0);
     });
+
+    it("detects sun-planet collisions when orbit radius is inside or too close to the sun", () => {
+        const planetTooCloseToSun: OrbitConfig[] = [
+            {
+                id: "too-close",
+                radius: 1.0,
+                rotationSpeed: 0.01,
+                orbitRadius: 3.8,
+            },
+        ];
+
+        const warnings = detectAllGalaxyCollisions(planetTooCloseToSun, undefined, { radius: 3.5 });
+        expect(warnings.some((w) => w.type === "sun-planet")).toBe(true);
+
+        const { resolvedPlanets, changedCount } = resolveGalaxyCollisions(planetTooCloseToSun, undefined, { radius: 3.5 });
+        expect(changedCount).toBeGreaterThan(0);
+        expect(resolvedPlanets[0].orbitRadius).toBeGreaterThanOrEqual(3.5 + 1.0 + 0.5);
+
+        const warningsAfter = detectAllGalaxyCollisions(resolvedPlanets, undefined, { radius: 3.5 });
+        expect(warningsAfter.some((w) => w.type === "sun-planet")).toBe(false);
+    });
+
+    it("detects sun-moon collision when moon orbit swings inside the sun", () => {
+        const planetWithReachingMoon: OrbitConfig[] = [
+            {
+                id: "planet-with-moon",
+                radius: 1.0,
+                rotationSpeed: 0.01,
+                orbitRadius: 5.5,
+                children: [
+                    {
+                        id: "sun-crossing-moon",
+                        radius: 0.4,
+                        rotationSpeed: 0.02,
+                        orbitRadius: 2.2,
+                    },
+                ],
+            },
+        ];
+
+        const warnings = detectAllGalaxyCollisions(planetWithReachingMoon, undefined, { radius: 3.5 });
+        expect(warnings.some((w) => w.type === "sun-moon")).toBe(true);
+
+        const { resolvedPlanets, changedCount } = resolveGalaxyCollisions(planetWithReachingMoon, undefined, { radius: 3.5 });
+        expect(changedCount).toBeGreaterThan(0);
+
+        const warningsAfter = detectAllGalaxyCollisions(resolvedPlanets, undefined, { radius: 3.5 });
+        expect(warningsAfter.some((w) => w.type === "sun-moon")).toBe(false);
+    });
 });
 
