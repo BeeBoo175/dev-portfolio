@@ -660,7 +660,7 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
                         </div>
                     ) : currentPlanet ? (
                         <>
-                            <nav className="studio-tabs" aria-label="Planet categories">
+                            <div className="studio-tabs" role="tablist" aria-label="Planet categories">
                                 {[
                                     { id: "appearance", label: "Appearance" },
                                     { id: "orbit", label: "Orbit 3D" },
@@ -673,6 +673,10 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
                                     <button
                                         key={tab.id}
                                         type="button"
+                                        role="tab"
+                                        id={`planet-tab-${tab.id}`}
+                                        aria-selected={activeTab === tab.id}
+                                        aria-controls={`planet-panel-${tab.id}`}
                                         className={`studio-tab ${activeTab === tab.id ? "studio-tab--active" : ""
                                             }`}
                                         onClick={() => setActiveTab(tab.id as PlanetTab)}
@@ -680,9 +684,14 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
                                         {tab.label}
                                     </button>
                                 ))}
-                            </nav>
+                            </div>
 
-                            <div className="studio-tab-body">
+                            <div
+                                className="studio-tab-body"
+                                role="tabpanel"
+                                id={`planet-panel-${activeTab}`}
+                                aria-labelledby={`planet-tab-${activeTab}`}
+                            >
                                 {activeTab === "appearance" && (
                                     <AppearancePanel
                                         planet={currentPlanet}

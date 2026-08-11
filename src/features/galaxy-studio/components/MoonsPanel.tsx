@@ -90,7 +90,7 @@ export function MoonsPanel({
                     </div>
                 ) : (
                     <>
-                        <div className="studio-moons-tabs">
+                        <div className="studio-moons-tabs" role="tablist" aria-label="Moons list">
                             {moons.map((moon, idx) => (
                                 <div
                                     key={moon.id}
@@ -98,7 +98,10 @@ export function MoonsPanel({
                                         idx === activeMoonIndex ? "studio-moon-tab--active" : ""
                                     }`}
                                     onClick={() => onSelectMoon(idx)}
-                                    role="button"
+                                    role="tab"
+                                    aria-selected={idx === activeMoonIndex}
+                                    aria-controls="moon-subtab-panel"
+                                    id={`moon-tab-${idx}`}
                                     tabIndex={0}
                                     onKeyDown={(e) => {
                                         if (e.key === "Enter" || e.key === " ") {
@@ -110,6 +113,7 @@ export function MoonsPanel({
                                     <span
                                         className="studio-moon-tab__dot"
                                         style={{ backgroundColor: moon.color || "#cbd5e1" }}
+                                        aria-hidden="true"
                                     />
                                     <span className="studio-moon-tab__label">Moon {idx + 1}</span>
                                     <button
@@ -130,7 +134,7 @@ export function MoonsPanel({
 
                         {activeMoon && (
                             <>
-                                <nav className="studio-subtabs" aria-label="Moon categories">
+                                <div className="studio-subtabs" role="tablist" aria-label="Moon configuration subtabs">
                                     {[
                                         { id: "appearance", label: "Appearance" },
                                         { id: "orbit", label: "Orbit 3D" },
@@ -139,6 +143,10 @@ export function MoonsPanel({
                                         <button
                                             key={tab.id}
                                             type="button"
+                                            role="tab"
+                                            id={`moon-subtab-${tab.id}`}
+                                            aria-selected={subTab === tab.id}
+                                            aria-controls="moon-subtab-panel"
                                             className={`studio-subtab ${
                                                 subTab === tab.id ? "studio-subtab--active" : ""
                                             }`}
@@ -147,34 +155,43 @@ export function MoonsPanel({
                                             {tab.label}
                                         </button>
                                     ))}
-                                </nav>
+                                </div>
 
-                                {subTab === "appearance" && (
-                                    <AppearancePanel
-                                        planet={activeMoon}
-                                        onChange={updateActiveMoon}
-                                        isMoon={true}
-                                        minRadius={0.1}
-                                        maxRadius={0.6}
-                                    />
-                                )}
+                                <div
+                                    id="moon-subtab-panel"
+                                    role="tabpanel"
+                                    aria-labelledby={`moon-subtab-${subTab}`}
+                                >
+                                    {subTab === "appearance" && (
+                                        <AppearancePanel
+                                            key={`appearance-${activeMoon.id}`}
+                                            planet={activeMoon}
+                                            onChange={updateActiveMoon}
+                                            isMoon={true}
+                                            minRadius={0.1}
+                                            maxRadius={0.9}
+                                        />
+                                    )}
 
-                                {subTab === "orbit" && (
-                                    <Orbit3DPanel
-                                        planet={activeMoon}
-                                        onChange={updateActiveMoon}
-                                        isMoon={true}
-                                        minRadius={Number((planet.radius + 0.5).toFixed(2))}
-                                        maxRadius={Number((planet.radius + 6.0).toFixed(2))}
-                                    />
-                                )}
+                                    {subTab === "orbit" && (
+                                        <Orbit3DPanel
+                                            key={`orbit-${activeMoon.id}`}
+                                            planet={activeMoon}
+                                            onChange={updateActiveMoon}
+                                            isMoon={true}
+                                            minRadius={1.2}
+                                            maxRadius={6.0}
+                                        />
+                                    )}
 
-                                {subTab === "terrain" && (
-                                    <TerrainPanel
-                                        planet={activeMoon}
-                                        onChange={updateActiveMoon}
-                                    />
-                                )}
+                                    {subTab === "terrain" && (
+                                        <TerrainPanel
+                                            key={`terrain-${activeMoon.id}`}
+                                            planet={activeMoon}
+                                            onChange={updateActiveMoon}
+                                        />
+                                    )}
+                                </div>
                             </>
                         )}
                     </>

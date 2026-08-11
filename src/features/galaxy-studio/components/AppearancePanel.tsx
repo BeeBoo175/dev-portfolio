@@ -165,13 +165,14 @@ export function AppearancePanel({
                 <div className="studio-panel__section">
                     <div className="studio-panel__header-row">
                         <span className="studio-panel__title">Planetary Rings</span>
-                        <label className="studio-switch">
+                        <label className="studio-switch" aria-label="Toggle Planetary Rings">
                             <input
                                 type="checkbox"
                                 checked={!!ring}
                                 onChange={handleToggleRing}
+                                aria-label="Toggle Planetary Rings"
                             />
-                            <span className="studio-switch__slider" />
+                            <span className="studio-switch__slider" aria-hidden="true" />
                         </label>
                     </div>
 

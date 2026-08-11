@@ -172,12 +172,13 @@ export function GalaxyToolbar({
 
                 <div className="studio-toolbar__divider" />
 
-                <div className="studio-toolbar__group studio-toolbar__group--toggles">
+                <div className="studio-toolbar__group studio-toolbar__group--toggles" role="toolbar" aria-label="Visual Display Toggles">
                     <button
                         type="button"
                         className={`studio-toolbar__toggle-btn ${visuals.showOrbitPaths ? "studio-toolbar__toggle-btn--active" : ""
                             }`}
                         onClick={onToggleOrbitPaths}
+                        aria-pressed={visuals.showOrbitPaths}
                         title="Toggle orbital ellipse trail lines"
                     >
                         Orbit Lines
@@ -188,6 +189,7 @@ export function GalaxyToolbar({
                         className={`studio-toolbar__toggle-btn ${visuals.showOrbitalAxes ? "studio-toolbar__toggle-btn--active" : ""
                             }`}
                         onClick={onToggleOrbitalAxes}
+                        aria-pressed={visuals.showOrbitalAxes}
                         title="Toggle planetary axial tilt lines"
                     >
                         Axial Poles
@@ -198,6 +200,7 @@ export function GalaxyToolbar({
                         className={`studio-toolbar__toggle-btn ${isSelectionGlowActive ? "studio-toolbar__toggle-btn--active" : ""
                             }`}
                         onClick={onToggleSelectionGlow}
+                        aria-pressed={isSelectionGlowActive}
                         title="Toggle selection glow brackets and reticles"
                     >
                         Selection Glow
@@ -208,6 +211,7 @@ export function GalaxyToolbar({
                         className={`studio-toolbar__toggle-btn ${isPlanetNamesActive ? "studio-toolbar__toggle-btn--active" : ""
                             }`}
                         onClick={onTogglePlanetNames}
+                        aria-pressed={isPlanetNamesActive}
                         title="Toggle celestial body name labels"
                     >
                         Names
@@ -218,6 +222,7 @@ export function GalaxyToolbar({
                         className={`studio-toolbar__toggle-btn ${isCameraOrbitPaused ? "studio-toolbar__toggle-btn--active" : ""
                             }`}
                         onClick={onTogglePauseCameraOrbit}
+                        aria-pressed={Boolean(isCameraOrbitPaused)}
                         title="Freeze camera orbit in editor only to observe planetary motion (editor preview only, not saved)"
                     >
                         Freeze Cam
