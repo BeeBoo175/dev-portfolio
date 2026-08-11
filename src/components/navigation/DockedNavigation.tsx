@@ -91,6 +91,8 @@ export function DockedNavigation({
                                 isSelected ? "docked-navigation__chip--active" : ""
                             }`}
                             onClick={() => onSelectTarget(target.id)}
+                            aria-current={isSelected ? "true" : undefined}
+                            aria-label={`${target.label}${isSpaceshipBase ? " (Ship Base)" : ""}`}
                             style={
                                 isSelected
                                     ? {
@@ -103,12 +105,14 @@ export function DockedNavigation({
                             <span
                                 className="docked-navigation__dot"
                                 style={{ backgroundColor: color }}
+                                aria-hidden="true"
                             />
                             <span className="docked-navigation__label">{target.label}</span>
                             {isSpaceshipBase && (
                                 <span
                                     className="docked-navigation__badge docked-navigation__badge--station"
                                     title="Spaceship Default Station"
+                                    aria-label="Spaceship Default Station"
                                 >
                                     Ship Base
                                 </span>
