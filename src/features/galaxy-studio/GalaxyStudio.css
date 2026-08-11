@@ -1086,36 +1086,40 @@
 
 .studio-confirm-dialog {
     width: 100%;
-    max-width: 400px;
-    background: var(--glass-bg-elevated);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--radius-md);
-    padding: 18px;
+    max-width: 440px;
+    background: var(--obsidian-bg-elevated);
+    border: 1px solid var(--obsidian-border);
+    border-radius: var(--radius-sm);
+    padding: 20px 22px;
     box-shadow: var(--glass-shadow-elevated);
-    backdrop-filter: var(--glass-blur-lg);
-    -webkit-backdrop-filter: var(--glass-blur-lg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
     display: flex;
     flex-direction: column;
     gap: 14px;
+    animation: studio-modal-enter 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .studio-confirm-title {
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 600;
+    letter-spacing: -0.01em;
     color: var(--text-primary);
 }
 
 .studio-confirm-text {
     font-size: 13px;
     color: var(--text-secondary);
-    line-height: 1.5;
+    line-height: 1.55;
 }
 
 .studio-confirm-actions {
     display: flex;
+    align-items: center;
     justify-content: flex-end;
     gap: 8px;
-    margin-top: 4px;
+    margin-top: 6px;
+    flex-wrap: wrap;
 }
 
 .studio-moons-empty {
