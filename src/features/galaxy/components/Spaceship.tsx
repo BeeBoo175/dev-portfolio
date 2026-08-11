@@ -186,7 +186,6 @@ export function Spaceship({ focusId, bodyRefs }: SpaceshipProps) {
                 isFlying.current = true;
             }
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [focusId, defaultPlanetId, planets, bodyRefs]);
 
     useFrame((_, delta) => {
