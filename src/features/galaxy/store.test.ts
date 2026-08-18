@@ -28,7 +28,7 @@ describe("galaxyStore", () => {
     });
 
     it("updates visuals settings", () => {
-        galaxyStore.setVisualSettings({ showOrbitPaths: false, showOrbitalAxes: true, freezeCameraOrbit: true, showSelectionGlow: false, showPlanetNames: false });
+        galaxyStore.setVisualSettings({ showOrbitPaths: false, showOrbitalAxes: true, freezeCameraOrbit: true, showSelectionGlow: false, showPlanetNames: false, showBackgroundPhenomena: false });
         let visuals = galaxyStore.getVisualsSnapshot();
 
         expect(visuals.showOrbitPaths).toBe(false);
@@ -36,14 +36,17 @@ describe("galaxyStore", () => {
         expect(visuals.freezeCameraOrbit).toBe(true);
         expect(visuals.showSelectionGlow).toBe(false);
         expect(visuals.showPlanetNames).toBe(false);
+        expect(visuals.showBackgroundPhenomena).toBe(false);
 
         galaxyStore.toggleFreezeCameraOrbit();
         galaxyStore.toggleSelectionGlow();
         galaxyStore.togglePlanetNames();
+        galaxyStore.toggleBackgroundPhenomena();
         visuals = galaxyStore.getVisualsSnapshot();
         expect(visuals.freezeCameraOrbit).toBe(false);
         expect(visuals.showSelectionGlow).toBe(true);
         expect(visuals.showPlanetNames).toBe(true);
+        expect(visuals.showBackgroundPhenomena).toBe(true);
     });
 
     it("notifies subscribers on store update", () => {

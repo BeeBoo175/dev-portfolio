@@ -79,6 +79,7 @@ function loadPersistedVisuals(): GalaxyVisualSettings {
                 showSelectionGlow: true,
                 showPlanetNames: true,
                 freezeCameraOrbit: false,
+                showBackgroundPhenomena: true,
                 ...JSON.parse(raw),
             };
         }
@@ -91,6 +92,7 @@ function loadPersistedVisuals(): GalaxyVisualSettings {
         showSelectionGlow: true,
         showPlanetNames: true,
         freezeCameraOrbit: false,
+        showBackgroundPhenomena: true,
     };
 }
 
@@ -269,6 +271,23 @@ class GalaxyStore {
         this.notify(false);
     }
 
+    resetVisualSettings() {
+        this.visuals = {
+            showOrbitPaths: true,
+            showOrbitalAxes: false,
+            showSelectionGlow: true,
+            showPlanetNames: true,
+            freezeCameraOrbit: false,
+            showBackgroundPhenomena: true,
+        };
+        try {
+            localStorage.removeItem(VISUALS_KEY);
+        } catch (e) {
+            void e;
+        }
+        this.notify(true);
+    }
+
     resetAll() {
         this.planets = cloneDefaultPlanets();
         this.asteroidBelt = cloneDefaultAsteroidBelt();
@@ -279,6 +298,7 @@ class GalaxyStore {
             showSelectionGlow: true,
             showPlanetNames: true,
             freezeCameraOrbit: false,
+            showBackgroundPhenomena: true,
         };
         this.defaultPlanetId = DEFAULT_SPACESHIP_PLANET_ID;
         try {
@@ -317,6 +337,12 @@ class GalaxyStore {
 
     toggleFreezeCameraOrbit() {
         this.visuals = { ...this.visuals, freezeCameraOrbit: !this.visuals.freezeCameraOrbit };
+        this.notify(true);
+    }
+
+    toggleBackgroundPhenomena() {
+        const current = this.visuals.showBackgroundPhenomena !== false;
+        this.visuals = { ...this.visuals, showBackgroundPhenomena: !current };
         this.notify(true);
     }
 

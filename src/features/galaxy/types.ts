@@ -74,4 +74,5 @@ export interface GalaxyVisualSettings {
     showSelectionGlow?: boolean;
     showPlanetNames?: boolean;
     freezeCameraOrbit?: boolean;
+    showBackgroundPhenomena?: boolean;
 }

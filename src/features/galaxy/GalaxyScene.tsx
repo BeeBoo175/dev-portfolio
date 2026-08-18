@@ -1,6 +1,7 @@
 import { useRef } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
+import CosmicBackground from "./components/CosmicBackground";
 import CelestialBody from "./components/CelestialBody";
 import CameraRig from "./components/CameraRig";
 import Spaceship from "./components/Spaceship";
@@ -99,6 +100,8 @@ function GalaxyScene({
         >
             <ambientLight intensity={0.15} />
             <CameraFillLight focusId={focusId} bodyRefs={bodyRefs} />
+
+            <CosmicBackground visible={visuals.showBackgroundPhenomena !== false} />
 
             <CelestialBody
                 ref={(instance) => {

@@ -6,6 +6,7 @@ export { default as Spaceship } from "./components/Spaceship";
 export { default as LowPolyPlanet } from "./components/LowPolyPlanet";
 export { default as PlanetaryRing } from "./components/PlanetaryRing";
 export { default as AsteroidBelt } from "./components/AsteroidBelt";
+export { default as CosmicBackground } from "./components/CosmicBackground";
 export { default as OrbitPathLine } from "./components/OrbitPathLine";
 export { default as OrbitalAxisLine } from "./components/OrbitalAxisLine";
 export * from "./utils/proceduralTerrain";
