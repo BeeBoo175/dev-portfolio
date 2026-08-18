@@ -517,6 +517,7 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
                     onToggleOrbitalAxes={() => galaxyStore.toggleOrbitalAxes()}
                     onToggleSelectionGlow={() => galaxyStore.toggleSelectionGlow()}
                     onTogglePlanetNames={() => galaxyStore.togglePlanetNames()}
+                    onToggleBackgroundPhenomena={() => galaxyStore.toggleBackgroundPhenomena()}
                     onRandomizeAll={handleRandomizeAll}
                     onResetGalaxy={handleResetAllDefaults}
                     onOpenDataModal={() => setIsDataModalOpen(true)}
