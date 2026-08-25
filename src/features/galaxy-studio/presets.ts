@@ -275,7 +275,11 @@ export function generateRandomPlanet(planet: OrbitConfig): OrbitConfig {
               innerRadius: Number((radius * 1.35 + 0.1).toFixed(2)),
               outerRadius: Number((radius * 1.95 + 0.3).toFixed(2)),
               color: paletteObj.palette.coast ?? paletteObj.palette.land ?? paletteObj.color,
-              opacity: Number((Math.random() * 0.35 + 0.5).toFixed(2)),
+              opacity: Number((Math.random() * 0.3 + 0.6).toFixed(2)),
+              emissiveIntensity: Number((Math.random() * 0.25 + 0.1).toFixed(2)),
+              gapPosition: Number((Math.random() * 0.3 + 0.5).toFixed(2)),
+              gapWidth: Number((Math.random() * 0.08 + 0.04).toFixed(2)),
+              seed: Math.floor(Math.random() * 9999) + 1,
           }
         : undefined;
 
