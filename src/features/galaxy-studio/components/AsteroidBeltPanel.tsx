@@ -1,14 +1,12 @@
 import type { AsteroidBeltConfig } from "../../galaxy";
 import { generateRandomAsteroidBelt } from "../presets";
 import { Tooltip } from "../../../components/ui/Tooltip";
+import { RAD_TO_DEG, DEG_TO_RAD, generateRandomSeed } from "../utils/studioMath";
 
 export interface AsteroidBeltPanelProps {
     config: AsteroidBeltConfig;
     onChange: (updater: (prev: AsteroidBeltConfig) => AsteroidBeltConfig) => void;
 }
-
-const RAD_TO_DEG = 180 / Math.PI;
-const DEG_TO_RAD = Math.PI / 180;
 
 export function AsteroidBeltPanel({
     config,
@@ -20,7 +18,7 @@ export function AsteroidBeltPanel({
     };
 
     const handleShuffleSeed = () => {
-        const nextSeed = Math.floor(Math.random() * 9999) + 1;
+        const nextSeed = generateRandomSeed();
         onChange((prev) => ({ ...prev, seed: nextSeed }));
     };
 
