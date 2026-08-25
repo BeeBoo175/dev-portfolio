@@ -10,8 +10,10 @@ import {
     DEFAULT_SPACESHIP_PLANET_ID,
 } from "../../galaxy";
 import { generateRandomGalaxy } from "../presets";
+import { resolveTargetSelection } from "../utils/studioTarget";
 
 export const DRAFT_STORAGE_KEY = "portfolio_galaxy_studio_draft_v1";
+
 
 export interface GalaxyDraftState {
     planets: OrbitConfig[];
@@ -35,13 +37,14 @@ export function loadInitialDraft(savedState: GalaxyDraftState): GalaxyDraftState
     return savedState;
 }
 
-export function useGalaxyStudioDraft(selectedId: string) {
+export function useGalaxyStudioDraft(targetId: string) {
     const initialSavedState: GalaxyDraftState = useMemo(() => ({
         planets: galaxyStore.getSnapshot(),
         asteroidBelt: galaxyStore.getAsteroidBeltSnapshot(),
         sun: galaxyStore.getSunSnapshot(),
         defaultPlanetId: galaxyStore.getDefaultPlanetIdSnapshot(),
     }), []);
+
 
     const initialDraft = useMemo(() => loadInitialDraft(initialSavedState), [initialSavedState]);
 
@@ -274,6 +277,12 @@ export function useGalaxyStudioDraft(selectedId: string) {
         return () => window.removeEventListener("keydown", handleKeyDown, { capture: true });
     }, [handleUndo, handleRedo]);
 
+    const resolvedSelection = useMemo(() => {
+        return resolveTargetSelection(targetId, draftPlanets);
+    }, [targetId, draftPlanets]);
+
+    const selectedId = resolvedSelection.focusId || "home";
+
     const currentPlanet = draftPlanets.find((p) => p.id === selectedId);
     const defaultPlanetConfig = ORBIT_LAYOUT.find((p) => p.id === selectedId);
     const allWarnings = detectAllGalaxyCollisions(draftPlanets, draftBelt, draftSun);
@@ -461,7 +470,10 @@ export function useGalaxyStudioDraft(selectedId: string) {
         currentPlanet,
         allWarnings,
         isSavedRef,
+        selectedId,
+        resolvedSelection,
     };
 }
 
 export default useGalaxyStudioDraft;
+

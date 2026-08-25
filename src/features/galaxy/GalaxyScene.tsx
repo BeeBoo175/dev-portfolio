@@ -14,6 +14,7 @@ export interface GalaxySceneProps {
     isEditorMode?: boolean;
     isCameraOrbitPaused?: boolean;
     allowManualOrbit?: boolean;
+    selectedMoonId?: string;
     onSelect?: (id: string) => void;
 }
 
@@ -22,6 +23,7 @@ export function GalaxyScene({
     isEditorMode = false,
     isCameraOrbitPaused,
     allowManualOrbit = true,
+    selectedMoonId,
     onSelect,
 }: GalaxySceneProps) {
     const bodyRefs = useRef<Record<string, THREE.Group | null>>({});
@@ -73,9 +75,11 @@ export function GalaxyScene({
                     body={body}
                     isEditorMode={isEditorMode}
                     isSelected={focusId === body.id}
+                    selectedMoonId={focusId === body.id ? selectedMoonId : undefined}
                     onSelect={onSelect}
                 />
             ))}
+
 
             <CameraRig
                 focusId={focusId}

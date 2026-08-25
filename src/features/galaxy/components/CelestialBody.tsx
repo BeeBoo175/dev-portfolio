@@ -15,12 +15,14 @@ export interface CelestialBodyProps {
     isSun?: boolean;
     isMoon?: boolean;
     isSelected?: boolean;
+    selectedMoonId?: string;
     isEditorMode?: boolean;
     onSelect?: (id: string) => void;
 }
 
 export const CelestialBody = forwardRef<THREE.Group, CelestialBodyProps>(
-    ({ body, color, isSun, isMoon = false, isSelected = false, isEditorMode = false, onSelect }, ref) => {
+    ({ body, color, isSun, isMoon = false, isSelected = false, selectedMoonId, isEditorMode = false, onSelect }, ref) => {
+
         const orbitRef = useRef<THREE.Group>(null);
         const positionRef = useRef<THREE.Group>(null);
         const bodyRef = useRef<THREE.Mesh>(null);
@@ -90,14 +92,17 @@ export const CelestialBody = forwardRef<THREE.Group, CelestialBodyProps>(
                                 isSun={isSun}
                                 color={effectiveColor}
                                 onClick={(e) => {
+                                    if (isMoon && !isEditorMode) return;
                                     e.stopPropagation();
                                     onSelect?.(body.id);
                                 }}
                                 onPointerOver={() => {
+                                    if (isMoon && !isEditorMode) return;
                                     setIsHovered(true);
                                     document.body.style.cursor = "pointer";
                                 }}
                                 onPointerOut={() => {
+                                    if (isMoon && !isEditorMode) return;
                                     setIsHovered(false);
                                     document.body.style.cursor = "default";
                                 }}
@@ -107,9 +112,10 @@ export const CelestialBody = forwardRef<THREE.Group, CelestialBodyProps>(
                                 radius={body.radius}
                                 color={effectiveColor}
                                 label={isSun ? (isEditorMode ? "SUN" : undefined) : (!isMoon && hasOrbit ? labelText : undefined)}
-                                isSelected={isSun ? (isEditorMode && isSelected) : isSelected}
-                                isHovered={isSun ? (isEditorMode && isHovered) : isHovered}
+                                isSelected={isSun ? (isEditorMode && isSelected) : (isMoon ? (isEditorMode && isSelected) : isSelected)}
+                                isHovered={isSun ? (isEditorMode && isHovered) : (isMoon ? (isEditorMode && isHovered) : isHovered)}
                             />
+
 
                             {visuals.showOrbitalAxes && !isSun && (
                                 <OrbitalAxisLine
@@ -141,9 +147,12 @@ export const CelestialBody = forwardRef<THREE.Group, CelestialBodyProps>(
                                 key={child.id}
                                 body={child}
                                 isMoon={true}
+                                isEditorMode={isEditorMode}
+                                isSelected={selectedMoonId === child.id}
                                 onSelect={onSelect}
                             />
                         ))}
+
                     </group>
                 </group>
             </group>
