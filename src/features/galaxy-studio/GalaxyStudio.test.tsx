@@ -402,4 +402,77 @@ describe("GalaxyStudio Component & UX Features", () => {
 
         expect(mockStorage.getItem(DRAFT_STORAGE_KEY)).toBeNull();
     });
+
+    it("focuses on parent planet and displays the moon panel when focusId is a moon ID", () => {
+        const onFocusChange = vi.fn();
+
+        act(() => {
+            root?.render(
+                <MemoryRouter>
+                    <GalaxyStudio focusId="skills-moon-1" onFocusChange={onFocusChange} />
+                </MemoryRouter>
+            );
+        });
+
+        const targetTitle = container?.querySelector(".studio-sidebar__target-name");
+        expect(targetTitle?.textContent).toBe("Skills");
+
+        const activePlanetTab = container?.querySelector(".studio-tab--active");
+        expect(activePlanetTab?.textContent).toContain("Moons (1)");
+
+        const activeMoonTab = container?.querySelector(".studio-moon-tab--active");
+        expect(activeMoonTab?.textContent).toContain("Moon 1");
+
+        const moonSection = container?.querySelector(".studio-panel__title");
+        expect(moonSection?.textContent).toContain("Natural Satellites");
+    });
+
+    it("focuses on parent planet and selects the specific moon index when multiple moons exist", () => {
+        const onFocusChange = vi.fn();
+
+        act(() => {
+            root?.render(
+                <MemoryRouter>
+                    <GalaxyStudio focusId="projects-moon-2" onFocusChange={onFocusChange} />
+                </MemoryRouter>
+            );
+        });
+
+        const targetTitle = container?.querySelector(".studio-sidebar__target-name");
+        expect(targetTitle?.textContent).toBe("Projects");
+
+        const activePlanetTab = container?.querySelector(".studio-tab--active");
+        expect(activePlanetTab?.textContent).toContain("Moons (2)");
+
+        const activeMoonTab = container?.querySelector(".studio-moon-tab--active");
+        expect(activeMoonTab?.textContent).toContain("Moon 2");
+    });
+
+    it("defaults to appearance tab when selecting a planet directly after viewing a moon", () => {
+        const onFocusChange = vi.fn();
+
+        act(() => {
+            root?.render(
+                <MemoryRouter>
+                    <GalaxyStudio focusId="skills-moon-1" onFocusChange={onFocusChange} />
+                </MemoryRouter>
+            );
+        });
+
+        const activeMoonTab = container?.querySelector(".studio-tab--active");
+        expect(activeMoonTab?.textContent).toContain("Moons (1)");
+
+        act(() => {
+            root?.render(
+                <MemoryRouter>
+                    <GalaxyStudio focusId="skills" onFocusChange={onFocusChange} />
+                </MemoryRouter>
+            );
+        });
+
+        const activePlanetTab = container?.querySelector(".studio-tab--active");
+        expect(activePlanetTab?.textContent).toBe("Appearance");
+    });
 });
+
+
