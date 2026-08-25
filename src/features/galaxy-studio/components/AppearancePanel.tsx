@@ -1,4 +1,5 @@
 import type { OrbitConfig } from "../../galaxy";
+import { DEFAULT_RING_CONFIG } from "../../galaxy";
 import { BIOME_PRESETS, generateRandomPlanet } from "../presets";
 import { Tooltip } from "../../../components/ui/Tooltip";
 
@@ -47,7 +48,10 @@ export function AppearancePanel({
                     innerRadius: Number((prev.radius * 1.35 + 0.1).toFixed(2)),
                     outerRadius: Number((prev.radius * 1.95 + 0.3).toFixed(2)),
                     color: prev.palette?.coast ?? prev.color ?? "#38bdf8",
-                    opacity: 0.75,
+                    opacity: DEFAULT_RING_CONFIG.opacity,
+                    emissiveIntensity: DEFAULT_RING_CONFIG.emissiveIntensity,
+                    gapPosition: DEFAULT_RING_CONFIG.gapPosition,
+                    gapWidth: DEFAULT_RING_CONFIG.gapWidth,
                 },
             };
         });
@@ -180,6 +184,41 @@ export function AppearancePanel({
                         <>
                             <div className="studio-field">
                                 <div className="studio-field__label-row">
+                                    <label htmlFor="ring-seed">Procedural Seed</label>
+                                    <span className="studio-field__value">{ring.seed ?? 42}</span>
+                                    <Tooltip text="Deterministic seed configuring the concentric band frequency, striation patterns, and harmonic density." />
+                                </div>
+                                <div className="studio-field__input-with-btn">
+                                    <input
+                                        id="ring-seed"
+                                        type="number"
+                                        value={ring.seed ?? 42}
+                                        onChange={(e) => {
+                                            const val = parseInt(e.target.value, 10) || 1;
+                                            onChange((prev) => ({
+                                                ...prev,
+                                                ring: prev.ring ? { ...prev.ring, seed: val } : undefined,
+                                            }));
+                                        }}
+                                    />
+                                    <button
+                                        type="button"
+                                        className="studio-btn studio-btn--ghost studio-btn--sm"
+                                        onClick={() => {
+                                            const nextSeed = Math.floor(Math.random() * 9999) + 1;
+                                            onChange((prev) => ({
+                                                ...prev,
+                                                ring: prev.ring ? { ...prev.ring, seed: nextSeed } : undefined,
+                                            }));
+                                        }}
+                                    >
+                                        Shuffle
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="studio-field">
+                                <div className="studio-field__label-row">
                                     <label htmlFor="ring-inner">Inner Ring Radius</label>
                                     <span className="studio-field__value">{ring.innerRadius.toFixed(2)}</span>
                                     <Tooltip text="Inner clearance boundary of the ring disc relative to planetary core." />
@@ -242,6 +281,75 @@ export function AppearancePanel({
                                         onChange((prev) => ({
                                             ...prev,
                                             ring: prev.ring ? { ...prev.ring, opacity: val } : undefined,
+                                        }));
+                                    }}
+                                />
+                            </div>
+
+                            <div className="studio-field">
+                                <div className="studio-field__label-row">
+                                    <label htmlFor="ring-emissive">Ring Emissive Glow</label>
+                                    <span className="studio-field__value">{(ring.emissiveIntensity ?? 0.15).toFixed(2)}</span>
+                                    <Tooltip text="Self-illumination glow intensity of the ring dust against dark space." />
+                                </div>
+                                <input
+                                    id="ring-emissive"
+                                    type="range"
+                                    min="0.0"
+                                    max="1.0"
+                                    step="0.02"
+                                    value={ring.emissiveIntensity ?? 0.15}
+                                    onChange={(e) => {
+                                        const val = parseFloat(e.target.value);
+                                        onChange((prev) => ({
+                                            ...prev,
+                                            ring: prev.ring ? { ...prev.ring, emissiveIntensity: val } : undefined,
+                                        }));
+                                    }}
+                                />
+                            </div>
+
+                            <div className="studio-field">
+                                <div className="studio-field__label-row">
+                                    <label htmlFor="ring-gap-pos">Ring Gap Position</label>
+                                    <span className="studio-field__value">{Math.round((ring.gapPosition ?? 0.615) * 100)}%</span>
+                                    <Tooltip text="Radial position of the Cassini division / major optical gap within the ring span." />
+                                </div>
+                                <input
+                                    id="ring-gap-pos"
+                                    type="range"
+                                    min="0.15"
+                                    max="0.85"
+                                    step="0.01"
+                                    value={ring.gapPosition ?? 0.615}
+                                    onChange={(e) => {
+                                        const val = parseFloat(e.target.value);
+                                        onChange((prev) => ({
+                                            ...prev,
+                                            ring: prev.ring ? { ...prev.ring, gapPosition: val } : undefined,
+                                        }));
+                                    }}
+                                />
+                            </div>
+
+                            <div className="studio-field">
+                                <div className="studio-field__label-row">
+                                    <label htmlFor="ring-gap-width">Ring Gap Width</label>
+                                    <span className="studio-field__value">{(ring.gapWidth ?? 0.07).toFixed(2)}</span>
+                                    <Tooltip text="Thickness and clearance of the optical ring gap (set to 0 for a continuous ring)." />
+                                </div>
+                                <input
+                                    id="ring-gap-width"
+                                    type="range"
+                                    min="0.0"
+                                    max="0.25"
+                                    step="0.01"
+                                    value={ring.gapWidth ?? 0.07}
+                                    onChange={(e) => {
+                                        const val = parseFloat(e.target.value);
+                                        onChange((prev) => ({
+                                            ...prev,
+                                            ring: prev.ring ? { ...prev.ring, gapWidth: val } : undefined,
                                         }));
                                     }}
                                 />

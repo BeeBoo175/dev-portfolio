@@ -19,6 +19,10 @@ export interface RingConfig {
     outerRadius: number;
     color: string;
     opacity?: number;
+    emissiveIntensity?: number;
+    gapPosition?: number;
+    gapWidth?: number;
+    seed?: number;
     tilt?: [number, number, number];
 }
 
