@@ -1498,7 +1498,62 @@
     display: none;
 }
 
-@media (max-width: 1280px) {
+@media (max-width: 1380px) {
+    .studio-sidebar {
+        top: 112px;
+    }
+
+    .studio-toolbar {
+        flex-wrap: wrap;
+        padding: 8px 12px;
+        gap: 8px;
+    }
+
+    .studio-toolbar__brand-row {
+        flex: 0 0 auto;
+    }
+
+    .studio-toolbar__controls-row {
+        display: flex;
+        align-items: center;
+        margin-left: auto;
+        gap: 8px;
+    }
+
+    .studio-toolbar__primary-actions {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .studio-toolbar__center {
+        position: static;
+        left: auto;
+        transform: none;
+        order: 3;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: nowrap;
+        gap: 8px;
+        padding-top: 6px;
+        margin-top: 2px;
+        border-top: 1px solid var(--border-subtle);
+    }
+}
+
+@media (max-width: 1100px) {
+    .studio-toolbar__center {
+        justify-content: center;
+        gap: 6px;
+    }
+}
+
+@media (max-width: 960px) {
+    .studio-sidebar {
+        top: 68px;
+    }
 
     .studio-header-area,
     .studio-toolbar,
@@ -1611,8 +1666,8 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        height: 30px;
-        padding: 0 10px;
+        height: 28px;
+        padding: 0 8px;
         background: var(--bg-surface);
         border: 1px solid var(--border-default);
         border-radius: var(--radius-xs);
@@ -1657,7 +1712,6 @@
         padding-top: 6px;
         margin-top: 2px;
         border-top: 1px solid var(--border-subtle);
-        animation: studioFadeIn 0.2s ease forwards;
     }
 
     .studio-toolbar__center--visible {
@@ -1784,7 +1838,7 @@
         right: max(8px, var(--sar));
         width: auto;
         max-width: none;
-        height: min(44dvh, 380px);
+        height: min(30dvh, 260px);
         background: var(--obsidian-bg-elevated);
         -webkit-backdrop-filter: var(--glass-blur-lg);
         backdrop-filter: var(--glass-blur-lg);
