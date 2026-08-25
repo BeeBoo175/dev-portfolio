@@ -10,6 +10,93 @@ const STAR_COUNT = 1400;
 const BRIGHT_STAR_COUNT = 75;
 const NEBULA_COUNT = 6;
 const METEOR_COUNT = 4;
+const METEOR_COLORS = ["#38bdf8", "#818cf8", "#fef08a", "#f472b6"];
+
+function seededRandom(seed: number) {
+    const x = Math.sin(seed) * 10000;
+    return x - Math.floor(x);
+}
+
+function generateStarfieldData() {
+    const positions = new Float32Array(STAR_COUNT * 3);
+    const colors = new Float32Array(STAR_COUNT * 3);
+    const phases = new Float32Array(STAR_COUNT);
+
+    const starPalettes = [
+        new THREE.Color("#ffffff"),
+        new THREE.Color("#e0f2fe"),
+        new THREE.Color("#bae6fd"),
+        new THREE.Color("#fef08a"),
+        new THREE.Color("#fbcfe8"),
+        new THREE.Color("#c7d2fe"),
+    ];
+
+    for (let i = 0; i < STAR_COUNT; i++) {
+        const u = seededRandom(i * 1.37 + 10.1);
+        const v = seededRandom(i * 2.73 + 20.2);
+        const theta = u * 2.0 * Math.PI;
+        const phi = Math.acos(2.0 * v - 1.0);
+        const radius = 600 + seededRandom(i * 3.19 + 30.3) * 280;
+
+        const sinPhi = Math.sin(phi);
+        const x = radius * sinPhi * Math.cos(theta);
+        const y = radius * Math.cos(phi);
+        const z = radius * sinPhi * Math.sin(theta);
+
+        positions[i * 3] = x;
+        positions[i * 3 + 1] = y;
+        positions[i * 3 + 2] = z;
+
+        const paletteIndex = Math.floor(seededRandom(i * 4.91 + 40.4) * starPalettes.length);
+        const baseColor = starPalettes[paletteIndex];
+        const brightness = 0.55 + seededRandom(i * 5.33 + 50.5) * 0.45;
+
+        colors[i * 3] = baseColor.r * brightness;
+        colors[i * 3 + 1] = baseColor.g * brightness;
+        colors[i * 3 + 2] = baseColor.b * brightness;
+
+        phases[i] = seededRandom(i * 6.77 + 60.6) * Math.PI * 2;
+    }
+
+    return { starPositions: positions, starColors: colors, starPhases: phases };
+}
+
+function generateBrightStarData() {
+    const positions = new Float32Array(BRIGHT_STAR_COUNT * 3);
+    const colors = new Float32Array(BRIGHT_STAR_COUNT * 3);
+
+    const heroPalettes = [
+        new THREE.Color("#38bdf8"),
+        new THREE.Color("#fbbf24"),
+        new THREE.Color("#818cf8"),
+        new THREE.Color("#34d399"),
+        new THREE.Color("#f472b6"),
+        new THREE.Color("#ffffff"),
+    ];
+
+    for (let i = 0; i < BRIGHT_STAR_COUNT; i++) {
+        const u = seededRandom(i * 7.13 + 100.1);
+        const v = seededRandom(i * 8.41 + 200.2);
+        const theta = u * 2.0 * Math.PI;
+        const phi = Math.acos(2.0 * v - 1.0);
+        const radius = 500 + seededRandom(i * 9.87 + 300.3) * 220;
+
+        const sinPhi = Math.sin(phi);
+        positions[i * 3] = radius * sinPhi * Math.cos(theta);
+        positions[i * 3 + 1] = radius * Math.cos(phi);
+        positions[i * 3 + 2] = radius * sinPhi * Math.sin(theta);
+
+        const c = heroPalettes[i % heroPalettes.length];
+        colors[i * 3] = c.r;
+        colors[i * 3 + 1] = c.g;
+        colors[i * 3 + 2] = c.b;
+    }
+
+    return { brightPositions: positions, brightColors: colors };
+}
+
+const STATIC_STARFIELD_DATA = generateStarfieldData();
+const STATIC_BRIGHT_STAR_DATA = generateBrightStarData();
 
 function createCircleTexture(): THREE.CanvasTexture {
     const canvas = document.createElement("canvas");
@@ -164,87 +251,8 @@ export function CosmicBackground({ visible = true }: CosmicBackgroundProps) {
         };
     }, [circleTexture, nebulaTextures]);
 
-    const { starPositions, starColors, starPhases } = useMemo(() => {
-        const positions = new Float32Array(STAR_COUNT * 3);
-        const colors = new Float32Array(STAR_COUNT * 3);
-        const phases = new Float32Array(STAR_COUNT);
-
-        const starPalettes = [
-            new THREE.Color("#ffffff"),
-            new THREE.Color("#e0f2fe"),
-            new THREE.Color("#bae6fd"),
-            new THREE.Color("#fef08a"),
-            new THREE.Color("#fbcfe8"),
-            new THREE.Color("#c7d2fe"),
-        ];
-
-        for (let i = 0; i < STAR_COUNT; i++) {
-            const u = Math.random();
-            const v = Math.random();
-            const theta = u * 2.0 * Math.PI;
-            const phi = Math.acos(2.0 * v - 1.0);
-            const radius = 600 + Math.random() * 280;
-
-            const sinPhi = Math.sin(phi);
-            const x = radius * sinPhi * Math.cos(theta);
-            const y = radius * Math.cos(phi);
-            const z = radius * sinPhi * Math.sin(theta);
-
-            positions[i * 3] = x;
-            positions[i * 3 + 1] = y;
-            positions[i * 3 + 2] = z;
-
-            const paletteIndex = Math.floor(Math.random() * starPalettes.length);
-            const baseColor = starPalettes[paletteIndex];
-            const brightness = 0.55 + Math.random() * 0.45;
-
-            colors[i * 3] = baseColor.r * brightness;
-            colors[i * 3 + 1] = baseColor.g * brightness;
-            colors[i * 3 + 2] = baseColor.b * brightness;
-
-            phases[i] = Math.random() * Math.PI * 2;
-        }
-
-        return {
-            starPositions: positions,
-            starColors: colors,
-            starPhases: phases,
-        };
-    }, []);
-
-    const { brightPositions, brightColors } = useMemo(() => {
-        const positions = new Float32Array(BRIGHT_STAR_COUNT * 3);
-        const colors = new Float32Array(BRIGHT_STAR_COUNT * 3);
-
-        const heroPalettes = [
-            new THREE.Color("#38bdf8"),
-            new THREE.Color("#fbbf24"),
-            new THREE.Color("#818cf8"),
-            new THREE.Color("#34d399"),
-            new THREE.Color("#f472b6"),
-            new THREE.Color("#ffffff"),
-        ];
-
-        for (let i = 0; i < BRIGHT_STAR_COUNT; i++) {
-            const u = Math.random();
-            const v = Math.random();
-            const theta = u * 2.0 * Math.PI;
-            const phi = Math.acos(2.0 * v - 1.0);
-            const radius = 500 + Math.random() * 220;
-
-            const sinPhi = Math.sin(phi);
-            positions[i * 3] = radius * sinPhi * Math.cos(theta);
-            positions[i * 3 + 1] = radius * Math.cos(phi);
-            positions[i * 3 + 2] = radius * sinPhi * Math.sin(theta);
-
-            const c = heroPalettes[i % heroPalettes.length];
-            colors[i * 3] = c.r;
-            colors[i * 3 + 1] = c.g;
-            colors[i * 3 + 2] = c.b;
-        }
-
-        return { brightPositions: positions, brightColors: colors };
-    }, []);
+    const { starPositions, starColors, starPhases } = STATIC_STARFIELD_DATA;
+    const { brightPositions, brightColors } = STATIC_BRIGHT_STAR_DATA;
 
     const nebulae = useMemo(() => {
         const items = [];
@@ -319,7 +327,7 @@ export function CosmicBackground({ visible = true }: CosmicBackgroundProps) {
             const pos = new Float32Array(6);
             geom.setAttribute("position", new THREE.BufferAttribute(pos, 3));
             const mat = new THREE.LineBasicMaterial({
-                color: meteors.current[idx].color,
+                color: METEOR_COLORS[idx % METEOR_COLORS.length],
                 transparent: true,
                 opacity: 0.85,
                 blending: THREE.AdditiveBlending,

@@ -1,5 +1,6 @@
 import type { OrbitConfig } from "../../galaxy";
 import { Tooltip } from "../../../components/ui/Tooltip";
+import { RAD_TO_DEG, DEG_TO_RAD } from "../utils/studioMath";
 
 export interface Orbit3DPanelProps {
     planet: OrbitConfig;
@@ -8,9 +9,6 @@ export interface Orbit3DPanelProps {
     minRadius?: number;
     maxRadius?: number;
 }
-
-const RAD_TO_DEG = 180 / Math.PI;
-const DEG_TO_RAD = Math.PI / 180;
 
 export function Orbit3DPanel({
     planet,
