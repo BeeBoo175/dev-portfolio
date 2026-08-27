@@ -1,6 +1,5 @@
 import { useRef } from "react";
 import { Canvas } from "@react-three/fiber";
-import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 import CelestialBody from "./CelestialBody";
 import CameraRig from "./CameraRig";
@@ -14,12 +13,12 @@ interface GalaxySceneProps {
 }
 
 function GalaxyScene({ focusId, onSelect }: GalaxySceneProps) {
-    const controlsRef = useRef<any>(null);
     const bodyRefs = useRef<Record<string, THREE.Group | null>>({});
 
     return (
         <Canvas
             camera={{ position: [0, 20, 42], fov: 50, near: 0.1, far: 2000 }}
+            style={{ touchAction: "pan-y" }}
         >
             <ambientLight intensity={0.3} />
 
@@ -46,17 +45,6 @@ function GalaxyScene({ focusId, onSelect }: GalaxySceneProps) {
                 focusId={focusId}
                 centralId="home"
                 bodyRefs={bodyRefs}
-                controlsRef={controlsRef}
-            />
-
-            <OrbitControls
-                ref={controlsRef}
-                makeDefault
-                enableDamping
-                dampingFactor={0.05}
-                enablePan={false}
-                enableZoom={false}
-                enableRotate
             />
         </Canvas>
     );
