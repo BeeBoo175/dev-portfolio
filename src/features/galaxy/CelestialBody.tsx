@@ -59,7 +59,7 @@ const CelestialBody = forwardRef<THREE.Group, CelestialBodyProps>(
                     {isSun && (
                         <pointLight
                             color={effectiveColor}
-                            intensity={3}
+                            intensity={6}
                             distance={0}
                             decay={0}
                         />
