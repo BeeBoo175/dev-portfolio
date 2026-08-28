@@ -3,6 +3,7 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import CelestialBody from "./CelestialBody";
 import CameraRig from "./CameraRig";
+import Spaceship from "./Spaceship";
 import { CENTRAL_BODY, ORBIT_LAYOUT } from "./data";
 
 export interface GalaxySceneProps {
@@ -100,6 +101,11 @@ function GalaxyScene({ focusId, onSelect }: GalaxySceneProps) {
             <CameraRig
                 focusId={focusId}
                 centralId="home"
+                bodyRefs={bodyRefs}
+            />
+
+            <Spaceship
+                focusId={focusId}
                 bodyRefs={bodyRefs}
             />
         </Canvas>
