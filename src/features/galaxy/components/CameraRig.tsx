@@ -23,13 +23,13 @@ function shortestAngleDiff(from: number, to: number) {
     return diff;
 }
 
-interface CameraRigProps {
+export interface CameraRigProps {
     focusId: string;
     centralId: string;
     bodyRefs: React.RefObject<Record<string, THREE.Group | null>>;
 }
 
-function CameraRig({ focusId, centralId, bodyRefs }: CameraRigProps) {
+export function CameraRig({ focusId, centralId, bodyRefs }: CameraRigProps) {
     const { camera } = useThree();
     const lastFocusId = useRef<string | null>(null);
     const currentTargetPos = useRef(new THREE.Vector3());
@@ -50,7 +50,7 @@ function CameraRig({ focusId, centralId, bodyRefs }: CameraRigProps) {
         if (isHome) {
             currentTargetPos.current.set(0, 0, 0);
         } else {
-            const planetGroup = bodyRefs.current[focusId];
+            const planetGroup = bodyRefs.current?.[focusId];
             if (planetGroup) {
                 planetGroup.getWorldPosition(currentTargetPos.current);
             }
