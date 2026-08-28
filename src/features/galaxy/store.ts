@@ -100,8 +100,12 @@ class GalaxyStore {
     resetAll() {
         this.planets = cloneDefaultPlanets();
         this.visuals = { showOrbitPaths: true, showOrbitalAxes: false };
-        localStorage.removeItem(STORAGE_KEY);
-        localStorage.removeItem(VISUALS_KEY);
+        try {
+            localStorage.removeItem(STORAGE_KEY);
+            localStorage.removeItem(VISUALS_KEY);
+        } catch {
+            // Ignored
+        }
         this.listeners.forEach((l) => l());
     }
 
