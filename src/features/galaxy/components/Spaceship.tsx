@@ -2,6 +2,7 @@ import { useRef, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { ORBIT_LAYOUT } from "../data";
+import { useGalaxyPlanets } from "../store";
 
 export interface SpaceshipProps {
     focusId: string;
@@ -9,16 +10,8 @@ export interface SpaceshipProps {
 }
 
 const SUN_SAFE_RADIUS = 7.5;
-const HOVER_ALTITUDE = 0.45;
+const HOVER_ALTITUDE = 0.20;
 const DEFAULT_PLANET_ID = "about";
-
-const PLANET_RADIUS_MAP: Record<string, number> = Object.fromEntries(
-    ORBIT_LAYOUT.map((p) => [p.id, p.radius])
-);
-
-const PLANET_ROTATION_MAP: Record<string, number> = Object.fromEntries(
-    ORBIT_LAYOUT.map((p) => [p.id, p.rotationSpeed])
-);
 
 function calculateControlPoint(
     start: THREE.Vector3,
@@ -55,8 +48,14 @@ function calculateControlPoint(
     return controlPoint;
 }
 
+function computeLandedLocalRotation(normal: THREE.Vector3): THREE.Quaternion {
+    const up = normal.clone().normalize();
+    return new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), up);
+}
+
 export function Spaceship({ focusId, bodyRefs }: SpaceshipProps) {
     const groupRef = useRef<THREE.Group>(null);
+    const planets = useGalaxyPlanets();
 
     const currentPlanetId = useRef<string>(DEFAULT_PLANET_ID);
     const targetPlanetId = useRef<string>(DEFAULT_PLANET_ID);
@@ -68,73 +67,106 @@ export function Spaceship({ focusId, bodyRefs }: SpaceshipProps) {
     const flightControlPoint = useRef(new THREE.Vector3());
     const lastShipPos = useRef(new THREE.Vector3());
     const currentVelocity = useRef(new THREE.Vector3(0, 0, 1));
-    const targetQuat = useRef(new THREE.Quaternion());
+    const flightLookQuat = useRef(new THREE.Quaternion());
     const lookMatrix = useRef(new THREE.Matrix4());
     const tempVecA = useRef(new THREE.Vector3());
     const tempVecB = useRef(new THREE.Vector3());
-    const destWorldPos = useRef(new THREE.Vector3());
-    const landedLocalOffset = useRef(new THREE.Vector3(0, 1, 0));
-    const yAxis = useRef(new THREE.Vector3(0, 1, 0));
-    const spinQuat = useRef(new THREE.Quaternion());
+    const destInstantWorldPos = useRef(new THREE.Vector3());
+    const destPlanetWorldQuat = useRef(new THREE.Quaternion());
+    const destLandedWorldQuat = useRef(new THREE.Quaternion());
+
+    const landedLocalPos = useRef(new THREE.Vector3(0, 1, 0));
+    const landedLocalQuat = useRef(new THREE.Quaternion());
+    const targetLocalPos = useRef(new THREE.Vector3(0, 1, 0));
+    const targetLocalQuat = useRef(new THREE.Quaternion());
 
     const isInitialized = useRef<boolean>(false);
 
+    const getPlanetRadius = (id: string) => {
+        return planets.find((p) => p.id === id)?.radius ?? ORBIT_LAYOUT.find((p) => p.id === id)?.radius ?? 1.0;
+    };
+
+    const getSurfaceMesh = (id: string): THREE.Object3D | null => {
+        const group = bodyRefs.current?.[id];
+        if (!group) return null;
+        return (group.userData?.surfaceMesh as THREE.Object3D) ?? group;
+    };
+
     useEffect(() => {
         if (focusId === "home") return;
-        if (!PLANET_RADIUS_MAP[focusId]) return;
+        const targetPlanet = planets.find((p) => p.id === focusId) ?? ORBIT_LAYOUT.find((p) => p.id === focusId);
+        if (!targetPlanet) return;
 
         if (focusId !== targetPlanetId.current) {
-            const previousTarget = targetPlanetId.current;
             targetPlanetId.current = focusId;
 
-            if (isFlying.current && groupRef.current) {
+            const destSurface = getSurfaceMesh(focusId);
+            if (destSurface && groupRef.current) {
                 flightStartPos.current.copy(groupRef.current.position);
-                const destPlanet = bodyRefs.current?.[focusId];
-                if (destPlanet) {
-                    destPlanet.getWorldPosition(destWorldPos.current);
-                    const planetRadius = PLANET_RADIUS_MAP[focusId] ?? 1.0;
-                    destWorldPos.current.y += planetRadius + HOVER_ALTITUDE;
-                    flightControlPoint.current = calculateControlPoint(
-                        flightStartPos.current,
-                        destWorldPos.current,
-                        currentVelocity.current
-                    );
-                    const dist = flightStartPos.current.distanceTo(destWorldPos.current);
-                    flightDuration.current = THREE.MathUtils.clamp(dist * 0.09 + 0.8, 1.0, 2.2);
-                    flightElapsed.current = 0;
-                    isFlying.current = true;
-                }
-            } else {
-                const startPlanet = bodyRefs.current?.[previousTarget];
-                const destPlanet = bodyRefs.current?.[focusId];
-                if (startPlanet && destPlanet && groupRef.current) {
-                    flightStartPos.current.copy(groupRef.current.position);
-                    destPlanet.getWorldPosition(destWorldPos.current);
-                    const planetRadius = PLANET_RADIUS_MAP[focusId] ?? 1.0;
-                    destWorldPos.current.y += planetRadius + HOVER_ALTITUDE;
-                    flightControlPoint.current = calculateControlPoint(
-                        flightStartPos.current,
-                        destWorldPos.current
-                    );
-                    const dist = flightStartPos.current.distanceTo(destWorldPos.current);
-                    flightDuration.current = THREE.MathUtils.clamp(dist * 0.09 + 0.8, 1.0, 2.2);
-                    flightElapsed.current = 0;
-                    isFlying.current = true;
-                }
+
+                destSurface.updateWorldMatrix(true, false);
+                const destCenter = new THREE.Vector3();
+                destSurface.getWorldPosition(destCenter);
+
+                // Compute camera-facing direction so the landing spot is visible to the user
+                const theta = Math.atan2(destCenter.x, destCenter.z);
+                const cameraFacingDirWorld = new THREE.Vector3(
+                    Math.sin(theta) * 0.85,
+                    0.45,
+                    Math.cos(theta) * 0.85
+                ).normalize();
+
+                const invDestMatrix = destSurface.matrixWorld.clone().invert();
+                const localNormal = cameraFacingDirWorld.clone().transformDirection(invDestMatrix).normalize();
+                const radius = getPlanetRadius(focusId);
+
+                targetLocalPos.current.copy(localNormal).multiplyScalar(radius + HOVER_ALTITUDE);
+                targetLocalQuat.current.copy(computeLandedLocalRotation(localNormal));
+
+                destInstantWorldPos.current.copy(targetLocalPos.current).applyMatrix4(destSurface.matrixWorld);
+
+                flightControlPoint.current = calculateControlPoint(
+                    flightStartPos.current,
+                    destInstantWorldPos.current,
+                    currentVelocity.current
+                );
+
+                const dist = flightStartPos.current.distanceTo(destInstantWorldPos.current);
+                flightDuration.current = THREE.MathUtils.clamp(dist * 0.09 + 0.8, 1.0, 2.2);
+                flightElapsed.current = 0;
+                isFlying.current = true;
             }
         }
-    }, [focusId, bodyRefs]);
+    }, [focusId, planets, bodyRefs]);
 
     useFrame((_, delta) => {
         if (!groupRef.current) return;
 
         if (!isInitialized.current) {
-            const initialPlanet = bodyRefs.current?.[DEFAULT_PLANET_ID];
-            if (initialPlanet) {
-                initialPlanet.getWorldPosition(destWorldPos.current);
-                const radius = PLANET_RADIUS_MAP[DEFAULT_PLANET_ID] ?? 1.0;
-                landedLocalOffset.current.set(0, radius + HOVER_ALTITUDE, 0);
-                groupRef.current.position.addVectors(destWorldPos.current, landedLocalOffset.current);
+            const initialSurface = getSurfaceMesh(DEFAULT_PLANET_ID);
+            if (initialSurface) {
+                initialSurface.updateWorldMatrix(true, false);
+                const initialCenter = new THREE.Vector3();
+                initialSurface.getWorldPosition(initialCenter);
+
+                const theta = Math.atan2(initialCenter.x, initialCenter.z);
+                const cameraFacingDirWorld = new THREE.Vector3(
+                    Math.sin(theta) * 0.85,
+                    0.45,
+                    Math.cos(theta) * 0.85
+                ).normalize();
+
+                const invInitialMatrix = initialSurface.matrixWorld.clone().invert();
+                const initialNormal = cameraFacingDirWorld.transformDirection(invInitialMatrix).normalize();
+                const radius = getPlanetRadius(DEFAULT_PLANET_ID);
+
+                landedLocalPos.current.copy(initialNormal).multiplyScalar(radius + HOVER_ALTITUDE);
+                landedLocalQuat.current.copy(computeLandedLocalRotation(initialNormal));
+
+                groupRef.current.position.copy(landedLocalPos.current).applyMatrix4(initialSurface.matrixWorld);
+                initialSurface.getWorldQuaternion(destPlanetWorldQuat.current);
+                groupRef.current.quaternion.multiplyQuaternions(destPlanetWorldQuat.current, landedLocalQuat.current);
+
                 lastShipPos.current.copy(groupRef.current.position);
                 isInitialized.current = true;
             }
@@ -149,17 +181,21 @@ export function Spaceship({ focusId, bodyRefs }: SpaceshipProps) {
                 ? 4 * rawProgress * rawProgress * rawProgress
                 : 1 - Math.pow(-2 * rawProgress + 2, 3) / 2;
 
-            const destPlanet = bodyRefs.current?.[targetPlanetId.current];
-            if (destPlanet) {
-                destPlanet.getWorldPosition(destWorldPos.current);
-                const planetRadius = PLANET_RADIUS_MAP[targetPlanetId.current] ?? 1.0;
-                destWorldPos.current.y += planetRadius + HOVER_ALTITUDE;
+            const destSurface = getSurfaceMesh(targetPlanetId.current);
+            if (destSurface) {
+                destSurface.updateWorldMatrix(true, false);
+                destInstantWorldPos.current.copy(targetLocalPos.current).applyMatrix4(destSurface.matrixWorld);
+                destSurface.getWorldQuaternion(destPlanetWorldQuat.current);
+                destLandedWorldQuat.current.multiplyQuaternions(
+                    destPlanetWorldQuat.current,
+                    targetLocalQuat.current
+                );
             }
 
             const oneMinusT = 1 - t;
             tempVecA.current.copy(flightStartPos.current).multiplyScalar(oneMinusT * oneMinusT);
             tempVecB.current.copy(flightControlPoint.current).multiplyScalar(2 * oneMinusT * t);
-            const term3 = destWorldPos.current.clone().multiplyScalar(t * t);
+            const term3 = destInstantWorldPos.current.clone().multiplyScalar(t * t);
 
             const newPos = tempVecA.current.add(tempVecB.current).add(term3);
 
@@ -167,12 +203,20 @@ export function Spaceship({ focusId, bodyRefs }: SpaceshipProps) {
             if (currentVelocity.current.lengthSq() > 0.0001) {
                 const forward = currentVelocity.current.clone().normalize();
                 lookMatrix.current.lookAt(
-                    new THREE.Vector3(0, 0, 0),
                     forward,
+                    new THREE.Vector3(0, 0, 0),
                     new THREE.Vector3(0, 1, 0)
                 );
-                targetQuat.current.setFromRotationMatrix(lookMatrix.current);
-                groupRef.current.quaternion.slerp(targetQuat.current, Math.min(delta * 12, 1.0));
+                flightLookQuat.current.setFromRotationMatrix(lookMatrix.current);
+            }
+
+            if (t < 0.6) {
+                groupRef.current.quaternion.slerp(flightLookQuat.current, Math.min(delta * 14, 1.0));
+            } else {
+                const orientBlend = (t - 0.6) / 0.4;
+                const blendEased = orientBlend * orientBlend * (3 - 2 * orientBlend);
+                const blendedQuat = flightLookQuat.current.clone().slerp(destLandedWorldQuat.current, blendEased);
+                groupRef.current.quaternion.copy(blendedQuat);
             }
 
             lastShipPos.current.copy(newPos);
@@ -181,29 +225,23 @@ export function Spaceship({ focusId, bodyRefs }: SpaceshipProps) {
             if (rawProgress >= 1.0) {
                 isFlying.current = false;
                 currentPlanetId.current = targetPlanetId.current;
-                if (destPlanet) {
-                    destPlanet.getWorldPosition(destWorldPos.current);
-                    const planetRadius = PLANET_RADIUS_MAP[currentPlanetId.current] ?? 1.0;
-                    landedLocalOffset.current.subVectors(newPos, destWorldPos.current);
-                    if (landedLocalOffset.current.lengthSq() < 0.001) {
-                        landedLocalOffset.current.set(0, planetRadius + HOVER_ALTITUDE, 0);
-                    } else {
-                        landedLocalOffset.current.setLength(planetRadius + HOVER_ALTITUDE);
-                    }
-                }
+                landedLocalPos.current.copy(targetLocalPos.current);
+                landedLocalQuat.current.copy(targetLocalQuat.current);
             }
         } else {
-            const currentPlanet = bodyRefs.current?.[currentPlanetId.current];
-            if (currentPlanet) {
-                currentPlanet.getWorldPosition(destWorldPos.current);
-                const rotationSpeed = PLANET_ROTATION_MAP[currentPlanetId.current] ?? 0;
-                const spinAngle = rotationSpeed * delta;
+            const currentSurface = getSurfaceMesh(currentPlanetId.current);
+            if (currentSurface) {
+                currentSurface.updateWorldMatrix(true, false);
 
-                landedLocalOffset.current.applyAxisAngle(yAxis.current, spinAngle);
-                groupRef.current.position.addVectors(destWorldPos.current, landedLocalOffset.current);
+                const currentRadius = getPlanetRadius(currentPlanetId.current);
+                landedLocalPos.current.setLength(currentRadius + HOVER_ALTITUDE);
 
-                spinQuat.current.setFromAxisAngle(yAxis.current, spinAngle);
-                groupRef.current.quaternion.premultiply(spinQuat.current);
+                groupRef.current.position.copy(landedLocalPos.current).applyMatrix4(currentSurface.matrixWorld);
+                currentSurface.getWorldQuaternion(destPlanetWorldQuat.current);
+                groupRef.current.quaternion.multiplyQuaternions(
+                    destPlanetWorldQuat.current,
+                    landedLocalQuat.current
+                );
             }
         }
     });
@@ -262,3 +300,4 @@ export function Spaceship({ focusId, bodyRefs }: SpaceshipProps) {
 }
 
 export default Spaceship;
+
