@@ -23,9 +23,11 @@ function RotatingMoon({ moon }: { moon: OrbitConfig }) {
     });
 
     const orbitRadius = moon.orbitRadius ?? 2.0;
+    const orbitInclination = moon.orbitInclination ?? 0;
+    const axialTilt = moon.axialTilt ?? 0;
 
     return (
-        <>
+        <group rotation={[orbitInclination, 0, 0]}>
             {visuals.showOrbitPaths && (
                 <OrbitPathLine
                     radius={orbitRadius}
@@ -35,17 +37,19 @@ function RotatingMoon({ moon }: { moon: OrbitConfig }) {
             )}
             <group ref={orbitRef}>
                 <group position={[orbitRadius, 0, 0]}>
-                    <LowPolyPlanet ref={bodyRef} body={moon} />
-                    {visuals.showOrbitalAxes && (
-                        <OrbitalAxisLine
-                            radius={moon.radius}
-                            color={moon.color ?? "#94a3b8"}
-                            opacity={0.5}
-                        />
-                    )}
+                    <group rotation={[axialTilt, 0, 0]}>
+                        <LowPolyPlanet ref={bodyRef} body={moon} />
+                        {visuals.showOrbitalAxes && (
+                            <OrbitalAxisLine
+                                radius={moon.radius}
+                                color={moon.color ?? "#94a3b8"}
+                                opacity={0.5}
+                            />
+                        )}
+                    </group>
                 </group>
             </group>
-        </>
+        </group>
     );
 }
 
@@ -59,16 +63,20 @@ function RotatingPlanet({ planet }: { planet: OrbitConfig }) {
         }
     });
 
+    const axialTilt = planet.axialTilt ?? 0;
+
     return (
         <group ref={groupRef}>
-            <LowPolyPlanet body={planet} />
-            {visuals.showOrbitalAxes && (
-                <OrbitalAxisLine
-                    radius={planet.radius}
-                    color={planet.color ?? "#38bdf8"}
-                    opacity={0.6}
-                />
-            )}
+            <group rotation={[axialTilt, 0, 0]}>
+                <LowPolyPlanet body={planet} />
+                {visuals.showOrbitalAxes && (
+                    <OrbitalAxisLine
+                        radius={planet.radius}
+                        color={planet.color ?? "#38bdf8"}
+                        opacity={0.6}
+                    />
+                )}
+            </group>
             {planet.children?.map((child) => (
                 <RotatingMoon key={child.id} moon={child} />
             ))}

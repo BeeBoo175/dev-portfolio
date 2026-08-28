@@ -4,7 +4,7 @@ interface OrbitPanelProps {
     draftPlanet: OrbitConfig;
     allPlanets?: OrbitConfig[];
     onOrbitalChange: (
-        key: "radius" | "orbitRadius" | "orbitSpeed" | "rotationSpeed" | "initialAngle",
+        key: "radius" | "orbitRadius" | "orbitSpeed" | "rotationSpeed" | "initialAngle" | "axialTilt" | "orbitInclination",
         val: number
     ) => void;
 }
@@ -16,6 +16,9 @@ export function OrbitPanel({ draftPlanet, allPlanets = [], onOrbitalChange }: Or
         const minSafeDist = draftPlanet.radius + other.radius + 0.3;
         return dist < minSafeDist;
     });
+
+    const axialTiltDeg = (((draftPlanet.axialTilt ?? 0) * 180) / Math.PI).toFixed(1);
+    const orbitInclinationDeg = (((draftPlanet.orbitInclination ?? 0) * 180) / Math.PI).toFixed(1);
 
     return (
         <div className="planet-studio__card">
@@ -85,6 +88,22 @@ export function OrbitPanel({ draftPlanet, allPlanets = [], onOrbitalChange }: Or
 
             <div className="planet-studio__row">
                 <label className="planet-studio__slider-label">
+                    <span>Orbit Plane Inclination</span>
+                    <span className="planet-studio__slider-value">{orbitInclinationDeg}&deg;</span>
+                </label>
+            </div>
+            <input
+                type="range"
+                min="-0.78"
+                max="0.78"
+                step="0.02"
+                value={draftPlanet.orbitInclination ?? 0}
+                onChange={(e) => onOrbitalChange("orbitInclination", parseFloat(e.target.value))}
+                className="planet-studio__range"
+            />
+
+            <div className="planet-studio__row">
+                <label className="planet-studio__slider-label">
                     <span>Axial Spin Speed</span>
                     <span className="planet-studio__slider-value">{draftPlanet.rotationSpeed.toFixed(2)}</span>
                 </label>
@@ -96,6 +115,22 @@ export function OrbitPanel({ draftPlanet, allPlanets = [], onOrbitalChange }: Or
                 step="0.05"
                 value={draftPlanet.rotationSpeed}
                 onChange={(e) => onOrbitalChange("rotationSpeed", parseFloat(e.target.value))}
+                className="planet-studio__range"
+            />
+
+            <div className="planet-studio__row">
+                <label className="planet-studio__slider-label">
+                    <span>Axial Polar Tilt</span>
+                    <span className="planet-studio__slider-value">{axialTiltDeg}&deg;</span>
+                </label>
+            </div>
+            <input
+                type="range"
+                min="0.0"
+                max="1.57"
+                step="0.02"
+                value={draftPlanet.axialTilt ?? 0}
+                onChange={(e) => onOrbitalChange("axialTilt", parseFloat(e.target.value))}
                 className="planet-studio__range"
             />
 
