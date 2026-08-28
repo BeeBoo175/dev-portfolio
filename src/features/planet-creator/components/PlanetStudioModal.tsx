@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import type { OrbitConfig, PaletteConfig } from "../../galaxy";
 import { galaxyStore, useGalaxyPlanets, useGalaxyVisuals } from "../../galaxy";
-import { BIOME_PRESETS, generateRandomTerrain } from "../presets";
+import { BIOME_PRESETS, generateRandomTerrain, generateRandomGalaxy } from "../presets";
 import PlanetPreviewCanvas from "./PlanetPreviewCanvas";
 import TerrainPanel from "./TerrainPanel";
 import AppearancePanel from "./AppearancePanel";
@@ -295,6 +295,16 @@ export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
         setToastMessage("Restored default galaxy");
     };
 
+    const handleRandomizeGalaxy = () => {
+        const randomized = generateRandomGalaxy(planets);
+        galaxyStore.setPlanets(randomized);
+        const updated = randomized.find((p) => p.id === selectedId) ?? randomized[0];
+        if (updated) {
+            setDraftPlanet(JSON.parse(JSON.stringify(updated)));
+        }
+        setToastMessage("Galaxy randomized with new biomes & orbits!");
+    };
+
     const handleExportJSON = () => {
         const json = galaxyStore.exportJSON();
         navigator.clipboard.writeText(json);
@@ -354,6 +364,14 @@ export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
                                     title="Toggle Polar Rotational Spin Axes"
                                 >
                                     Axes: {visuals.showOrbitalAxes ? "ON" : "OFF"}
+                                </button>
+                                <button
+                                    className="planet-studio__random-galaxy-btn"
+                                    onClick={handleRandomizeGalaxy}
+                                    title="Procedurally randomize all planets, biomes, orbits, and moons across the entire galaxy"
+                                >
+                                    <span>🎲</span>
+                                    <span>Random Galaxy</span>
                                 </button>
                                 <button
                                     className="planet-studio__data-btn"
@@ -506,6 +524,13 @@ export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
                                     onClick={handleReset}
                                 >
                                     Reset Planet
+                                </button>
+                                <button
+                                    className="planet-studio__btn planet-studio__btn--secondary planet-studio__btn--footer"
+                                    onClick={handleRandomizeGalaxy}
+                                    title="Procedurally randomize all planets, biomes, orbits, and moons across the entire galaxy"
+                                >
+                                    🎲 Randomize Galaxy
                                 </button>
                                 <button
                                     className="planet-studio__btn planet-studio__btn--secondary planet-studio__btn--footer"

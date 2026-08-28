@@ -1,4 +1,4 @@
-import type { PaletteConfig, PlanetTerrainConfig } from "../galaxy";
+import type { PaletteConfig, PlanetTerrainConfig, OrbitConfig } from "../galaxy";
 
 export interface BiomePreset {
     id: string;
@@ -163,4 +163,117 @@ export function generateRandomTerrain(): { terrain: PlanetTerrainConfig; palette
         palette,
         color,
     };
+}
+
+export function generateRandomGalaxy(basePlanets: OrbitConfig[]): OrbitConfig[] {
+    const allPalettes = [
+        ...BIOME_PRESETS.map((b) => ({ palette: b.palette, color: b.color })),
+        ...RANDOM_PALETTES.map((p) => ({ palette: p, color: p.coast ?? p.land ?? "#38bdf8" })),
+    ];
+    const shuffledPalettes = [...allPalettes].sort(() => Math.random() - 0.5);
+
+    const orbitLanes = [
+        { minOrbit: 6.8, maxOrbit: 7.6, speedFactor: 0.23 },
+        { minOrbit: 11.5, maxOrbit: 12.8, speedFactor: 0.15 },
+        { minOrbit: 16.8, maxOrbit: 18.2, speedFactor: 0.11 },
+        { minOrbit: 22.8, maxOrbit: 24.5, speedFactor: 0.08 },
+    ];
+
+    return basePlanets.map((base, idx) => {
+        const lane = orbitLanes[idx] ?? {
+            minOrbit: 7.0 + idx * 5.5,
+            maxOrbit: 8.0 + idx * 5.5,
+            speedFactor: 0.2 / (idx + 1),
+        };
+
+        const radius = Number((Math.random() * 0.8 + 0.85).toFixed(2));
+        const orbitRadius = Number(
+            (lane.minOrbit + Math.random() * (lane.maxOrbit - lane.minOrbit)).toFixed(1)
+        );
+        const orbitSpeed = Number(
+            (lane.speedFactor * (0.85 + Math.random() * 0.35)).toFixed(3)
+        );
+        const initialAngle = Number((Math.random() * Math.PI * 2).toFixed(2));
+        const rotationSpeed = Number((Math.random() * 0.5 + 0.25).toFixed(2));
+        const axialTilt = Number(
+            (Math.random() < 0.15 ? Math.random() * 0.4 + 2.8 : Math.random() * 0.65).toFixed(3)
+        );
+        const orbitInclination = Number(((Math.random() - 0.5) * 0.24).toFixed(3));
+
+        const paletteObj = shuffledPalettes[idx % shuffledPalettes.length];
+        const terrain = {
+            seed: Math.floor(Math.random() * 999) + 1,
+            noiseScale: Number((Math.random() * 0.9 + 1.1).toFixed(2)),
+            roughness: Number((Math.random() * 0.18 + 0.16).toFixed(2)),
+            waterLevel: Number((Math.random() * 0.35 + 0.22).toFixed(2)),
+            detail: 3,
+        };
+
+        const hasRing = Math.random() < 0.4;
+        const ring = hasRing
+            ? {
+                  innerRadius: Number((radius * 1.35 + 0.1).toFixed(2)),
+                  outerRadius: Number((radius * 1.95 + 0.3).toFixed(2)),
+                  color: paletteObj.palette.coast ?? paletteObj.palette.land ?? paletteObj.color,
+                  opacity: Number((Math.random() * 0.35 + 0.5).toFixed(2)),
+              }
+            : undefined;
+
+        const moonCount = Math.floor(Math.random() * 3);
+        const moons = [];
+        let currentMoonOrbit = radius + 0.95 + Math.random() * 0.3;
+
+        for (let m = 0; m < moonCount; m++) {
+            const moonRadius = Number((Math.random() * 0.15 + 0.2).toFixed(2));
+            const moonOrbitRadius = Number(currentMoonOrbit.toFixed(2));
+            const moonOrbitSpeed = Number((Math.random() * 0.6 + 0.7).toFixed(2));
+            const moonRotationSpeed = Number((Math.random() * 0.5 + 0.3).toFixed(2));
+            const moonTilt = Number((Math.random() * 0.35).toFixed(3));
+            const moonInc = Number(((Math.random() - 0.5) * 0.25).toFixed(3));
+
+            const moonPalette = RANDOM_PALETTES[Math.floor(Math.random() * RANDOM_PALETTES.length)];
+
+            moons.push({
+                id: `${base.id}-moon-${m + 1}`,
+                radius: moonRadius,
+                orbitRadius: moonOrbitRadius,
+                orbitSpeed: moonOrbitSpeed,
+                rotationSpeed: moonRotationSpeed,
+                axialTilt: moonTilt,
+                orbitInclination: moonInc,
+                initialAngle: Number((Math.random() * Math.PI * 2).toFixed(2)),
+                color: moonPalette.coast ?? moonPalette.land ?? "#cbd5e1",
+                terrain: {
+                    seed: Math.floor(Math.random() * 999) + 1,
+                    noiseScale: Number((Math.random() * 1.2 + 1.6).toFixed(2)),
+                    roughness: Number((Math.random() * 0.25 + 0.18).toFixed(2)),
+                    waterLevel: 0,
+                    detail: 2,
+                },
+                palette: {
+                    land: moonPalette.land ?? "#94a3b8",
+                    mountain: moonPalette.mountain ?? "#64748b",
+                    peak: moonPalette.peak ?? "#e2e8f0",
+                },
+            });
+
+            currentMoonOrbit += moonRadius + 1.1 + Math.random() * 0.3;
+        }
+
+        return {
+            ...base,
+            radius,
+            orbitRadius,
+            orbitSpeed,
+            initialAngle,
+            rotationSpeed,
+            axialTilt,
+            orbitInclination,
+            color: paletteObj.color,
+            terrain,
+            palette: paletteObj.palette,
+            ring,
+            children: moons,
+        };
+    });
 }

@@ -147,6 +147,29 @@
     border-color: var(--border-hover);
 }
 
+.planet-studio__random-galaxy-btn {
+    background: linear-gradient(135deg, rgba(2, 132, 199, 0.15), rgba(168, 85, 247, 0.2));
+    border: 1px solid rgba(168, 85, 247, 0.35);
+    color: #e0e7ff;
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: inherit;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all var(--transition-fast);
+}
+
+.planet-studio__random-galaxy-btn:hover {
+    background: linear-gradient(135deg, rgba(2, 132, 199, 0.3), rgba(168, 85, 247, 0.35));
+    border-color: rgba(168, 85, 247, 0.65);
+    color: #ffffff;
+    box-shadow: 0 0 14px rgba(168, 85, 247, 0.35);
+}
+
 .planet-studio__close-btn {
     background: transparent;
     border: none;
