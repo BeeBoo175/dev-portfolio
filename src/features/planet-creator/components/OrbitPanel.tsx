@@ -1,34 +1,19 @@
 import type { OrbitConfig } from "../../galaxy";
-import { detectPlanetCollisions } from "../../galaxy";
 
 interface OrbitPanelProps {
     draftPlanet: OrbitConfig;
-    allPlanets?: OrbitConfig[];
     onOrbitalChange: (
         key: "radius" | "orbitRadius" | "orbitSpeed" | "rotationSpeed" | "initialAngle" | "axialTilt" | "orbitInclination",
         val: number
     ) => void;
 }
 
-export function OrbitPanel({ draftPlanet, allPlanets = [], onOrbitalChange }: OrbitPanelProps) {
-    const warnings = detectPlanetCollisions(draftPlanet, allPlanets);
+export function OrbitPanel({ draftPlanet, onOrbitalChange }: OrbitPanelProps) {
     const axialTiltDeg = (((draftPlanet.axialTilt ?? 0) * 180) / Math.PI).toFixed(1);
     const orbitInclinationDeg = (((draftPlanet.orbitInclination ?? 0) * 180) / Math.PI).toFixed(1);
 
     return (
         <div className="planet-studio__card">
-            {warnings.length > 0 && (
-                <div className="planet-studio__collision-warning">
-                    <div className="planet-studio__collision-title">
-                        Orbital Intersection Warning ({warnings.length})
-                    </div>
-                    {warnings.map((w) => (
-                        <div key={w.id} className="planet-studio__collision-desc">
-                            <strong>{w.title}:</strong> {w.description}
-                        </div>
-                    ))}
-                </div>
-            )}
 
             <div className="planet-studio__row">
                 <label className="planet-studio__slider-label">

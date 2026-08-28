@@ -500,6 +500,83 @@
     gap: 10px;
 }
 
+.planet-studio__global-collision-banner {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(239, 68, 68, 0.12));
+    border: 1px solid rgba(245, 158, 11, 0.4);
+    border-radius: var(--radius-md);
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    animation: studioFadeIn 0.2s ease-out;
+}
+
+.planet-studio__global-collision-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.planet-studio__global-collision-title {
+    color: #fbbf24;
+    font-size: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.planet-studio__global-resolve-btn {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(217, 119, 6, 0.35));
+    border: 1px solid rgba(245, 158, 11, 0.6);
+    color: #fef3c7;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: var(--radius-xs);
+    cursor: pointer;
+    font-family: inherit;
+    transition: all var(--transition-fast);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.planet-studio__global-resolve-btn:hover {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.4), rgba(217, 119, 6, 0.55));
+    color: #ffffff;
+    border-color: #fbbf24;
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.4);
+}
+
+.planet-studio__global-collision-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-height: 75px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    padding-right: 4px;
+}
+
+.planet-studio__global-collision-item {
+    font-size: 11px;
+    color: #fde68a;
+    line-height: 1.35;
+}
+
+.planet-studio__tab-warn-badge {
+    background: rgba(245, 158, 11, 0.25);
+    color: #fbbf24;
+    font-size: 10px;
+    padding: 1px 5px;
+    border-radius: 9999px;
+    margin-left: 4px;
+    border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
 .planet-studio__collision-warning {
     background: rgba(245, 158, 11, 0.1);
     border: 1px solid rgba(245, 158, 11, 0.3);
@@ -782,11 +859,43 @@
     gap: 8px;
 }
 
+.planet-studio__toast-container {
+    position: absolute;
+    top: 56px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 120;
+    pointer-events: none;
+    display: flex;
+    justify-content: center;
+    max-width: 90%;
+}
+
 .planet-studio__toast {
+    background: rgba(15, 23, 42, 0.92);
+    border: 1px solid rgba(56, 189, 248, 0.45);
     color: var(--accent-cyan);
     font-size: 12px;
     font-weight: 500;
-    font-family: var(--font-mono);
+    font-family: inherit;
+    padding: 6px 16px;
+    border-radius: 9999px;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.7), 0 0 16px rgba(56, 189, 248, 0.25);
+    backdrop-filter: blur(12px);
+    animation: studioToastIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    white-space: nowrap;
+    text-align: center;
+}
+
+@keyframes studioToastIn {
+    from {
+        opacity: 0;
+        transform: translateY(-8px) scale(0.96);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
 }
 
 @media (max-width: 768px) {

@@ -67,7 +67,7 @@ export const ORBIT_LAYOUT: OrbitConfig[] = [
         id: "skills", // Venus analog: slight tilt (~3.4 degrees)
         radius: 1.1,
         rotationSpeed: 0.4,
-        orbitRadius: 12.0,
+        orbitRadius: 11.0,
         orbitSpeed: 0.137,
         initialAngle: (2 * Math.PI) / 3,
         orbitInclination: 0.059, // ~3.39°
@@ -146,7 +146,7 @@ export const ORBIT_LAYOUT: OrbitConfig[] = [
                 id: "projects-moon-2",
                 radius: 0.15,
                 rotationSpeed: 1,
-                orbitRadius: 5.2,
+                orbitRadius: 5.0,
                 orbitSpeed: 0.43,
                 orbitInclination: 0.003, // ~0.18° (Europa-like)
                 axialTilt: 0.0,
