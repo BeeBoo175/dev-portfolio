@@ -147,28 +147,6 @@
     border-color: var(--border-hover);
 }
 
-.planet-studio__random-galaxy-btn {
-    background: linear-gradient(135deg, rgba(2, 132, 199, 0.15), rgba(168, 85, 247, 0.2));
-    border: 1px solid rgba(168, 85, 247, 0.35);
-    color: #e0e7ff;
-    padding: 6px 12px;
-    border-radius: var(--radius-sm);
-    font-size: 12px;
-    font-weight: 500;
-    cursor: pointer;
-    font-family: inherit;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    transition: all var(--transition-fast);
-}
-
-.planet-studio__random-galaxy-btn:hover {
-    background: linear-gradient(135deg, rgba(2, 132, 199, 0.3), rgba(168, 85, 247, 0.35));
-    border-color: rgba(168, 85, 247, 0.65);
-    color: #ffffff;
-    box-shadow: 0 0 14px rgba(168, 85, 247, 0.35);
-}
 
 .planet-studio__close-btn {
     background: transparent;
@@ -312,6 +290,14 @@
     font-family: inherit;
     transition: all var(--transition-fast);
     white-space: nowrap;
+}
+
+.planet-studio__btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    pointer-events: none;
+    box-shadow: none !important;
+    transform: none !important;
 }
 
 .planet-studio__btn--primary {
@@ -721,6 +707,42 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
+}
+
+.planet-studio__confirm-dialog {
+    width: 100%;
+    max-width: 420px;
+    background: var(--bg-surface-elevated);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    box-shadow: 0 24px 56px rgba(0, 0, 0, 0.85);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    animation: studioFadeIn 0.15s ease-out;
+}
+
+.planet-studio__confirm-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.planet-studio__confirm-text {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+.planet-studio__confirm-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 6px;
 }
 
 .planet-studio__json-textarea {
