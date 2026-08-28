@@ -15,6 +15,7 @@ const CelestialBody = forwardRef<THREE.Group, CelestialBodyProps>(
         const orbitRef = useRef<THREE.Group>(null);
         const positionRef = useRef<THREE.Group>(null);
         const bodyRef = useRef<THREE.Mesh>(null);
+        const effectiveColor = color ?? body.color ?? "white";
 
         useImperativeHandle(ref, () => positionRef.current as THREE.Group);
 
@@ -45,14 +46,14 @@ const CelestialBody = forwardRef<THREE.Group, CelestialBodyProps>(
                     >
                         <sphereGeometry args={[body.radius, 32, 32]} />
                         {isSun ? (
-                            <meshBasicMaterial color={color ?? "white"} />
+                            <meshBasicMaterial color={effectiveColor} />
                         ) : (
-                            <meshStandardMaterial color={color ?? "white"} />
+                            <meshStandardMaterial color={effectiveColor} />
                         )}
                     </mesh>
 
                     {isSun && (
-                        <pointLight color={color ?? "white"} intensity={2} distance={40} />
+                        <pointLight color={effectiveColor} intensity={2} distance={40} />
                     )}
 
                     {body.children?.map((child) => (
