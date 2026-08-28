@@ -13,3 +13,7 @@
     overflow: hidden;
     pointer-events: none;
 }
+
+html.planet-studio-open .app-shell__canvas {
+    width: calc(100% - var(--studio-scroll-lock, 0px));
+}

@@ -42,13 +42,25 @@ export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
     const [importJsonText, setImportJsonText] = useState("");
 
     useEffect(() => {
-        if (isOpen) {
-            const originalOverflow = document.body.style.overflow;
-            document.body.style.overflow = "hidden";
-            return () => {
-                document.body.style.overflow = originalOverflow;
-            };
-        }
+        if (!isOpen) return;
+
+        const html = document.documentElement;
+        const { body } = document;
+        const prevHtmlOverflow = html.style.overflow;
+        const prevBodyOverflow = body.style.overflow;
+        const scrollbarWidth = Math.max(0, window.innerWidth - html.clientWidth);
+
+        html.classList.add("planet-studio-open");
+        html.style.setProperty("--studio-scroll-lock", `${scrollbarWidth}px`);
+        html.style.overflow = "hidden";
+        body.style.overflow = "hidden";
+
+        return () => {
+            html.classList.remove("planet-studio-open");
+            html.style.removeProperty("--studio-scroll-lock");
+            html.style.overflow = prevHtmlOverflow;
+            body.style.overflow = prevBodyOverflow;
+        };
     }, [isOpen]);
 
     const handleOpen = () => {
@@ -260,18 +272,28 @@ export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
         setToastMessage(`Saved ${draftPlanet.id.toUpperCase()} to Galaxy`);
     };
 
+    const clonePlanetFromStore = (id: string) => {
+        const snapshot = galaxyStore.getSnapshot();
+        const found = snapshot.find((p) => p.id === id) ?? snapshot[0];
+        return found ? (JSON.parse(JSON.stringify(found)) as OrbitConfig) : null;
+    };
+
     const handleReset = () => {
         if (!draftPlanet) return;
         galaxyStore.resetPlanet(draftPlanet.id);
-        const resetTarget = planets.find((p) => p.id === draftPlanet.id);
+        const resetTarget = clonePlanetFromStore(draftPlanet.id);
         if (resetTarget) {
-            setDraftPlanet(JSON.parse(JSON.stringify(resetTarget)));
+            setDraftPlanet(resetTarget);
         }
         setToastMessage(`Restored default ${draftPlanet.id.toUpperCase()}`);
     };
 
     const handleResetAll = () => {
         galaxyStore.resetAll();
+        const resetTarget = clonePlanetFromStore(selectedId);
+        if (resetTarget) {
+            setDraftPlanet(resetTarget);
+        }
         setToastMessage("Restored default galaxy");
     };
 
@@ -288,8 +310,8 @@ export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
             setToastMessage("Galaxy JSON imported successfully");
             setImportJsonText("");
             setIsDataModalOpen(false);
-            const updated = planets.find((p) => p.id === selectedId) ?? planets[0];
-            if (updated) setDraftPlanet(JSON.parse(JSON.stringify(updated)));
+            const updated = clonePlanetFromStore(selectedId);
+            if (updated) setDraftPlanet(updated);
         } else {
             setToastMessage("Invalid JSON format");
         }
