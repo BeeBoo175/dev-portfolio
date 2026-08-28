@@ -2,15 +2,35 @@ import type { OrbitConfig } from "../../galaxy";
 
 interface OrbitPanelProps {
     draftPlanet: OrbitConfig;
+    allPlanets?: OrbitConfig[];
     onOrbitalChange: (
         key: "radius" | "orbitRadius" | "orbitSpeed" | "rotationSpeed" | "initialAngle",
         val: number
     ) => void;
 }
 
-export function OrbitPanel({ draftPlanet, onOrbitalChange }: OrbitPanelProps) {
+export function OrbitPanel({ draftPlanet, allPlanets = [], onOrbitalChange }: OrbitPanelProps) {
+    const collisions = allPlanets.filter((other) => {
+        if (other.id === draftPlanet.id || !other.orbitRadius || !draftPlanet.orbitRadius) return false;
+        const dist = Math.abs(draftPlanet.orbitRadius - other.orbitRadius);
+        const minSafeDist = draftPlanet.radius + other.radius + 0.3;
+        return dist < minSafeDist;
+    });
+
     return (
         <div className="planet-studio__card">
+            {collisions.length > 0 && (
+                <div className="planet-studio__collision-warning">
+                    <div className="planet-studio__collision-title">
+                        Orbital Intersection Warning
+                    </div>
+                    <div className="planet-studio__collision-desc">
+                        Orbit intersects with: {collisions.map((c) => c.id.toUpperCase()).join(", ")}.
+                        Note: This is a cosmetic alert only &mdash; physical collisions are not simulated and will not affect site navigation.
+                    </div>
+                </div>
+            )}
+
             <div className="planet-studio__row">
                 <label className="planet-studio__slider-label">
                     <span>Planet Radius / Size</span>
