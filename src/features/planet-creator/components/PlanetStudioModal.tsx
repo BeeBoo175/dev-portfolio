@@ -36,7 +36,7 @@ export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
     const [draftPlanet, setDraftPlanet] = useState<OrbitConfig | null>(() => {
         const targetId = focusId && EDITABLE_TARGETS.some((t) => t.id === focusId) ? focusId : "about";
         const found = planets.find((p) => p.id === targetId) ?? planets[0];
-        return found ? JSON.parse(JSON.stringify(found)) : null;
+        return found ? structuredClone(found) : null;
     });
     const [toastMessage, setToastMessage] = useState<string | null>(null);
     const [importJsonText, setImportJsonText] = useState("");
@@ -66,7 +66,7 @@ export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
         setSelectedId(targetId);
         const found = planets.find((p) => p.id === targetId) ?? planets[0];
         if (found) {
-            setDraftPlanet(JSON.parse(JSON.stringify(found)));
+            setDraftPlanet(structuredClone(found));
         }
         setActiveMoonIndex(0);
         setIsOpen(true);
@@ -76,7 +76,7 @@ export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
         setSelectedId(id);
         const found = planets.find((p) => p.id === id);
         if (found) {
-            setDraftPlanet(JSON.parse(JSON.stringify(found)));
+            setDraftPlanet(structuredClone(found));
         }
         setActiveMoonIndex(0);
     };
@@ -273,7 +273,7 @@ export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
     const clonePlanetFromStore = (id: string) => {
         const snapshot = galaxyStore.getSnapshot();
         const found = snapshot.find((p) => p.id === id) ?? snapshot[0];
-        return found ? (JSON.parse(JSON.stringify(found)) as OrbitConfig) : null;
+        return found ? (structuredClone(found) as OrbitConfig) : null;
     };
 
     const handleReset = () => {
