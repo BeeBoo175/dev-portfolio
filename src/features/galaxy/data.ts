@@ -1,4 +1,4 @@
-import type { AsteroidBeltConfig, OrbitConfig } from "./types";
+import type { AsteroidBeltConfig, OrbitConfig, SunConfig } from "./types";
 
 export const DEFAULT_ASTEROID_BELT: AsteroidBeltConfig = {
     enabled: true,
@@ -10,9 +10,23 @@ export const DEFAULT_ASTEROID_BELT: AsteroidBeltConfig = {
     orbitSpeed: 0.09,
     heightSpread: 0.6,
     inclination: 0.035,
+    ascendingNode: 0,
     color: "#9ca3af",
     secondaryColor: "#57534e",
     seed: 101,
+};
+
+export const DEFAULT_SUN: SunConfig = {
+    id: "home",
+    radius: 3.5,
+    rotationSpeed: 0.15,
+    color: "#ffd76b",
+    glowIntensity: 1.0,
+    lightIntensity: 6.0,
+    palette: {
+        water: "#ffd76b",
+        peak: "#fffbeb",
+    },
 };
 
 export const CENTRAL_BODY: OrbitConfig = {
@@ -20,6 +34,8 @@ export const CENTRAL_BODY: OrbitConfig = {
     radius: 3.5,
     rotationSpeed: 0.15,
     orbitInclination: 0,
+    orbitAscendingNode: 0,
+    orbitArgument: 0,
     axialTilt: 0,
     color: "#ffd76b",
     palette: {
