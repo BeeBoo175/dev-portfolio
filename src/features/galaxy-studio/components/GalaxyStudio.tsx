@@ -475,6 +475,8 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
                 onTogglePauseCameraOrbit={() => galaxyStore.toggleFreezeCameraOrbit()}
                 onToggleOrbitPaths={() => galaxyStore.toggleOrbitPaths()}
                 onToggleOrbitalAxes={() => galaxyStore.toggleOrbitalAxes()}
+                onToggleSelectionGlow={() => galaxyStore.toggleSelectionGlow()}
+                onTogglePlanetNames={() => galaxyStore.togglePlanetNames()}
                 onRandomizeAll={handleRandomizeAll}
                 onResetGalaxy={handleResetAllDefaults}
                 onResolveCollisions={handleResolveCollisions}

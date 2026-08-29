@@ -105,6 +105,7 @@ function GalaxyScene({
                 }}
                 body={sun}
                 isSun
+                isEditorMode={isEditorMode}
                 isSelected={focusId === "home" || focusId === "sun"}
                 onSelect={onSelect}
             />
@@ -123,6 +124,7 @@ function GalaxyScene({
                         bodyRefs.current[body.id] = instance;
                     }}
                     body={body}
+                    isEditorMode={isEditorMode}
                     isSelected={focusId === body.id}
                     onSelect={onSelect}
                 />
