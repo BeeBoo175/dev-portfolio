@@ -1,3 +1,6 @@
+import { useMemo } from "react";
+import * as THREE from "three";
+import { useGalaxySun } from "../galaxy";
 import { ALL_SECTIONS } from "./data";
 import { useSectionScroll } from "./useSectionScroll";
 import type { SectionId } from "./types";
@@ -8,11 +11,38 @@ export interface HomeOverlayProps {
     registerTrigger: (fn: (id: SectionId) => void) => void;
 }
 
-function HomeOverlay({ onFocusChange, registerTrigger }: HomeOverlayProps) {
+export function HomeOverlay({ onFocusChange, registerTrigger }: HomeOverlayProps) {
     const { sectionRefs, showScrollTop, scrollToTop } = useSectionScroll({
         onFocusChange,
         registerTrigger,
     });
+    const sun = useGalaxySun();
+
+    const sunStyle = useMemo(() => {
+        const baseHex = sun.color || "#ffe59e";
+        const peakHex = sun.palette?.peak || "#fffbeb";
+        const baseColor = new THREE.Color(baseHex);
+        const peakColor = new THREE.Color(peakHex);
+
+        const lightColor = baseColor.clone().offsetHSL(0, -0.04, 0.08);
+        const darkColor = baseColor.clone().multiplyScalar(0.92);
+
+        const r = Math.round(baseColor.r * 255);
+        const g = Math.round(baseColor.g * 255);
+        const b = Math.round(baseColor.b * 255);
+
+        const luminance = 0.299 * baseColor.r + 0.587 * baseColor.g + 0.114 * baseColor.b;
+        const iconColor = luminance > 0.55 ? "#1a0b02" : "#ffffff";
+
+        return {
+            "--sun-specular": `#${peakColor.getHexString()}`,
+            "--sun-light": `#${lightColor.getHexString()}`,
+            "--sun-base": `#${baseColor.getHexString()}`,
+            "--sun-dark": `#${darkColor.getHexString()}`,
+            "--sun-glow-rgb": `${r}, ${g}, ${b}`,
+            "--sun-icon-color": iconColor,
+        } as React.CSSProperties;
+    }, [sun.color, sun.palette?.peak]);
 
     return (
         <div className="sections-overlay">
@@ -40,6 +70,7 @@ function HomeOverlay({ onFocusChange, registerTrigger }: HomeOverlayProps) {
                 onClick={scrollToTop}
                 aria-label="Back to top"
                 title="Back to top"
+                style={sunStyle}
             >
                 <span className="scroll-to-top__corona" aria-hidden="true" />
                 <span className="scroll-to-top__rays" aria-hidden="true" />
