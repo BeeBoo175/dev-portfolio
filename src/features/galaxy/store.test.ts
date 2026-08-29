@@ -96,5 +96,26 @@ describe("galaxyStore", () => {
         expect(sun.radius).toBe(3.5);
         expect(sun.color).toBe("#ffe59e");
     });
+
+    it("handles default spaceship planet configuration and persistence", () => {
+        expect(galaxyStore.getDefaultPlanetIdSnapshot()).toBe("skills");
+
+        galaxyStore.setDefaultPlanetId("projects", true);
+        expect(galaxyStore.getDefaultPlanetIdSnapshot()).toBe("projects");
+
+        galaxyStore.resetDefaultPlanetId();
+        expect(galaxyStore.getDefaultPlanetIdSnapshot()).toBe("skills");
+
+        galaxyStore.setDefaultPlanetId("contact", false);
+        const exported = galaxyStore.exportJSON();
+        expect(exported).toContain('"defaultPlanetId": "contact"');
+
+        galaxyStore.resetAll();
+        expect(galaxyStore.getDefaultPlanetIdSnapshot()).toBe("skills");
+
+        const success = galaxyStore.importJSON(exported);
+        expect(success).toBe(true);
+        expect(galaxyStore.getDefaultPlanetIdSnapshot()).toBe("contact");
+    });
 });
 

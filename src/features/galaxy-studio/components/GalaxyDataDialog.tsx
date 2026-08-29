@@ -6,11 +6,13 @@ export interface GalaxyDataDialogProps {
     planets: OrbitConfig[];
     asteroidBelt: AsteroidBeltConfig;
     sun: SunConfig;
+    defaultPlanetId?: string;
     onClose: () => void;
     onImport: (importedData: {
         planets?: OrbitConfig[];
         asteroidBelt?: AsteroidBeltConfig;
         sun?: SunConfig;
+        defaultPlanetId?: string;
     }) => void;
     onResetDefaults: () => void;
 }
@@ -20,6 +22,7 @@ export function GalaxyDataDialog({
     planets,
     asteroidBelt,
     sun,
+    defaultPlanetId,
     onClose,
     onImport,
     onResetDefaults,
@@ -30,7 +33,7 @@ export function GalaxyDataDialog({
 
     if (!isOpen) return null;
 
-    const exportedJson = JSON.stringify({ planets, asteroidBelt, sun }, null, 2);
+    const exportedJson = JSON.stringify({ planets, asteroidBelt, sun, defaultPlanetId }, null, 2);
 
     const handleCopy = async () => {
         try {
@@ -55,6 +58,7 @@ export function GalaxyDataDialog({
                     planets: Array.isArray(parsed.planets) ? parsed.planets : undefined,
                     asteroidBelt: parsed.asteroidBelt,
                     sun: parsed.sun,
+                    defaultPlanetId: typeof parsed.defaultPlanetId === "string" ? parsed.defaultPlanetId : undefined,
                 });
                 onClose();
                 return;

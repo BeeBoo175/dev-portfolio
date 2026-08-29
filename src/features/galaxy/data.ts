@@ -1,5 +1,7 @@
 import type { AsteroidBeltConfig, OrbitConfig, SunConfig } from "./types";
 
+export const DEFAULT_SPACESHIP_PLANET_ID = "skills";
+
 export const DEFAULT_ASTEROID_BELT: AsteroidBeltConfig = {
     enabled: true,
     innerRadius: 14.8,

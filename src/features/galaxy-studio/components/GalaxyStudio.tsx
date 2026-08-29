@@ -7,11 +7,13 @@ import {
     useGalaxyAsteroidBelt,
     useGalaxySun,
     useGalaxyVisuals,
+    useGalaxyDefaultPlanetId,
     detectAllGalaxyCollisions,
     resolveGalaxyCollisions,
     ORBIT_LAYOUT,
     DEFAULT_SUN,
     DEFAULT_ASTEROID_BELT,
+    DEFAULT_SPACESHIP_PLANET_ID,
 } from "../../galaxy";
 import { generateRandomGalaxy } from "../presets";
 import GalaxyToolbar from "./GalaxyToolbar";
@@ -46,6 +48,7 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
     const storePlanets = useGalaxyPlanets();
     const storeBelt = useGalaxyAsteroidBelt();
     const storeSun = useGalaxySun();
+    const storeDefaultPlanetId = useGalaxyDefaultPlanetId();
     const visuals = useGalaxyVisuals();
 
     const [draftPlanets, setDraftPlanets] = useState<OrbitConfig[]>(() =>
@@ -57,8 +60,11 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
     const [draftSun, setDraftSun] = useState<SunConfig>(() =>
         structuredClone(storeSun)
     );
+    const [draftDefaultPlanetId, setDraftDefaultPlanetId] = useState<string>(() =>
+        storeDefaultPlanetId
+    );
     const [savedSnapshot, setSavedSnapshot] = useState<string>(() =>
-        JSON.stringify({ planets: storePlanets, asteroidBelt: storeBelt, sun: storeSun })
+        JSON.stringify({ planets: storePlanets, asteroidBelt: storeBelt, sun: storeSun, defaultPlanetId: storeDefaultPlanetId })
     );
 
     const isSavedRef = useRef<boolean>(false);
@@ -71,7 +77,7 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
     const [toastMessage, setToastMessage] = useState<string | null>(null);
 
     const isDirty =
-        JSON.stringify({ planets: draftPlanets, asteroidBelt: draftBelt, sun: draftSun }) !==
+        JSON.stringify({ planets: draftPlanets, asteroidBelt: draftBelt, sun: draftSun, defaultPlanetId: draftDefaultPlanetId }) !==
         savedSnapshot;
 
     const currentPlanet = draftPlanets.find((p) => p.id === selectedId);
@@ -144,13 +150,21 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
         });
     }, []);
 
+    const handleSetDefaultPlanetId = useCallback((id: string) => {
+        setDraftDefaultPlanetId(id);
+        galaxyStore.setDefaultPlanetId(id, false);
+        const planetLabel = TARGET_LIST.find((t) => t.id === id)?.label || id;
+        showToast(`Spaceship default base station set to ${planetLabel}.`);
+    }, []);
+
     const handleSaveAndApply = () => {
         galaxyStore.setPlanets(draftPlanets, true);
         galaxyStore.setAsteroidBelt(draftBelt, true);
         galaxyStore.setSun(draftSun, true);
+        galaxyStore.setDefaultPlanetId(draftDefaultPlanetId, true);
         galaxyStore.saveCustomizations();
         isSavedRef.current = true;
-        setSavedSnapshot(JSON.stringify({ planets: draftPlanets, asteroidBelt: draftBelt, sun: draftSun }));
+        setSavedSnapshot(JSON.stringify({ planets: draftPlanets, asteroidBelt: draftBelt, sun: draftSun, defaultPlanetId: draftDefaultPlanetId }));
         showToast("Galaxy changes saved successfully.");
     };
 
@@ -159,9 +173,12 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
         setDraftPlanets(snap.planets);
         setDraftBelt(snap.asteroidBelt);
         setDraftSun(snap.sun);
+        const restoredDefaultPlanetId = snap.defaultPlanetId || DEFAULT_SPACESHIP_PLANET_ID;
+        setDraftDefaultPlanetId(restoredDefaultPlanetId);
         galaxyStore.setPlanets(snap.planets, false);
         galaxyStore.setAsteroidBelt(snap.asteroidBelt, false);
         galaxyStore.setSun(snap.sun, false);
+        galaxyStore.setDefaultPlanetId(restoredDefaultPlanetId, false);
         showToast("Reverted working draft to saved galaxy.");
     };
 
@@ -201,6 +218,7 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
         planets?: OrbitConfig[];
         asteroidBelt?: AsteroidBeltConfig;
         sun?: SunConfig;
+        defaultPlanetId?: string;
     }) => {
         if (data.planets) {
             setDraftPlanets(data.planets);
@@ -213,6 +231,10 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
         if (data.sun) {
             setDraftSun(data.sun);
             galaxyStore.setSun(data.sun, false);
+        }
+        if (data.defaultPlanetId) {
+            setDraftDefaultPlanetId(data.defaultPlanetId);
+            galaxyStore.setDefaultPlanetId(data.defaultPlanetId, false);
         }
         showToast("System JSON imported successfully.");
     };
@@ -242,12 +264,15 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
         const freshPlanets = structuredClone(ORBIT_LAYOUT);
         const freshBelt = structuredClone(DEFAULT_ASTEROID_BELT);
         const freshSun = structuredClone(DEFAULT_SUN);
+        const freshDefaultPlanet = DEFAULT_SPACESHIP_PLANET_ID;
         setDraftPlanets(freshPlanets);
         setDraftBelt(freshBelt);
         setDraftSun(freshSun);
+        setDraftDefaultPlanetId(freshDefaultPlanet);
         galaxyStore.setPlanets(freshPlanets, false);
         galaxyStore.setAsteroidBelt(freshBelt, false);
         galaxyStore.setSun(freshSun, false);
+        galaxyStore.setDefaultPlanetId(freshDefaultPlanet, false);
         showToast("Reset entire galaxy to original default configuration.");
     };
 
@@ -274,6 +299,7 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
                 onSelectTarget={handleSelectTarget}
                 sun={draftSun}
                 planets={draftPlanets}
+                defaultPlanetId={draftDefaultPlanetId}
             />
 
             <aside className={`studio-sidebar ${isSidebarOpen ? "studio-sidebar--open" : "studio-sidebar--collapsed"}`}>
@@ -304,6 +330,26 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
                             </div>
 
                             <div className="studio-sidebar__header-actions">
+                                {currentPlanet && (
+                                    <button
+                                        type="button"
+                                        className={`studio-btn studio-btn--sm ${
+                                            draftDefaultPlanetId === currentPlanet.id
+                                                ? "studio-btn--station-active"
+                                                : "studio-btn--ghost"
+                                        }`}
+                                        onClick={() => handleSetDefaultPlanetId(currentPlanet.id)}
+                                        title={
+                                            draftDefaultPlanetId === currentPlanet.id
+                                                ? "Current default starting base for spaceship"
+                                                : "Set this planet as spaceship default starting base"
+                                        }
+                                        aria-pressed={draftDefaultPlanetId === currentPlanet.id}
+                                    >
+                                        {draftDefaultPlanetId === currentPlanet.id ? "Ship Base" : "Set Ship Base"}
+                                    </button>
+                                )}
+
                                 {selectedId === "home" || selectedId === "sun" ? (
                                     <button
                                         type="button"
@@ -311,7 +357,7 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
                                         onClick={handleResetSun}
                                         title="Reset star to original default configuration"
                                     >
-                                        Reset to Default
+                                        Reset
                                     </button>
                                 ) : selectedId === "asteroid-belt" ? (
                                     <button
@@ -320,7 +366,7 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
                                         onClick={handleResetBelt}
                                         title="Reset asteroid belt to original default configuration"
                                     >
-                                        Reset to Default
+                                        Reset
                                     </button>
                                 ) : currentPlanet ? (
                                     <button
@@ -329,7 +375,7 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
                                         onClick={handleResetCurrentPlanet}
                                         title="Reset this planet to original default configuration"
                                     >
-                                        Reset to Default
+                                        Reset
                                     </button>
                                 ) : null}
                             </div>
@@ -461,6 +507,7 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
                 planets={draftPlanets}
                 asteroidBelt={draftBelt}
                 sun={draftSun}
+                defaultPlanetId={draftDefaultPlanetId}
                 onClose={() => setIsDataModalOpen(false)}
                 onImport={handleImportData}
                 onResetDefaults={handleResetAllDefaults}

@@ -89,10 +89,10 @@ export function AppearancePanel({
                                 radius: val,
                                 ring: prev.ring
                                     ? {
-                                          ...prev.ring,
-                                          innerRadius: Number((val * 1.35 + 0.1).toFixed(2)),
-                                          outerRadius: Number((val * 1.95 + 0.3).toFixed(2)),
-                                      }
+                                        ...prev.ring,
+                                        innerRadius: Number((val * 1.35 + 0.1).toFixed(2)),
+                                        outerRadius: Number((val * 1.95 + 0.3).toFixed(2)),
+                                    }
                                     : undefined,
                             }));
                         }}
