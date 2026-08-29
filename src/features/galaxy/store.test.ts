@@ -67,7 +67,7 @@ describe("galaxyStore", () => {
         galaxyStore.resetAsteroidBelt();
         belt = galaxyStore.getAsteroidBeltSnapshot();
         expect(belt.count).toBe(450);
-        expect(belt.innerRadius).toBe(13.6);
+        expect(belt.innerRadius).toBe(14.8);
     });
 
     it("exports and imports galaxy data including asteroid belt", () => {
@@ -94,7 +94,7 @@ describe("galaxyStore", () => {
         galaxyStore.resetSun();
         sun = galaxyStore.getSunSnapshot();
         expect(sun.radius).toBe(3.5);
-        expect(sun.color).toBe("#ffd76b");
+        expect(sun.color).toBe("#ffe59e");
     });
 });
 

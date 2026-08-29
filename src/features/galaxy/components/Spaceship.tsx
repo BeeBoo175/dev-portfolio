@@ -117,7 +117,7 @@ export function Spaceship({ focusId, bodyRefs }: SpaceshipProps) {
     const getSurfaceMesh = (id: string): THREE.Object3D | null => {
         const group = bodyRefs.current?.[id];
         if (!group) return null;
-        return (group.userData?.surfaceMesh as THREE.Object3D) ?? group;
+        return (group.userData?.surfaceMesh as THREE.Object3D) ?? null;
     };
 
     useEffect(() => {
