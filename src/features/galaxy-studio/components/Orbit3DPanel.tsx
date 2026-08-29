@@ -4,12 +4,21 @@ import { Tooltip } from "../../../components/ui/Tooltip";
 export interface Orbit3DPanelProps {
     planet: OrbitConfig;
     onChange: (updater: (prev: OrbitConfig) => OrbitConfig) => void;
+    isMoon?: boolean;
+    minRadius?: number;
+    maxRadius?: number;
 }
 
 const RAD_TO_DEG = 180 / Math.PI;
 const DEG_TO_RAD = Math.PI / 180;
 
-export function Orbit3DPanel({ planet, onChange }: Orbit3DPanelProps) {
+export function Orbit3DPanel({
+    planet,
+    onChange,
+    isMoon = false,
+    minRadius = 5.0,
+    maxRadius = 35.0,
+}: Orbit3DPanelProps) {
     const orbitRadius = planet.orbitRadius ?? 0;
     const orbitSpeed = planet.orbitSpeed ?? 0;
     const initialAngle = planet.initialAngle ?? 0;
@@ -25,16 +34,16 @@ export function Orbit3DPanel({ planet, onChange }: Orbit3DPanelProps) {
 
                 <div className="studio-field">
                     <div className="studio-field__label-row">
-                        <label htmlFor="orbit-radius">Orbit Radius</label>
+                        <label htmlFor="orbit-radius">{isMoon ? "Local Orbit Distance" : "Orbit Radius"}</label>
                         <span className="studio-field__value">{orbitRadius.toFixed(1)} AU</span>
-                        <Tooltip text="Distance from the central star in 3D world units." />
+                        <Tooltip text={isMoon ? "Orbital distance from the host planet center in 3D world units." : "Distance from the central star in 3D world units."} />
                     </div>
                     <input
                         id="orbit-radius"
                         type="range"
-                        min="5.0"
-                        max="35.0"
-                        step="0.2"
+                        min={minRadius}
+                        max={maxRadius}
+                        step={isMoon ? 0.05 : 0.2}
                         value={orbitRadius}
                         onChange={(e) => {
                             const val = parseFloat(e.target.value);
@@ -47,14 +56,14 @@ export function Orbit3DPanel({ planet, onChange }: Orbit3DPanelProps) {
                     <div className="studio-field__label-row">
                         <label htmlFor="orbit-speed">Orbital Speed</label>
                         <span className="studio-field__value">{orbitSpeed.toFixed(3)} rad/s</span>
-                        <Tooltip text="Velocity at which the planet revolves along its orbit path." />
+                        <Tooltip text={isMoon ? "Velocity at which the satellite revolves around the host planet." : "Velocity at which the planet revolves along its orbit path."} />
                     </div>
                     <input
                         id="orbit-speed"
                         type="range"
-                        min="-0.6"
-                        max="0.6"
-                        step="0.01"
+                        min={isMoon ? -2.5 : -0.6}
+                        max={isMoon ? 2.5 : 0.6}
+                        step={isMoon ? 0.05 : 0.01}
                         value={orbitSpeed}
                         onChange={(e) => {
                             const val = parseFloat(e.target.value);
