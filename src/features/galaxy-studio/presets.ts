@@ -5,6 +5,7 @@ import type {
     OrbitConfig,
     SunConfig,
 } from "../galaxy";
+import { resolveGalaxyCollisions } from "../galaxy";
 
 export interface BiomePreset {
     id: string;
@@ -314,6 +315,7 @@ export function generateRandomAsteroidBelt(baseBelt?: AsteroidBeltConfig): Aster
     const heightSpread = Number((Math.random() * 0.7 + 0.4).toFixed(2));
     const inclination = Number(((Math.random() - 0.5) * 0.25).toFixed(3));
     const ascendingNode = Number(((Math.random() - 0.5) * 0.35).toFixed(3));
+    const argument = Number(((Math.random() - 0.5) * 0.35).toFixed(3));
     const seed = Math.floor(Math.random() * 9999) + 1;
 
     return {
@@ -327,6 +329,7 @@ export function generateRandomAsteroidBelt(baseBelt?: AsteroidBeltConfig): Aster
         heightSpread,
         inclination,
         ascendingNode,
+        argument,
         color: colorPair.primary,
         secondaryColor: colorPair.secondary,
         seed,
@@ -335,8 +338,8 @@ export function generateRandomAsteroidBelt(baseBelt?: AsteroidBeltConfig): Aster
 
 export function generateRandomGalaxy(
     basePlanets: OrbitConfig[],
-    baseBelt?: AsteroidBeltConfig,
-    baseSun?: SunConfig
+    baseBelt: AsteroidBeltConfig,
+    baseSun: SunConfig
 ): {
     planets: OrbitConfig[];
     asteroidBelt: AsteroidBeltConfig;
@@ -349,7 +352,7 @@ export function generateRandomGalaxy(
         { minOrbit: 23.5, maxOrbit: 25.5, speedFactor: 0.08 },
     ];
 
-    const planets = basePlanets.map((base, idx) => {
+    const rawPlanets = basePlanets.map((base, idx) => {
         const lane = orbitLanes[idx] ?? {
             minOrbit: 7.0 + idx * 5.5,
             maxOrbit: 8.0 + idx * 5.5,
@@ -382,6 +385,7 @@ export function generateRandomGalaxy(
 
     const asteroidBelt = generateRandomAsteroidBelt(baseBelt);
     const sun = generateRandomSun(baseSun);
+    const { resolvedPlanets: planets } = resolveGalaxyCollisions(rawPlanets, asteroidBelt);
 
     return { planets, asteroidBelt, sun };
 }
