@@ -9,6 +9,30 @@ export interface CameraFillLightProps {
     color?: string;
 }
 
+function updateSpotlightTarget(
+    light: THREE.SpotLight,
+    targetObj: THREE.Object3D,
+    group: THREE.Group,
+    cameraPos: THREE.Vector3,
+    targetPosRef: THREE.Vector3
+): number {
+    group.getWorldPosition(targetPosRef);
+    targetObj.position.copy(targetPosRef);
+
+    const surfaceMesh = group.userData?.surfaceMesh as THREE.Mesh | undefined;
+    let bodyRadius = 2.0;
+    if (surfaceMesh?.geometry?.boundingSphere) {
+        bodyRadius = surfaceMesh.geometry.boundingSphere.radius;
+    }
+
+    const dist = cameraPos.distanceTo(targetPosRef);
+    const angularRadius = Math.atan2(bodyRadius * 1.15, Math.max(dist, 0.1));
+    light.angle = THREE.MathUtils.clamp(angularRadius, 0.05, Math.PI / 3);
+    light.distance = dist + bodyRadius * 0.2;
+
+    return dist;
+}
+
 export function CameraFillLight({
     focusId,
     bodyRefs,
@@ -63,19 +87,7 @@ export function CameraFillLight({
             if (activeTargetId.current !== focusId) {
                 const oldGroup = bodyRefs.current[activeTargetId.current];
                 if (oldGroup && activeTargetId.current !== "home" && activeTargetId.current !== "sun") {
-                    oldGroup.getWorldPosition(targetPos.current);
-                    targetRef.current.position.copy(targetPos.current);
-
-                    const surfaceMesh = oldGroup.userData?.surfaceMesh as THREE.Mesh | undefined;
-                    let bodyRadius = 2.0;
-                    if (surfaceMesh?.geometry?.boundingSphere) {
-                        bodyRadius = surfaceMesh.geometry.boundingSphere.radius;
-                    }
-
-                    const dist = camera.position.distanceTo(targetPos.current);
-                    const angularRadius = Math.atan2(bodyRadius * 1.15, Math.max(dist, 0.1));
-                    lightRef.current.angle = THREE.MathUtils.clamp(angularRadius, 0.05, Math.PI / 3);
-                    lightRef.current.distance = dist + bodyRadius * 0.2;
+                    updateSpotlightTarget(lightRef.current, targetRef.current, oldGroup, camera.position, targetPos.current);
 
                     lightRef.current.intensity = THREE.MathUtils.damp(
                         lightRef.current.intensity,
@@ -92,20 +104,11 @@ export function CameraFillLight({
                     activeTargetId.current = focusId;
                     lightRef.current.intensity = 0;
                 }
-            } else if (newGroup && newTargetIsBody) {
-                newGroup.getWorldPosition(targetPos.current);
-                targetRef.current.position.copy(targetPos.current);
+                return;
+            }
 
-                const surfaceMesh = newGroup.userData?.surfaceMesh as THREE.Mesh | undefined;
-                let bodyRadius = 2.0;
-                if (surfaceMesh?.geometry?.boundingSphere) {
-                    bodyRadius = surfaceMesh.geometry.boundingSphere.radius;
-                }
-
-                const dist = camera.position.distanceTo(targetPos.current);
-                const angularRadius = Math.atan2(bodyRadius * 1.15, Math.max(dist, 0.1));
-                lightRef.current.angle = THREE.MathUtils.clamp(angularRadius, 0.05, Math.PI / 3);
-                lightRef.current.distance = dist + bodyRadius * 0.2;
+            if (newGroup && newTargetIsBody) {
+                const dist = updateSpotlightTarget(lightRef.current, targetRef.current, newGroup, camera.position, targetPos.current);
 
                 const startDist = Math.max(transitionStartDist.current, 15);
                 const focusDist = 9.5;
@@ -128,39 +131,32 @@ export function CameraFillLight({
                 if (timeProgress >= 1.0) {
                     isTransitioning.current = false;
                 }
-            } else {
-                isTransitioning.current = false;
+                return;
             }
-        } else if (newGroup && newTargetIsBody) {
+
+            isTransitioning.current = false;
+            return;
+        }
+
+        if (newGroup && newTargetIsBody) {
             activeTargetId.current = focusId;
-            newGroup.getWorldPosition(targetPos.current);
-            targetRef.current.position.copy(targetPos.current);
-
-            const surfaceMesh = newGroup.userData?.surfaceMesh as THREE.Mesh | undefined;
-            let bodyRadius = 2.0;
-            if (surfaceMesh?.geometry?.boundingSphere) {
-                bodyRadius = surfaceMesh.geometry.boundingSphere.radius;
-            }
-
-            const dist = camera.position.distanceTo(targetPos.current);
-            const angularRadius = Math.atan2(bodyRadius * 1.15, Math.max(dist, 0.1));
-            lightRef.current.angle = THREE.MathUtils.clamp(angularRadius, 0.05, Math.PI / 3);
-            lightRef.current.distance = dist + bodyRadius * 0.2;
+            const dist = updateSpotlightTarget(lightRef.current, targetRef.current, newGroup, camera.position, targetPos.current);
 
             const baseDist = 9.5;
             const distanceCompFactor = Math.max(dist / baseDist, 0.2);
             lightRef.current.intensity = maxIntensity * (distanceCompFactor * distanceCompFactor);
-        } else {
-            activeTargetId.current = focusId;
-            isTransitioning.current = false;
-            lightRef.current.distance = 0;
-            lightRef.current.intensity = THREE.MathUtils.damp(
-                lightRef.current.intensity,
-                0,
-                8.0,
-                delta
-            );
+            return;
         }
+
+        activeTargetId.current = focusId;
+        isTransitioning.current = false;
+        lightRef.current.distance = 0;
+        lightRef.current.intensity = THREE.MathUtils.damp(
+            lightRef.current.intensity,
+            0,
+            8.0,
+            delta
+        );
     });
 
     const effectiveColor = useMemo(() => {

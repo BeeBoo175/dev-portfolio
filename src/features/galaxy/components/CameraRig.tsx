@@ -30,46 +30,28 @@ export interface CameraRigProps {
     onFocusChange?: (id: string) => void;
 }
 
-export function CameraRig({
-    focusId,
-    centralId,
-    bodyRefs,
-    allowManualOrbit = false,
-    allowZoom = false,
-    cameraOrbitSpeed = HOME_ORBIT_SPEED,
-    isCameraOrbitPaused = false,
-    customDistanceConfig,
-    onFocusChange,
-}: CameraRigProps) {
-    const { camera, gl } = useThree();
-    const lastFocusId = useRef<string | null>(null);
-    const currentTargetPos = useRef(new THREE.Vector3());
-    const currentLookTarget = useRef(new THREE.Vector3());
-    const desiredPos = useRef(new THREE.Vector3());
-    const homeTheta = useRef(0);
+function useCameraRigControls(
+    gl: THREE.WebGLRenderer,
+    focusId: string,
+    centralId: string,
+    allowManualOrbit: boolean,
+    allowZoom: boolean,
+    onFocusChange?: (id: string) => void
+) {
+    const isDraggingRef = useRef(false);
+    const lastPointerPosRef = useRef({ x: 0, y: 0 });
+    const userThetaOffsetRef = useRef(0);
+    const userPhiOffsetRef = useRef(0);
+    const targetThetaOffsetRef = useRef(0);
+    const targetPhiOffsetRef = useRef(0);
 
-    const isTransitioning = useRef(false);
-    const transitionElapsed = useRef(0);
-    const transitionStartLookTarget = useRef(new THREE.Vector3());
-    const transitionStartSpherical = useRef(new THREE.Spherical());
-    const transitionEndSpherical = useRef(new THREE.Spherical());
-    const scratchOffset = useRef(new THREE.Vector3());
-    const scratchSpherical = useRef(new THREE.Spherical());
+    const userZoomOffsetRef = useRef(0);
+    const targetZoomOffsetRef = useRef(0);
 
-    const isDragging = useRef(false);
-    const lastPointerPos = useRef({ x: 0, y: 0 });
-    const userThetaOffset = useRef(0);
-    const userPhiOffset = useRef(0);
-    const targetThetaOffset = useRef(0);
-    const targetPhiOffset = useRef(0);
-
-    const userZoomOffset = useRef(0);
-    const targetZoomOffset = useRef(0);
-
-    const activePointers = useRef<Map<number, { x: number; y: number }>>(new Map());
-    const lastPinchDistance = useRef<number | null>(null);
-    const dragStartPos = useRef({ x: 0, y: 0 });
-    const gestureAxis = useRef<"horizontal" | "vertical" | null>(null);
+    const activePointersRef = useRef<Map<number, { x: number; y: number }>>(new Map());
+    const lastPinchDistanceRef = useRef<number | null>(null);
+    const dragStartPosRef = useRef({ x: 0, y: 0 });
+    const gestureAxisRef = useRef<"horizontal" | "vertical" | null>(null);
 
     useEffect(() => {
         const handleZoomButtonEvent = (e: CustomEvent<{ delta: number }>) => {
@@ -77,8 +59,8 @@ export function CameraRig({
             const minZoom = isHome ? -30 : -4.5;
             const maxZoom = isHome ? 80 : 35;
 
-            targetZoomOffset.current = THREE.MathUtils.clamp(
-                targetZoomOffset.current + e.detail.delta,
+            targetZoomOffsetRef.current = THREE.MathUtils.clamp(
+                targetZoomOffsetRef.current + e.detail.delta,
                 minZoom,
                 maxZoom
             );
@@ -102,30 +84,30 @@ export function CameraRig({
             const maxZoom = isHome ? 80 : 35;
 
             const nextZoom = THREE.MathUtils.clamp(
-                targetZoomOffset.current + zoomDelta,
+                targetZoomOffsetRef.current + zoomDelta,
                 minZoom,
                 maxZoom
             );
-            targetZoomOffset.current = nextZoom;
+            targetZoomOffsetRef.current = nextZoom;
 
             if (!isHome && nextZoom >= 22 && onFocusChange) {
-                targetZoomOffset.current = 0;
+                targetZoomOffsetRef.current = 0;
                 onFocusChange("home");
             }
         };
 
         const handlePointerDown = (e: PointerEvent) => {
-            activePointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+            activePointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
 
-            if (activePointers.current.size === 1 && e.button === 0) {
-                isDragging.current = true;
-                lastPointerPos.current = { x: e.clientX, y: e.clientY };
-                dragStartPos.current = { x: e.clientX, y: e.clientY };
-                gestureAxis.current = allowZoom ? "horizontal" : null;
-            } else if (activePointers.current.size === 2 && allowZoom) {
-                isDragging.current = false;
-                const points = Array.from(activePointers.current.values());
-                lastPinchDistance.current = Math.hypot(
+            if (activePointersRef.current.size === 1 && e.button === 0) {
+                isDraggingRef.current = true;
+                lastPointerPosRef.current = { x: e.clientX, y: e.clientY };
+                dragStartPosRef.current = { x: e.clientX, y: e.clientY };
+                gestureAxisRef.current = allowZoom ? "horizontal" : null;
+            } else if (activePointersRef.current.size === 2 && allowZoom) {
+                isDraggingRef.current = false;
+                const points = Array.from(activePointersRef.current.values());
+                lastPinchDistanceRef.current = Math.hypot(
                     points[0].x - points[1].x,
                     points[0].y - points[1].y
                 );
@@ -133,52 +115,52 @@ export function CameraRig({
         };
 
         const handlePointerMove = (e: PointerEvent) => {
-            if (activePointers.current.has(e.pointerId)) {
-                activePointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+            if (activePointersRef.current.has(e.pointerId)) {
+                activePointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
             }
 
-            if (activePointers.current.size === 2 && lastPinchDistance.current !== null && allowZoom) {
-                const points = Array.from(activePointers.current.values());
+            if (activePointersRef.current.size === 2 && lastPinchDistanceRef.current !== null && allowZoom) {
+                const points = Array.from(activePointersRef.current.values());
                 const currentDistance = Math.hypot(
                     points[0].x - points[1].x,
                     points[0].y - points[1].y
                 );
-                const diff = lastPinchDistance.current - currentDistance;
-                lastPinchDistance.current = currentDistance;
+                const diff = lastPinchDistanceRef.current - currentDistance;
+                lastPinchDistanceRef.current = currentDistance;
 
                 applyZoomDelta(diff * 0.08);
                 return;
             }
 
-            if (!isDragging.current) return;
+            if (!isDraggingRef.current) return;
 
-            if (e.pointerType === "touch" && !allowZoom && gestureAxis.current === null) {
-                const totalDx = Math.abs(e.clientX - dragStartPos.current.x);
-                const totalDy = Math.abs(e.clientY - dragStartPos.current.y);
+            if (e.pointerType === "touch" && !allowZoom && gestureAxisRef.current === null) {
+                const totalDx = Math.abs(e.clientX - dragStartPosRef.current.x);
+                const totalDy = Math.abs(e.clientY - dragStartPosRef.current.y);
 
                 if (totalDx > 6 || totalDy > 6) {
                     if (totalDy > totalDx) {
-                        gestureAxis.current = "vertical";
-                        isDragging.current = false;
+                        gestureAxisRef.current = "vertical";
+                        isDraggingRef.current = false;
                         return;
                     }
-                    gestureAxis.current = "horizontal";
+                    gestureAxisRef.current = "horizontal";
                 } else {
                     return;
                 }
             }
 
-            if (gestureAxis.current === "vertical") return;
+            if (gestureAxisRef.current === "vertical") return;
 
-            const deltaX = e.clientX - lastPointerPos.current.x;
-            const deltaY = e.clientY - lastPointerPos.current.y;
-            lastPointerPos.current = { x: e.clientX, y: e.clientY };
+            const deltaX = e.clientX - lastPointerPosRef.current.x;
+            const deltaY = e.clientY - lastPointerPosRef.current.y;
+            lastPointerPosRef.current = { x: e.clientX, y: e.clientY };
 
-            targetThetaOffset.current -= deltaX * 0.005;
+            targetThetaOffsetRef.current -= deltaX * 0.005;
 
             if (allowZoom || e.pointerType !== "touch") {
-                targetPhiOffset.current = THREE.MathUtils.clamp(
-                    targetPhiOffset.current - deltaY * 0.005,
+                targetPhiOffsetRef.current = THREE.MathUtils.clamp(
+                    targetPhiOffsetRef.current - deltaY * 0.005,
                     -FIXED_POLAR_ANGLE + 0.1,
                     Math.PI - FIXED_POLAR_ANGLE - 0.1
                 );
@@ -186,17 +168,17 @@ export function CameraRig({
         };
 
         const handlePointerUp = (e: PointerEvent) => {
-            activePointers.current.delete(e.pointerId);
+            activePointersRef.current.delete(e.pointerId);
 
-            if (activePointers.current.size === 0) {
-                isDragging.current = false;
-                gestureAxis.current = null;
-                lastPinchDistance.current = null;
-            } else if (activePointers.current.size === 1) {
-                lastPinchDistance.current = null;
-                const remaining = Array.from(activePointers.current.values())[0];
-                lastPointerPos.current = { x: remaining.x, y: remaining.y };
-                isDragging.current = true;
+            if (activePointersRef.current.size === 0) {
+                isDraggingRef.current = false;
+                gestureAxisRef.current = null;
+                lastPinchDistanceRef.current = null;
+            } else if (activePointersRef.current.size === 1) {
+                lastPinchDistanceRef.current = null;
+                const remaining = Array.from(activePointersRef.current.values())[0];
+                lastPointerPosRef.current = { x: remaining.x, y: remaining.y };
+                isDraggingRef.current = true;
             }
         };
 
@@ -232,6 +214,51 @@ export function CameraRig({
         };
     }, [allowManualOrbit, allowZoom, centralId, focusId, gl.domElement, onFocusChange]);
 
+    return {
+        userThetaOffsetRef,
+        userPhiOffsetRef,
+        targetThetaOffsetRef,
+        targetPhiOffsetRef,
+        userZoomOffsetRef,
+        targetZoomOffsetRef
+    };
+}
+
+export function CameraRig({
+    focusId,
+    centralId,
+    bodyRefs,
+    allowManualOrbit = false,
+    allowZoom = false,
+    cameraOrbitSpeed = HOME_ORBIT_SPEED,
+    isCameraOrbitPaused = false,
+    customDistanceConfig,
+    onFocusChange,
+}: CameraRigProps) {
+    const { camera, gl } = useThree();
+    const lastFocusId = useRef<string | null>(null);
+    const currentTargetPos = useRef(new THREE.Vector3());
+    const currentLookTarget = useRef(new THREE.Vector3());
+    const desiredPos = useRef(new THREE.Vector3());
+    const homeTheta = useRef(0);
+
+    const isTransitioning = useRef(false);
+    const transitionElapsed = useRef(0);
+    const transitionStartLookTarget = useRef(new THREE.Vector3());
+    const transitionStartSpherical = useRef(new THREE.Spherical());
+    const transitionEndSpherical = useRef(new THREE.Spherical());
+    const scratchOffset = useRef(new THREE.Vector3());
+    const scratchSpherical = useRef(new THREE.Spherical());
+
+    const {
+        userThetaOffsetRef,
+        userPhiOffsetRef,
+        targetThetaOffsetRef,
+        targetPhiOffsetRef,
+        userZoomOffsetRef,
+        targetZoomOffsetRef
+    } = useCameraRigControls(gl, focusId, centralId, allowManualOrbit, allowZoom, onFocusChange);
+
     useFrame((_, frameDelta) => {
         const isHome = focusId === centralId || focusId === "sun";
         const isBelt = focusId === "asteroid-belt";
@@ -249,21 +276,21 @@ export function CameraRig({
         }
 
         if (allowManualOrbit) {
-            userThetaOffset.current = THREE.MathUtils.damp(
-                userThetaOffset.current,
-                targetThetaOffset.current,
+            userThetaOffsetRef.current = THREE.MathUtils.damp(
+                userThetaOffsetRef.current,
+                targetThetaOffsetRef.current,
                 12,
                 frameDelta
             );
-            userPhiOffset.current = THREE.MathUtils.damp(
-                userPhiOffset.current,
-                targetPhiOffset.current,
+            userPhiOffsetRef.current = THREE.MathUtils.damp(
+                userPhiOffsetRef.current,
+                targetPhiOffsetRef.current,
                 12,
                 frameDelta
             );
-            userZoomOffset.current = THREE.MathUtils.damp(
-                userZoomOffset.current,
-                targetZoomOffset.current,
+            userZoomOffsetRef.current = THREE.MathUtils.damp(
+                userZoomOffsetRef.current,
+                targetZoomOffsetRef.current,
                 12,
                 frameDelta
             );
@@ -278,15 +305,15 @@ export function CameraRig({
         const homeBaseDist = Math.hypot(config.homeRadial, config.homeHeight);
         const orbitBaseDist = Math.hypot(config.orbitRadial, config.orbitHeight);
         const baseDistance = isBelt ? config.beltDistance : isHome ? homeBaseDist : orbitBaseDist;
-        const distance = Math.max(1.5, baseDistance + userZoomOffset.current);
+        const distance = Math.max(1.5, baseDistance + userZoomOffsetRef.current);
 
         const baseTheta = isHome || isBelt
             ? homeTheta.current
             : Math.atan2(currentTargetPos.current.x, currentTargetPos.current.z);
 
-        const activeTheta = baseTheta + userThetaOffset.current;
+        const activeTheta = baseTheta + userThetaOffsetRef.current;
         const activePhi = THREE.MathUtils.clamp(
-            FIXED_POLAR_ANGLE + userPhiOffset.current,
+            FIXED_POLAR_ANGLE + userPhiOffsetRef.current,
             0.1,
             Math.PI - 0.1
         );
@@ -308,12 +335,12 @@ export function CameraRig({
             scratchOffset.current.subVectors(camera.position, currentTargetPos.current);
             transitionStartSpherical.current.setFromVector3(scratchOffset.current).makeSafe();
 
-            targetThetaOffset.current = 0;
-            targetPhiOffset.current = 0;
-            userThetaOffset.current = 0;
-            userPhiOffset.current = 0;
-            targetZoomOffset.current = 0;
-            userZoomOffset.current = 0;
+            targetThetaOffsetRef.current = 0;
+            targetPhiOffsetRef.current = 0;
+            userThetaOffsetRef.current = 0;
+            userPhiOffsetRef.current = 0;
+            targetZoomOffsetRef.current = 0;
+            userZoomOffsetRef.current = 0;
         }
 
         if (isTransitioning.current) {
