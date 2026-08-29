@@ -126,4 +126,36 @@ describe("collisionDetection utils", () => {
         const planetPlanetWarnings = warningsAfter.filter((w) => w.type === "planet-planet");
         expect(planetPlanetWarnings).toHaveLength(0);
     });
+
+    it("detects and resolves collisions with asteroid belt", () => {
+        const asteroidBelt = {
+            enabled: true,
+            innerRadius: 13.5,
+            outerRadius: 16.5,
+            count: 400,
+            minSize: 0.05,
+            maxSize: 0.15,
+            orbitSpeed: 0.1,
+            heightSpread: 0.5,
+        };
+
+        const planetsInsideBelt: OrbitConfig[] = [
+            {
+                id: "planet-in-belt",
+                radius: 1.0,
+                rotationSpeed: 0.01,
+                orbitRadius: 14.5,
+            },
+        ];
+
+        const warnings = detectAllGalaxyCollisions(planetsInsideBelt, asteroidBelt);
+        expect(warnings.some((w) => w.type === "planet-belt")).toBe(true);
+
+        const { resolvedPlanets, changedCount } = resolveGalaxyCollisions(planetsInsideBelt, asteroidBelt);
+        expect(changedCount).toBeGreaterThan(0);
+
+        const warningsAfter = detectAllGalaxyCollisions(resolvedPlanets, asteroidBelt);
+        expect(warningsAfter.some((w) => w.type === "planet-belt")).toBe(false);
+    });
 });
+

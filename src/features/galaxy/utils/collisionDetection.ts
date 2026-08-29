@@ -1,15 +1,16 @@
-import type { OrbitConfig } from "../types";
+import type { AsteroidBeltConfig, OrbitConfig } from "../types";
 
 export interface CollisionWarning {
     id: string;
-    type: "planet-planet" | "planet-moon" | "moon-moon" | "cross-system";
+    type: "planet-planet" | "planet-moon" | "moon-moon" | "cross-system" | "planet-belt" | "moon-belt";
     title: string;
     description: string;
 }
 
 export function detectPlanetCollisions(
     planet: OrbitConfig,
-    allPlanets: OrbitConfig[]
+    allPlanets: OrbitConfig[],
+    asteroidBelt?: AsteroidBeltConfig
 ): CollisionWarning[] {
     const warnings: CollisionWarning[] = [];
     const r1 = planet.radius ?? 1;
@@ -48,6 +49,39 @@ export function detectPlanetCollisions(
                     type: "cross-system",
                     title: `Lunar Cross-System Reach (${other.id.toUpperCase()})`,
                     description: `Moon orbit extends into ${other.id.toUpperCase()}'s orbital lane.`,
+                });
+            }
+        }
+    }
+
+    if (asteroidBelt && asteroidBelt.enabled && asteroidBelt.count > 0) {
+        const beltInner = asteroidBelt.innerRadius;
+        const beltOuter = asteroidBelt.outerRadius;
+        const planetInner = o1 - r1;
+        const planetOuter = o1 + r1;
+
+        if (planetOuter >= beltInner - 0.2 && planetInner <= beltOuter + 0.2) {
+            warnings.push({
+                id: `belt-${planet.id}`,
+                type: "planet-belt",
+                title: `Asteroid Belt Intersection (${planet.id.toUpperCase()})`,
+                description: `Orbit (${o1.toFixed(1)}) passes directly through the Asteroid Belt zone (${beltInner.toFixed(1)} - ${beltOuter.toFixed(1)}).`,
+            });
+        }
+
+        const planetMoons = planet.children ?? [];
+        for (let m = 0; m < planetMoons.length; m++) {
+            const moon = planetMoons[m];
+            const moonReach = (moon.orbitRadius ?? 2.0) + moon.radius;
+            const moonMin = o1 - moonReach;
+            const moonMax = o1 + moonReach;
+
+            if (moonMax >= beltInner && moonMin <= beltOuter && !(planetOuter >= beltInner && planetInner <= beltOuter)) {
+                warnings.push({
+                    id: `belt-moon-${planet.id}-${moon.id}`,
+                    type: "moon-belt",
+                    title: `Lunar Belt Intersection (${planet.id.toUpperCase()} Moon #${m + 1})`,
+                    description: `Moon #${m + 1}'s orbit extends into the Asteroid Belt field (${beltInner.toFixed(1)} - ${beltOuter.toFixed(1)}).`,
                 });
             }
         }
@@ -126,12 +160,15 @@ export function detectMoonCollisions(
     return warnings;
 }
 
-export function detectAllGalaxyCollisions(allPlanets: OrbitConfig[]): CollisionWarning[] {
+export function detectAllGalaxyCollisions(
+    allPlanets: OrbitConfig[],
+    asteroidBelt?: AsteroidBeltConfig
+): CollisionWarning[] {
     const seen = new Set<string>();
     const allWarnings: CollisionWarning[] = [];
 
     for (const planet of allPlanets) {
-        const warnings = detectPlanetCollisions(planet, allPlanets);
+        const warnings = detectPlanetCollisions(planet, allPlanets, asteroidBelt);
         for (const w of warnings) {
             const normKey =
                 w.type === "planet-planet"
@@ -146,13 +183,15 @@ export function detectAllGalaxyCollisions(allPlanets: OrbitConfig[]): CollisionW
     return allWarnings;
 }
 
-export function resolveGalaxyCollisions(planets: OrbitConfig[]): {
+export function resolveGalaxyCollisions(
+    planets: OrbitConfig[],
+    asteroidBelt?: AsteroidBeltConfig
+): {
     resolvedPlanets: OrbitConfig[];
     changedCount: number;
 } {
     let changedCount = 0;
 
-    // Step 1: Deep clone planets and fix internal moon collisions first
     const clone: OrbitConfig[] = planets.map((p) => {
         const pRad = p.radius ?? 1.0;
         let pChanged = false;
@@ -185,7 +224,6 @@ export function resolveGalaxyCollisions(planets: OrbitConfig[]): {
         };
     });
 
-    // Step 2: Fix planetary orbit distances and cross-system reaches
     const indexed = clone.map((p, idx) => ({ p: { ...p }, idx }));
     indexed.sort((a, b) => (a.p.orbitRadius ?? 0) - (b.p.orbitRadius ?? 0));
 
@@ -194,6 +232,17 @@ export function resolveGalaxyCollisions(planets: OrbitConfig[]): {
     for (let i = 0; i < indexed.length; i++) {
         const item = indexed[i];
         let orbit = item.p.orbitRadius ?? 7.0;
+        const curRad = item.p.radius ?? 1.0;
+
+        let curInnerReach = curRad;
+        let curOuterReach = curRad;
+        if (item.p.children && item.p.children.length > 0) {
+            for (const m of item.p.children) {
+                const mReach = (m.orbitRadius ?? 2.0) + m.radius;
+                if (mReach > curInnerReach) curInnerReach = mReach;
+                if (mReach > curOuterReach) curOuterReach = mReach;
+            }
+        }
 
         if (i === 0) {
             if (orbit < SUN_SAFE_ORBIT) {
@@ -205,21 +254,12 @@ export function resolveGalaxyCollisions(planets: OrbitConfig[]): {
             const prevItem = indexed[i - 1];
             const prevOrbit = prevItem.p.orbitRadius ?? 7.0;
             const prevRad = prevItem.p.radius ?? 1.0;
-            const curRad = item.p.radius ?? 1.0;
 
             let prevOuterReach = prevRad;
             if (prevItem.p.children && prevItem.p.children.length > 0) {
                 for (const m of prevItem.p.children) {
                     const mReach = (m.orbitRadius ?? 2.0) + m.radius;
                     if (mReach > prevOuterReach) prevOuterReach = mReach;
-                }
-            }
-
-            let curInnerReach = curRad;
-            if (item.p.children && item.p.children.length > 0) {
-                for (const m of item.p.children) {
-                    const mReach = (m.orbitRadius ?? 2.0) + m.radius;
-                    if (mReach > curInnerReach) curInnerReach = mReach;
                 }
             }
 
@@ -231,9 +271,30 @@ export function resolveGalaxyCollisions(planets: OrbitConfig[]): {
             const minRequiredOrbit = Number((prevOrbit + minSafeDist).toFixed(1));
 
             if (orbit < minRequiredOrbit) {
-                if (orbit !== minRequiredOrbit) changedCount++;
-                item.p.orbitRadius = minRequiredOrbit;
+                orbit = minRequiredOrbit;
             }
+        }
+
+        if (asteroidBelt && asteroidBelt.enabled && asteroidBelt.count > 0) {
+            const beltInner = asteroidBelt.innerRadius;
+            const beltOuter = asteroidBelt.outerRadius;
+            const safeBeltBuffer = 0.3;
+
+            const minBeforeBelt = beltInner - curOuterReach - safeBeltBuffer;
+            const minAfterBelt = beltOuter + curInnerReach + safeBeltBuffer;
+
+            if (orbit > minBeforeBelt && orbit < minAfterBelt) {
+                if (Math.abs(orbit - minBeforeBelt) < Math.abs(orbit - minAfterBelt) && (i === 0 || (indexed[i - 1].p.orbitRadius ?? 0) < minBeforeBelt - 1.0)) {
+                    orbit = Number(minBeforeBelt.toFixed(1));
+                } else {
+                    orbit = Number(minAfterBelt.toFixed(1));
+                }
+            }
+        }
+
+        if (orbit !== item.p.orbitRadius) {
+            changedCount++;
+            item.p.orbitRadius = orbit;
         }
     }
 
@@ -242,3 +303,4 @@ export function resolveGalaxyCollisions(planets: OrbitConfig[]): {
 
     return { resolvedPlanets, changedCount };
 }
+

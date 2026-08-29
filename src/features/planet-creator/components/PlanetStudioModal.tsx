@@ -62,7 +62,7 @@ export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
     const isDirty = JSON.stringify({ planets: draftPlanets, asteroidBelt: draftBelt }) !== savedSnapshot;
     const draftPlanet =
         draftPlanets.find((p) => p.id === selectedId) ?? draftPlanets[0];
-    const allGalaxyWarnings = detectAllGalaxyCollisions(draftPlanets);
+    const allGalaxyWarnings = detectAllGalaxyCollisions(draftPlanets, draftBelt);
 
     const updateDraftPlanet = (updater: (prev: OrbitConfig) => OrbitConfig) => {
         setDraftPlanets((prevList) =>
@@ -372,7 +372,7 @@ export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
     };
 
     const handleResolveCollisions = () => {
-        const { resolvedPlanets, changedCount } = resolveGalaxyCollisions(draftPlanets);
+        const { resolvedPlanets, changedCount } = resolveGalaxyCollisions(draftPlanets, draftBelt);
         if (changedCount > 0) {
             setDraftPlanets(resolvedPlanets);
             setToastMessage(`Resolved ${changedCount} orbital path(s)! Click Apply to save.`);
