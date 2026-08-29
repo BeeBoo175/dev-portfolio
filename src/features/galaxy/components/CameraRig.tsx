@@ -116,7 +116,6 @@ export function CameraRig({
 
             if (!isHome && nextZoom >= 22 && onFocusChange) {
                 targetZoomOffset.current = 0;
-                userZoomOffset.current = 0;
                 onFocusChange("home");
             }
         };
@@ -160,15 +159,15 @@ export function CameraRig({
             transitionElapsed.current = 0;
             transitionStartTargetPos.current.copy(currentLookTarget.current);
 
+            scratchOffset.current.subVectors(camera.position, currentLookTarget.current);
+            startSpherical.current.setFromVector3(scratchOffset.current);
+
             targetThetaOffset.current = 0;
             targetPhiOffset.current = 0;
             userThetaOffset.current = 0;
             userPhiOffset.current = 0;
             targetZoomOffset.current = 0;
             userZoomOffset.current = 0;
-
-            scratchOffset.current.subVectors(camera.position, currentLookTarget.current);
-            startSpherical.current.setFromVector3(scratchOffset.current);
         }
 
         if (allowManualOrbit) {
