@@ -223,6 +223,7 @@ export function AsteroidBeltPanel({
                         <input
                             id="belt-primary-color"
                             type="color"
+                            aria-label="Primary Mineral Color"
                             value={config.color || "#9ca3af"}
                             onChange={(e) => {
                                 const val = e.target.value;
@@ -242,6 +243,7 @@ export function AsteroidBeltPanel({
                         <input
                             id="belt-secondary-color"
                             type="color"
+                            aria-label="Secondary Mineral Accent"
                             value={config.secondaryColor || "#57534e"}
                             onChange={(e) => {
                                 const val = e.target.value;
