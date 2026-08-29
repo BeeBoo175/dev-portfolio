@@ -95,7 +95,7 @@ export function GalaxyDataDialog({
 
                     <div className="studio-field">
                         <div className="studio-field__label-row">
-                            <label>Export Current System</label>
+                            <label htmlFor="export-system-json">Export Current System</label>
                             <button
                                 type="button"
                                 className="studio-btn studio-btn--secondary studio-btn--sm"
@@ -105,6 +105,8 @@ export function GalaxyDataDialog({
                             </button>
                         </div>
                         <textarea
+                            id="export-system-json"
+                            aria-label="Exported system JSON configuration"
                             className="studio-textarea"
                             rows={6}
                             readOnly
@@ -113,8 +115,10 @@ export function GalaxyDataDialog({
                     </div>
 
                     <div className="studio-field" style={{ marginTop: "1rem" }}>
-                        <label>Import System JSON</label>
+                        <label htmlFor="import-system-json">Import System JSON</label>
                         <textarea
+                            id="import-system-json"
+                            aria-label="Import system JSON configuration"
                             className="studio-textarea"
                             rows={5}
                             placeholder="Paste custom galaxy JSON here..."

@@ -141,6 +141,7 @@ export function SunPanel({ sun, onChange }: SunPanelProps) {
                         <input
                             id="sun-color"
                             type="color"
+                            aria-label="Core Color"
                             value={sun.color || "#ffd76b"}
                             onChange={(e) => {
                                 const val = e.target.value;
@@ -151,7 +152,7 @@ export function SunPanel({ sun, onChange }: SunPanelProps) {
                                 }));
                             }}
                         />
-                        <span className="studio-color-picker__label">Core Color</span>
+                        <label htmlFor="sun-color" className="studio-color-picker__label">Core Color</label>
                         <span className="studio-color-picker__hex">{sun.color || "#ffd76b"}</span>
                     </div>
 
@@ -159,6 +160,7 @@ export function SunPanel({ sun, onChange }: SunPanelProps) {
                         <input
                             id="sun-flare-color"
                             type="color"
+                            aria-label="Flare Highlight"
                             value={sun.palette?.peak || "#fffbeb"}
                             onChange={(e) => {
                                 const val = e.target.value;
@@ -168,7 +170,7 @@ export function SunPanel({ sun, onChange }: SunPanelProps) {
                                 }));
                             }}
                         />
-                        <span className="studio-color-picker__label">Flare Highlight</span>
+                        <label htmlFor="sun-flare-color" className="studio-color-picker__label">Flare Highlight</label>
                         <span className="studio-color-picker__hex">{sun.palette?.peak || "#fffbeb"}</span>
                     </div>
                 </div>
