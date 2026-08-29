@@ -30,7 +30,13 @@ function loadPersistedPlanets(): OrbitConfig[] {
         const defaults = cloneDefaultPlanets();
         return defaults.map((def) => {
             const override = parsed.find((p: OrbitConfig) => p.id === def.id);
-            return override ? { ...def, ...override } : def;
+            if (!override) return def;
+            return {
+                ...def,
+                ...override,
+                ring: override.ring,
+                children: override.children,
+            };
         });
     } catch {
         return cloneDefaultPlanets();
