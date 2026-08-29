@@ -28,6 +28,9 @@ export interface CameraRigProps {
     centralId: string;
     bodyRefs: React.RefObject<Record<string, THREE.Group | null>>;
     allowManualOrbit?: boolean;
+    cameraOrbitSpeed?: number;
+    isCameraOrbitPaused?: boolean;
+    onFocusChange?: (id: string) => void;
 }
 
 export function CameraRig({
@@ -35,6 +38,9 @@ export function CameraRig({
     centralId,
     bodyRefs,
     allowManualOrbit = false,
+    cameraOrbitSpeed = HOME_ORBIT_SPEED,
+    isCameraOrbitPaused = false,
+    onFocusChange,
 }: CameraRigProps) {
     const { camera, gl } = useThree();
     const lastFocusId = useRef<string | null>(null);
@@ -57,6 +63,9 @@ export function CameraRig({
     const userPhiOffset = useRef(0);
     const targetThetaOffset = useRef(0);
     const targetPhiOffset = useRef(0);
+
+    const userZoomOffset = useRef(0);
+    const targetZoomOffset = useRef(0);
 
     useEffect(() => {
         if (!allowManualOrbit) return;
@@ -91,7 +100,29 @@ export function CameraRig({
             e.preventDefault();
         };
 
+        const handleWheel = (e: WheelEvent) => {
+            e.preventDefault();
+            const zoomDelta = e.deltaY * 0.02;
+            const isHome = focusId === centralId || focusId === "sun";
+            const minZoom = isHome ? -30 : -4.5;
+            const maxZoom = isHome ? 80 : 35;
+
+            const nextZoom = THREE.MathUtils.clamp(
+                targetZoomOffset.current + zoomDelta,
+                minZoom,
+                maxZoom
+            );
+            targetZoomOffset.current = nextZoom;
+
+            if (!isHome && nextZoom >= 22 && onFocusChange) {
+                targetZoomOffset.current = 0;
+                userZoomOffset.current = 0;
+                onFocusChange("home");
+            }
+        };
+
         domElement.addEventListener("pointerdown", handlePointerDown);
+        domElement.addEventListener("wheel", handleWheel, { passive: false });
         window.addEventListener("pointermove", handlePointerMove);
         window.addEventListener("pointerup", handlePointerUp);
         window.addEventListener("pointercancel", handlePointerUp);
@@ -99,12 +130,13 @@ export function CameraRig({
 
         return () => {
             domElement.removeEventListener("pointerdown", handlePointerDown);
+            domElement.removeEventListener("wheel", handleWheel);
             window.removeEventListener("pointermove", handlePointerMove);
             window.removeEventListener("pointerup", handlePointerUp);
             window.removeEventListener("pointercancel", handlePointerUp);
             domElement.removeEventListener("contextmenu", handleContextMenu);
         };
-    }, [allowManualOrbit, gl.domElement]);
+    }, [allowManualOrbit, centralId, focusId, gl.domElement, onFocusChange]);
 
     useFrame((_, frameDelta) => {
         const isHome = focusId === centralId || focusId === "sun";
@@ -112,7 +144,9 @@ export function CameraRig({
 
         if (isHome || isBelt) {
             currentTargetPos.current.set(0, 0, 0);
-            homeTheta.current += HOME_ORBIT_SPEED * frameDelta;
+            if (!isCameraOrbitPaused) {
+                homeTheta.current += cameraOrbitSpeed * frameDelta;
+            }
         } else {
             const planetGroup = bodyRefs.current?.[focusId];
             if (planetGroup) {
@@ -130,6 +164,8 @@ export function CameraRig({
             targetPhiOffset.current = 0;
             userThetaOffset.current = 0;
             userPhiOffset.current = 0;
+            targetZoomOffset.current = 0;
+            userZoomOffset.current = 0;
 
             scratchOffset.current.subVectors(camera.position, currentLookTarget.current);
             startSpherical.current.setFromVector3(scratchOffset.current);
@@ -148,9 +184,17 @@ export function CameraRig({
                 12,
                 frameDelta
             );
+            userZoomOffset.current = THREE.MathUtils.damp(
+                userZoomOffset.current,
+                targetZoomOffset.current,
+                12,
+                frameDelta
+            );
         }
 
-        const distance = isBelt ? 36 : isHome ? HOME_DISTANCE : ORBIT_DISTANCE;
+        const baseDistance = isBelt ? 36 : isHome ? HOME_DISTANCE : ORBIT_DISTANCE;
+        const distance = Math.max(1.5, baseDistance + userZoomOffset.current);
+
         const baseTheta = isHome || isBelt
             ? homeTheta.current
             : Math.atan2(currentTargetPos.current.x, currentTargetPos.current.z);

@@ -29,6 +29,7 @@ export interface SunConfig {
     color: string;
     glowIntensity: number;
     lightIntensity: number;
+    cameraOrbitSpeed?: number;
     palette?: PaletteConfig;
 }
 
@@ -69,4 +70,5 @@ export interface AsteroidBeltConfig {
 export interface GalaxyVisualSettings {
     showOrbitPaths: boolean;
     showOrbitalAxes: boolean;
+    freezeCameraOrbit?: boolean;
 }

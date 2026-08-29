@@ -223,6 +223,7 @@ export function generateRandomSun(baseSun?: SunConfig): SunConfig {
         color: chosenColor,
         glowIntensity: Number((Math.random() * 0.6 + 0.8).toFixed(2)),
         lightIntensity: Number((Math.random() * 3.0 + 5.0).toFixed(1)),
+        cameraOrbitSpeed: Number((-(Math.random() * 0.06 + 0.02)).toFixed(3)),
         palette: {
             water: chosenColor,
             peak: "#fffbeb",

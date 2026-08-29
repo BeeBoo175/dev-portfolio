@@ -64,10 +64,10 @@ function loadPersistedSun(): SunConfig {
 function loadPersistedVisuals(): GalaxyVisualSettings {
     try {
         const raw = localStorage.getItem(VISUALS_KEY);
-        if (raw) return JSON.parse(raw);
+        if (raw) return { showOrbitPaths: true, showOrbitalAxes: false, freezeCameraOrbit: false, ...JSON.parse(raw) };
     } catch {
     }
-    return { showOrbitPaths: true, showOrbitalAxes: false };
+    return { showOrbitPaths: true, showOrbitalAxes: false, freezeCameraOrbit: false };
 }
 
 function loadPersistedDefaultPlanetId(): string {
@@ -261,17 +261,22 @@ class GalaxyStore {
 
     toggleOrbitPaths() {
         this.visuals = { ...this.visuals, showOrbitPaths: !this.visuals.showOrbitPaths };
-        this.notify();
+        this.notify(true);
     }
 
     toggleOrbitalAxes() {
         this.visuals = { ...this.visuals, showOrbitalAxes: !this.visuals.showOrbitalAxes };
-        this.notify();
+        this.notify(true);
+    }
+
+    toggleFreezeCameraOrbit() {
+        this.visuals = { ...this.visuals, freezeCameraOrbit: !this.visuals.freezeCameraOrbit };
+        this.notify(true);
     }
 
     setVisualSettings(updates: Partial<GalaxyVisualSettings>) {
         this.visuals = { ...this.visuals, ...updates };
-        this.notify();
+        this.notify(true);
     }
 
     exportJSON(): string {
