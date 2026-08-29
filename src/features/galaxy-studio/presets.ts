@@ -238,7 +238,7 @@ export function generateRandomMoon(planetId: string, index: number): OrbitConfig
         id: `${planetId}-moon-${index + 1}`,
         radius: Number((Math.random() * 0.15 + 0.22).toFixed(2)),
         orbitRadius: Number((1.5 + index * 1.1 + Math.random() * 0.3).toFixed(2)),
-        orbitSpeed: Number((Math.random() * 0.6 + 0.6).toFixed(2)),
+        orbitSpeed: Number((Math.random() * 0.3 + 0.25).toFixed(2)),
         rotationSpeed: Number((Math.random() * 0.5 + 0.3).toFixed(2)),
         axialTilt: Number((Math.random() * 0.35).toFixed(3)),
         orbitInclination: Number(((Math.random() - 0.5) * 0.3).toFixed(3)),
@@ -315,7 +315,7 @@ export function generateRandomAsteroidBelt(baseBelt?: AsteroidBeltConfig): Aster
     const count = Math.floor(Math.random() * 300) + 350;
     const minSize = Number((Math.random() * 0.04 + 0.03).toFixed(2));
     const maxSize = Number((minSize + Math.random() * 0.12 + 0.08).toFixed(2));
-    const orbitSpeed = Number(((Math.random() * 0.08 + 0.05) * (Math.random() > 0.15 ? 1 : -1)).toFixed(3));
+    const orbitSpeed = Number(((Math.random() * 0.04 + 0.025) * (Math.random() > 0.15 ? 1 : -1)).toFixed(3));
     const heightSpread = Number((Math.random() * 0.7 + 0.4).toFixed(2));
     const inclination = Number(((Math.random() - 0.5) * 0.25).toFixed(3));
     const ascendingNode = Number(((Math.random() - 0.5) * 0.35).toFixed(3));
@@ -350,17 +350,17 @@ export function generateRandomGalaxy(
     sun: SunConfig;
 } {
     const orbitLanes = [
-        { minOrbit: 6.8, maxOrbit: 7.6, speedFactor: 0.23 },
-        { minOrbit: 11.5, maxOrbit: 12.8, speedFactor: 0.15 },
-        { minOrbit: 17.5, maxOrbit: 19.0, speedFactor: 0.11 },
-        { minOrbit: 23.5, maxOrbit: 25.5, speedFactor: 0.08 },
+        { minOrbit: 6.8, maxOrbit: 7.6, speedFactor: 0.1 },
+        { minOrbit: 11.5, maxOrbit: 12.8, speedFactor: 0.065 },
+        { minOrbit: 17.5, maxOrbit: 19.0, speedFactor: 0.048 },
+        { minOrbit: 23.5, maxOrbit: 25.5, speedFactor: 0.035 },
     ];
 
     const rawPlanets = basePlanets.map((base, idx) => {
         const lane = orbitLanes[idx] ?? {
             minOrbit: 7.0 + idx * 5.5,
             maxOrbit: 8.0 + idx * 5.5,
-            speedFactor: 0.2 / (idx + 1),
+            speedFactor: 0.1 / (idx + 1),
         };
 
         const randomPlanet = generateRandomPlanet(base);
