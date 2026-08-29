@@ -1,4 +1,4 @@
-import { forwardRef, useImperativeHandle, useRef } from "react";
+import { forwardRef, useImperativeHandle, useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import type { OrbitConfig, SunConfig } from "../types";
@@ -7,19 +7,23 @@ import LowPolyPlanet from "./LowPolyPlanet";
 import OrbitPathLine from "./OrbitPathLine";
 import OrbitalAxisLine from "./OrbitalAxisLine";
 import SunGlow from "./SunGlow";
+import SelectionGlow from "./SelectionGlow";
 
 export interface CelestialBodyProps {
     body: OrbitConfig | SunConfig;
     color?: string;
     isSun?: boolean;
+    isMoon?: boolean;
+    isSelected?: boolean;
     onSelect?: (id: string) => void;
 }
 
 export const CelestialBody = forwardRef<THREE.Group, CelestialBodyProps>(
-    ({ body, color, isSun, onSelect }, ref) => {
+    ({ body, color, isSun, isMoon = false, isSelected = false, onSelect }, ref) => {
         const orbitRef = useRef<THREE.Group>(null);
         const positionRef = useRef<THREE.Group>(null);
         const bodyRef = useRef<THREE.Mesh>(null);
+        const [isHovered, setIsHovered] = useState(false);
         const visuals = useGalaxyVisuals();
         const effectiveColor = color ?? body.color ?? "white";
 
@@ -50,6 +54,8 @@ export const CelestialBody = forwardRef<THREE.Group, CelestialBodyProps>(
         const orbitAscendingNode = orbitConfig.orbitAscendingNode ?? 0;
         const orbitArgument = orbitConfig.orbitArgument ?? 0;
         const axialTilt = orbitConfig.axialTilt ?? 0;
+
+        const labelText = isSun ? "SUN" : (body.id.charAt(0).toUpperCase() + body.id.slice(1));
 
         return (
             <group rotation={[orbitInclination, orbitAscendingNode, orbitArgument]}>
@@ -87,11 +93,22 @@ export const CelestialBody = forwardRef<THREE.Group, CelestialBodyProps>(
                                     onSelect?.(body.id);
                                 }}
                                 onPointerOver={() => {
+                                    setIsHovered(true);
                                     document.body.style.cursor = "pointer";
                                 }}
                                 onPointerOut={() => {
+                                    setIsHovered(false);
                                     document.body.style.cursor = "default";
                                 }}
+                            />
+
+                            <SelectionGlow
+                                radius={body.radius}
+                                color={effectiveColor}
+                                label={!isSun && !isMoon && hasOrbit ? labelText : undefined}
+                                isSelected={isSelected}
+                                isHovered={isHovered}
+                                isSun={isSun}
                             />
 
                             {visuals.showOrbitalAxes && !isSun && (
@@ -120,7 +137,12 @@ export const CelestialBody = forwardRef<THREE.Group, CelestialBodyProps>(
                         )}
 
                         {orbitConfig.children?.map((child) => (
-                            <CelestialBody key={child.id} body={child} />
+                            <CelestialBody
+                                key={child.id}
+                                body={child}
+                                isMoon={true}
+                                onSelect={onSelect}
+                            />
                         ))}
                     </group>
                 </group>
