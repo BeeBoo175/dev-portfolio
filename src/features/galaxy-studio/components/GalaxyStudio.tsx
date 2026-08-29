@@ -165,6 +165,161 @@ export function GalaxyStudio({
 
     const targetLabel = TARGET_LIST.find((t) => t.id === selectedId)?.label || selectedId;
 
+    const renderHeaderActions = () => {
+        if (selectedId === "home" || selectedId === "sun") {
+            return (
+                <button
+                    type="button"
+                    className="studio-btn studio-btn--ghost studio-btn--sm"
+                    onClick={handleResetSun}
+                    title="Reset star to original default configuration"
+                >
+                    Reset
+                </button>
+            );
+        }
+
+        if (selectedId === "asteroid-belt") {
+            return (
+                <button
+                    type="button"
+                    className="studio-btn studio-btn--ghost studio-btn--sm"
+                    onClick={handleResetBelt}
+                    title="Reset asteroid belt to original default configuration"
+                >
+                    Reset
+                </button>
+            );
+        }
+
+        if (currentPlanet) {
+            return (
+                <>
+                    <button
+                        type="button"
+                        className={`studio-btn studio-btn--sm ${draftDefaultPlanetId === currentPlanet.id
+                                ? "studio-btn--station-active"
+                                : "studio-btn--ghost"
+                            }`}
+                        onClick={() => handleSetDefaultPlanetId(currentPlanet.id, targetLabel)}
+                        title={
+                            draftDefaultPlanetId === currentPlanet.id
+                                ? "Current default starting base for spaceship"
+                                : "Set this planet as spaceship default starting base"
+                        }
+                        aria-pressed={draftDefaultPlanetId === currentPlanet.id}
+                    >
+                        {draftDefaultPlanetId === currentPlanet.id ? "Ship Base" : "Set Ship Base"}
+                    </button>
+                    <button
+                        type="button"
+                        className="studio-btn studio-btn--ghost studio-btn--sm"
+                        onClick={() => handleResetCurrentPlanet(targetLabel)}
+                        title="Reset this planet to original default configuration"
+                    >
+                        Reset
+                    </button>
+                </>
+            );
+        }
+
+        return null;
+    };
+
+    const renderInspectorContent = () => {
+        if (selectedId === "home" || selectedId === "sun") {
+            return (
+                <div className="studio-tab-body">
+                    <SunPanel
+                        sun={draftSun}
+                        onChange={updateSun}
+                    />
+                </div>
+            );
+        }
+
+        if (selectedId === "asteroid-belt") {
+            return (
+                <div className="studio-tab-body">
+                    <AsteroidBeltPanel
+                        config={draftBelt}
+                        onChange={updateBelt}
+                    />
+                </div>
+            );
+        }
+
+        if (currentPlanet) {
+            return (
+                <>
+                    <div className="studio-tabs" role="tablist" aria-label="Planet categories">
+                        {[
+                            { id: "appearance", label: "Appearance" },
+                            { id: "orbit", label: "Orbit 3D" },
+                            { id: "terrain", label: "Terrain" },
+                            {
+                                id: "moons",
+                                label: `Moons (${currentPlanet.children?.length || 0})`,
+                            },
+                        ].map((tab) => (
+                            <button
+                                key={tab.id}
+                                type="button"
+                                role="tab"
+                                id={`planet-tab-${tab.id}`}
+                                aria-selected={activeTab === tab.id}
+                                aria-controls={`planet-panel-${tab.id}`}
+                                className={`studio-tab ${activeTab === tab.id ? "studio-tab--active" : ""}`}
+                                onClick={() => handleSetActiveTab(tab.id as PlanetTab)}
+                            >
+                                {tab.label}
+                            </button>
+                        ))}
+                    </div>
+
+                    <div
+                        className="studio-tab-body"
+                        role="tabpanel"
+                        id={`planet-panel-${activeTab}`}
+                        aria-labelledby={`planet-tab-${activeTab}`}
+                    >
+                        {activeTab === "appearance" && (
+                            <AppearancePanel
+                                planet={currentPlanet}
+                                onChange={updatePlanet}
+                            />
+                        )}
+
+                        {activeTab === "orbit" && (
+                            <Orbit3DPanel
+                                planet={currentPlanet}
+                                onChange={updatePlanet}
+                            />
+                        )}
+
+                        {activeTab === "terrain" && (
+                            <TerrainPanel
+                                planet={currentPlanet}
+                                onChange={updatePlanet}
+                            />
+                        )}
+
+                        {activeTab === "moons" && (
+                            <MoonsPanel
+                                planet={currentPlanet}
+                                activeMoonIndex={activeMoonIndex}
+                                onSelectMoon={handleSelectMoon}
+                                onChange={updatePlanet}
+                            />
+                        )}
+                    </div>
+                </>
+            );
+        }
+
+        return null;
+    };
+
     return (
         <div className={`galaxy-studio-container ${isInteracting ? "galaxy-studio-container--zen" : ""}`}>
             <div className="studio-header-area">
@@ -259,137 +414,11 @@ export function GalaxyStudio({
                         </div>
 
                         <div className="studio-sidebar__header-actions">
-                            {currentPlanet && (
-                                <button
-                                    type="button"
-                                    className={`studio-btn studio-btn--sm ${draftDefaultPlanetId === currentPlanet.id
-                                        ? "studio-btn--station-active"
-                                        : "studio-btn--ghost"
-                                        }`}
-                                    onClick={() => handleSetDefaultPlanetId(currentPlanet.id, targetLabel)}
-                                    title={
-                                        draftDefaultPlanetId === currentPlanet.id
-                                            ? "Current default starting base for spaceship"
-                                            : "Set this planet as spaceship default starting base"
-                                    }
-                                    aria-pressed={draftDefaultPlanetId === currentPlanet.id}
-                                >
-                                    {draftDefaultPlanetId === currentPlanet.id ? "Ship Base" : "Set Ship Base"}
-                                </button>
-                            )}
-
-                            {selectedId === "home" || selectedId === "sun" ? (
-                                <button
-                                    type="button"
-                                    className="studio-btn studio-btn--ghost studio-btn--sm"
-                                    onClick={handleResetSun}
-                                    title="Reset star to original default configuration"
-                                >
-                                    Reset
-                                </button>
-                            ) : selectedId === "asteroid-belt" ? (
-                                <button
-                                    type="button"
-                                    className="studio-btn studio-btn--ghost studio-btn--sm"
-                                    onClick={handleResetBelt}
-                                    title="Reset asteroid belt to original default configuration"
-                                >
-                                    Reset
-                                </button>
-                            ) : currentPlanet ? (
-                                <button
-                                    type="button"
-                                    className="studio-btn studio-btn--ghost studio-btn--sm"
-                                    onClick={() => handleResetCurrentPlanet(targetLabel)}
-                                    title="Reset this planet to original default configuration"
-                                >
-                                    Reset
-                                </button>
-                            ) : null}
+                            {renderHeaderActions()}
                         </div>
                     </div>
 
-                    {selectedId === "home" || selectedId === "sun" ? (
-                        <div className="studio-tab-body">
-                            <SunPanel
-                                sun={draftSun}
-                                onChange={updateSun}
-                            />
-                        </div>
-                    ) : selectedId === "asteroid-belt" ? (
-                        <div className="studio-tab-body">
-                            <AsteroidBeltPanel
-                                config={draftBelt}
-                                onChange={updateBelt}
-                            />
-                        </div>
-                    ) : currentPlanet ? (
-                        <>
-                            <div className="studio-tabs" role="tablist" aria-label="Planet categories">
-                                {[
-                                    { id: "appearance", label: "Appearance" },
-                                    { id: "orbit", label: "Orbit 3D" },
-                                    { id: "terrain", label: "Terrain" },
-                                    {
-                                        id: "moons",
-                                        label: `Moons (${currentPlanet.children?.length || 0})`,
-                                    },
-                                ].map((tab) => (
-                                    <button
-                                        key={tab.id}
-                                        type="button"
-                                        role="tab"
-                                        id={`planet-tab-${tab.id}`}
-                                        aria-selected={activeTab === tab.id}
-                                        aria-controls={`planet-panel-${tab.id}`}
-                                        className={`studio-tab ${activeTab === tab.id ? "studio-tab--active" : ""
-                                            }`}
-                                        onClick={() => handleSetActiveTab(tab.id as PlanetTab)}
-                                    >
-                                        {tab.label}
-                                    </button>
-                                ))}
-                            </div>
-
-                            <div
-                                className="studio-tab-body"
-                                role="tabpanel"
-                                id={`planet-panel-${activeTab}`}
-                                aria-labelledby={`planet-tab-${activeTab}`}
-                            >
-                                {activeTab === "appearance" && (
-                                    <AppearancePanel
-                                        planet={currentPlanet}
-                                        onChange={updatePlanet}
-                                    />
-                                )}
-
-                                {activeTab === "orbit" && (
-                                    <Orbit3DPanel
-                                        planet={currentPlanet}
-                                        onChange={updatePlanet}
-                                    />
-                                )}
-
-                                {activeTab === "terrain" && (
-                                    <TerrainPanel
-                                        planet={currentPlanet}
-                                        onChange={updatePlanet}
-                                    />
-                                )}
-
-                                {activeTab === "moons" && (
-                                    <MoonsPanel
-                                        planet={currentPlanet}
-                                        activeMoonIndex={activeMoonIndex}
-                                        onSelectMoon={handleSelectMoon}
-                                        onChange={updatePlanet}
-                                    />
-                                )}
-                            </div>
-
-                        </>
-                    ) : null}
+                    {renderInspectorContent()}
                 </div>
             </aside>
 
