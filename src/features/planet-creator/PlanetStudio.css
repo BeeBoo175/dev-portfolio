@@ -1,7 +1,7 @@
 .planet-lab-trigger {
     position: fixed;
     bottom: 24px;
-    right: 24px;
+    left: 24px;
     z-index: 90;
     display: inline-flex;
     align-items: center;
