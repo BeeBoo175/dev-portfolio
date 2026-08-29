@@ -1,6 +1,7 @@
 import { useMemo, useRef, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
+import { useGalaxyVisuals } from "../store";
 
 export interface SelectionGlowProps {
     radius: number;
@@ -8,7 +9,8 @@ export interface SelectionGlowProps {
     label?: string;
     isSelected?: boolean;
     isHovered?: boolean;
-    isSun?: boolean;
+    showReticle?: boolean;
+    showLabel?: boolean;
 }
 
 function createBracketsGeometry(radius: number, cornerSize: number) {
@@ -53,8 +55,13 @@ export function SelectionGlow({
     label,
     isSelected = false,
     isHovered = false,
-    isSun = false,
+    showReticle,
+    showLabel,
 }: SelectionGlowProps) {
+    const visuals = useGalaxyVisuals();
+    const effectiveShowReticle = showReticle ?? (visuals.showSelectionGlow !== false);
+    const effectiveShowLabel = showLabel ?? (visuals.showPlanetNames !== false);
+
     const groupRef = useRef<THREE.Group>(null);
     const bracketsRef = useRef<THREE.LineSegments>(null);
     const dotsRef = useRef<THREE.Points>(null);
@@ -111,7 +118,9 @@ export function SelectionGlow({
 
         groupRef.current.lookAt(state.camera.position);
 
-        const targetBracketOpacity = isSelected ? 0.9 : isHovered ? 0.65 : 0;
+        const targetBracketOpacity = effectiveShowReticle
+            ? (isSelected ? 0.9 : isHovered ? 0.65 : 0)
+            : 0;
 
         if (bracketsRef.current) {
             const mat = bracketsRef.current.material as THREE.LineBasicMaterial;
@@ -130,7 +139,9 @@ export function SelectionGlow({
 
         if (dotsRef.current) {
             const dotMat = dotsRef.current.material as THREE.PointsMaterial;
-            const dotTargetOpacity = isSelected ? 0.75 : isHovered ? 0.45 : 0;
+            const dotTargetOpacity = effectiveShowReticle
+                ? (isSelected ? 0.75 : isHovered ? 0.45 : 0)
+                : 0;
             dotMat.opacity = THREE.MathUtils.damp(dotMat.opacity, dotTargetOpacity, 6, delta);
             dotsRef.current.visible = dotMat.opacity > 0.01;
 
@@ -141,12 +152,14 @@ export function SelectionGlow({
         if (labelSpriteRef.current) {
             labelSpriteRef.current.getWorldPosition(worldPos.current);
             const dist = state.camera.position.distanceTo(worldPos.current);
-            
+
             const distanceScale = dist * 0.09;
             const labelMat = labelSpriteRef.current.material as THREE.SpriteMaterial;
-            
+
             const closeFocusFade = isSelected ? THREE.MathUtils.clamp((dist - 10.5) / 12.0, 0, 1) : 1;
-            const targetBaseOpacity = isSelected ? 0.95 : isHovered ? 0.85 : 0.4;
+            const targetBaseOpacity = effectiveShowLabel
+                ? (isSelected ? 0.95 : isHovered ? 0.85 : 0.4)
+                : 0;
             const labelTargetOpacity = targetBaseOpacity * closeFocusFade;
 
             labelMat.opacity = isSelected ? labelTargetOpacity : THREE.MathUtils.damp(labelMat.opacity, labelTargetOpacity, 10, delta);
@@ -156,7 +169,7 @@ export function SelectionGlow({
             const cameraDist = state.camera.position.length();
             const zoomInFactor = THREE.MathUtils.clamp((60 - cameraDist) / 38, 0, 1);
             const ambientScaleMultiplier = 1.0 + 0.5 * zoomInFactor;
-            
+
             const interactionMultiplier = isSelected ? 1.15 : isHovered ? 1.05 : 1.0;
             const width = interactionMultiplier * ambientScaleMultiplier * distanceScale * 1.8;
             const height = width * 0.25;
@@ -167,8 +180,6 @@ export function SelectionGlow({
             labelSpriteRef.current.position.y = THREE.MathUtils.damp(labelSpriteRef.current.position.y, targetY, 8, delta);
         }
     });
-
-    if (isSun) return null;
 
     const labelY = -(radius * 1.35 + 0.75);
 
