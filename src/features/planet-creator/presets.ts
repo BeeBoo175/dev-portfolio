@@ -1,4 +1,4 @@
-import type { PaletteConfig, PlanetTerrainConfig, OrbitConfig } from "../galaxy";
+import type { AsteroidBeltConfig, PaletteConfig, PlanetTerrainConfig, OrbitConfig } from "../galaxy";
 
 export interface BiomePreset {
     id: string;
@@ -143,6 +143,17 @@ const RANDOM_PALETTES: PaletteConfig[] = [
     { water: "#c2410c", coast: "#ea580c", land: "#fb923c", mountain: "#7c2d12", peak: "#ffedd5" },
 ];
 
+const ASTEROID_COLORS = [
+    { primary: "#9ca3af", secondary: "#57534e" },
+    { primary: "#a8a29e", secondary: "#44403c" },
+    { primary: "#cbd5e1", secondary: "#64748b" },
+    { primary: "#d4d4d8", secondary: "#52525b" },
+    { primary: "#b45309", secondary: "#78350f" },
+    { primary: "#0284c7", secondary: "#1e3a8a" },
+    { primary: "#a855f7", secondary: "#581c87" },
+    { primary: "#059669", secondary: "#064e3b" },
+];
+
 export function generateRandomTerrain(): { terrain: PlanetTerrainConfig; palette: PaletteConfig; color: string } {
     const seed = Math.floor(Math.random() * 1000);
     const noiseScale = Number((Math.random() * 1.2 + 0.9).toFixed(2));
@@ -165,7 +176,41 @@ export function generateRandomTerrain(): { terrain: PlanetTerrainConfig; palette
     };
 }
 
-export function generateRandomGalaxy(basePlanets: OrbitConfig[]): OrbitConfig[] {
+export function generateRandomAsteroidBelt(baseBelt?: AsteroidBeltConfig): AsteroidBeltConfig {
+    const colorPair = ASTEROID_COLORS[Math.floor(Math.random() * ASTEROID_COLORS.length)];
+    const innerRadius = Number((Math.random() * 1.5 + 13.0).toFixed(1));
+    const outerRadius = Number((innerRadius + Math.random() * 1.8 + 2.2).toFixed(1));
+    const count = Math.floor(Math.random() * 300) + 350;
+    const minSize = Number((Math.random() * 0.03 + 0.04).toFixed(2));
+    const maxSize = Number((minSize + Math.random() * 0.10 + 0.08).toFixed(2));
+    const orbitSpeed = Number((Math.random() * 0.08 + 0.05).toFixed(2));
+    const heightSpread = Number((Math.random() * 0.5 + 0.4).toFixed(2));
+    const inclination = Number(((Math.random() - 0.5) * 0.1).toFixed(3));
+    const seed = Math.floor(Math.random() * 9999) + 1;
+
+    return {
+        enabled: baseBelt?.enabled ?? true,
+        innerRadius,
+        outerRadius,
+        count,
+        minSize,
+        maxSize,
+        orbitSpeed,
+        heightSpread,
+        inclination,
+        color: colorPair.primary,
+        secondaryColor: colorPair.secondary,
+        seed,
+    };
+}
+
+export function generateRandomGalaxy(
+    basePlanets: OrbitConfig[],
+    baseBelt?: AsteroidBeltConfig
+): {
+    planets: OrbitConfig[];
+    asteroidBelt: AsteroidBeltConfig;
+} {
     const allPalettes = [
         ...BIOME_PRESETS.map((b) => ({ palette: b.palette, color: b.color })),
         ...RANDOM_PALETTES.map((p) => ({ palette: p, color: p.coast ?? p.land ?? "#38bdf8" })),
@@ -175,11 +220,11 @@ export function generateRandomGalaxy(basePlanets: OrbitConfig[]): OrbitConfig[] 
     const orbitLanes = [
         { minOrbit: 6.8, maxOrbit: 7.6, speedFactor: 0.23 },
         { minOrbit: 11.5, maxOrbit: 12.8, speedFactor: 0.15 },
-        { minOrbit: 16.8, maxOrbit: 18.2, speedFactor: 0.11 },
-        { minOrbit: 22.8, maxOrbit: 24.5, speedFactor: 0.08 },
+        { minOrbit: 17.5, maxOrbit: 19.0, speedFactor: 0.11 },
+        { minOrbit: 23.5, maxOrbit: 25.5, speedFactor: 0.08 },
     ];
 
-    return basePlanets.map((base, idx) => {
+    const planets = basePlanets.map((base, idx) => {
         const lane = orbitLanes[idx] ?? {
             minOrbit: 7.0 + idx * 5.5,
             maxOrbit: 8.0 + idx * 5.5,
@@ -276,4 +321,9 @@ export function generateRandomGalaxy(basePlanets: OrbitConfig[]): OrbitConfig[] 
             children: moons,
         };
     });
+
+    const asteroidBelt = generateRandomAsteroidBelt(baseBelt);
+
+    return { planets, asteroidBelt };
 }
+
