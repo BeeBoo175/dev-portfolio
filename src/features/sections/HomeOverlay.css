@@ -133,6 +133,10 @@
     align-items: center;
     justify-content: center;
     color: #451a03;
+    font-weight: 700;
+    font-family: var(--font-mono);
+    font-size: 18px;
+    line-height: 1;
     transition: box-shadow var(--transition-normal), filter var(--transition-fast);
 }
 
