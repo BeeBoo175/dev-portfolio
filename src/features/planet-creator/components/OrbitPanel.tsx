@@ -23,8 +23,8 @@ export function OrbitPanel({ draftPlanet, onOrbitalChange }: OrbitPanelProps) {
             </div>
             <input
                 type="range"
-                min="0.6"
-                max="2.5"
+                min="0.4"
+                max="4.0"
                 step="0.05"
                 value={draftPlanet.radius}
                 onChange={(e) => onOrbitalChange("radius", parseFloat(e.target.value))}
@@ -42,8 +42,8 @@ export function OrbitPanel({ draftPlanet, onOrbitalChange }: OrbitPanelProps) {
             <input
                 type="range"
                 min="4.0"
-                max="26.0"
-                step="0.5"
+                max="40.0"
+                step="0.2"
                 value={draftPlanet.orbitRadius ?? 10.0}
                 onChange={(e) => onOrbitalChange("orbitRadius", parseFloat(e.target.value))}
                 className="planet-studio__range"
@@ -59,8 +59,8 @@ export function OrbitPanel({ draftPlanet, onOrbitalChange }: OrbitPanelProps) {
             </div>
             <input
                 type="range"
-                min="0.02"
-                max="0.5"
+                min="0.01"
+                max="0.8"
                 step="0.01"
                 value={draftPlanet.orbitSpeed ?? 0.15}
                 onChange={(e) => onOrbitalChange("orbitSpeed", parseFloat(e.target.value))}
@@ -75,9 +75,9 @@ export function OrbitPanel({ draftPlanet, onOrbitalChange }: OrbitPanelProps) {
             </div>
             <input
                 type="range"
-                min="-0.78"
-                max="0.78"
-                step="0.02"
+                min="-1.2"
+                max="1.2"
+                step="0.01"
                 value={draftPlanet.orbitInclination ?? 0}
                 onChange={(e) => onOrbitalChange("orbitInclination", parseFloat(e.target.value))}
                 className="planet-studio__range"
@@ -91,9 +91,9 @@ export function OrbitPanel({ draftPlanet, onOrbitalChange }: OrbitPanelProps) {
             </div>
             <input
                 type="range"
-                min="0.05"
-                max="1.5"
-                step="0.05"
+                min="0.02"
+                max="2.5"
+                step="0.02"
                 value={draftPlanet.rotationSpeed}
                 onChange={(e) => onOrbitalChange("rotationSpeed", parseFloat(e.target.value))}
                 className="planet-studio__range"
@@ -108,7 +108,7 @@ export function OrbitPanel({ draftPlanet, onOrbitalChange }: OrbitPanelProps) {
             <input
                 type="range"
                 min="0.0"
-                max="1.57"
+                max="3.14"
                 step="0.02"
                 value={draftPlanet.axialTilt ?? 0}
                 onChange={(e) => onOrbitalChange("axialTilt", parseFloat(e.target.value))}
@@ -127,7 +127,7 @@ export function OrbitPanel({ draftPlanet, onOrbitalChange }: OrbitPanelProps) {
                 type="range"
                 min="0.0"
                 max="6.28"
-                step="0.1"
+                step="0.05"
                 value={draftPlanet.initialAngle ?? 0}
                 onChange={(e) => onOrbitalChange("initialAngle", parseFloat(e.target.value))}
                 className="planet-studio__range"

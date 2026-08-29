@@ -558,16 +558,24 @@ export function PlanetStudioModal({ focusId }: PlanetStudioModalProps) {
                                                 style={{ flex: 1 }}
                                                 onClick={handleRandomizeBeltSeed}
                                             >
-                                                Re-randomize Seed
+                                                Reseed Belt
                                             </button>
                                             <button
-                                                className="planet-studio__btn planet-studio__btn--secondary"
+                                                className={`planet-studio__btn ${
+                                                    draftBelt.enabled
+                                                        ? "planet-studio__btn--secondary"
+                                                        : "planet-studio__btn--primary"
+                                                }`}
                                                 style={{ flex: 1 }}
-                                                onClick={() =>
-                                                    handleBeltChange({
-                                                        enabled: !draftBelt.enabled,
-                                                    })
-                                                }
+                                                onClick={() => {
+                                                    const nextEnabled = !draftBelt.enabled;
+                                                    handleBeltChange({ enabled: nextEnabled });
+                                                    setToastMessage(
+                                                        nextEnabled
+                                                            ? "Asteroid Belt enabled! Click Apply to save."
+                                                            : "Asteroid Belt disabled! Click Apply to save."
+                                                    );
+                                                }}
                                             >
                                                 {draftBelt.enabled ? "Disable Belt" : "Enable Belt"}
                                             </button>

@@ -22,7 +22,7 @@ export function TerrainPanel({ draftPlanet, onTerrainChange }: TerrainPanelProps
             <input
                 type="range"
                 min="0.0"
-                max="0.45"
+                max="0.85"
                 step="0.01"
                 value={roughness}
                 onChange={(e) => onTerrainChange("roughness", parseFloat(e.target.value))}
@@ -38,8 +38,8 @@ export function TerrainPanel({ draftPlanet, onTerrainChange }: TerrainPanelProps
             <input
                 type="range"
                 min="0.0"
-                max="0.75"
-                step="0.02"
+                max="0.95"
+                step="0.01"
                 value={waterLevel}
                 onChange={(e) => onTerrainChange("waterLevel", parseFloat(e.target.value))}
                 className="planet-studio__range"
@@ -53,9 +53,9 @@ export function TerrainPanel({ draftPlanet, onTerrainChange }: TerrainPanelProps
             </div>
             <input
                 type="range"
-                min="0.5"
-                max="3.0"
-                step="0.1"
+                min="0.2"
+                max="5.0"
+                step="0.05"
                 value={noiseScale}
                 onChange={(e) => onTerrainChange("noiseScale", parseFloat(e.target.value))}
                 className="planet-studio__range"
@@ -70,7 +70,7 @@ export function TerrainPanel({ draftPlanet, onTerrainChange }: TerrainPanelProps
             <input
                 type="range"
                 min="1"
-                max="500"
+                max="999"
                 step="1"
                 value={seed}
                 onChange={(e) => onTerrainChange("seed", parseInt(e.target.value, 10))}

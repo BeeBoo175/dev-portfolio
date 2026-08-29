@@ -1,5 +1,5 @@
 import type { AsteroidBeltConfig, OrbitConfig } from "./types";
- 
+
 export const DEFAULT_ASTEROID_BELT: AsteroidBeltConfig = {
     enabled: true,
     innerRadius: 13.6,
@@ -230,4 +230,4 @@ export const ORBIT_LAYOUT: OrbitConfig[] = [
             },
         ],
     },
-];
+];
