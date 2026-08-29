@@ -5,10 +5,9 @@ import { Tooltip } from "../../../components/ui/Tooltip";
 export interface SunPanelProps {
     sun: SunConfig;
     onChange: (updater: (prev: SunConfig) => SunConfig) => void;
-    onReset: () => void;
 }
 
-export function SunPanel({ sun, onChange, onReset }: SunPanelProps) {
+export function SunPanel({ sun, onChange }: SunPanelProps) {
     const handleRandomize = () => {
         const randomSun = generateRandomSun(sun);
         onChange(() => randomSun);
@@ -26,13 +25,6 @@ export function SunPanel({ sun, onChange, onReset }: SunPanelProps) {
                             onClick={handleRandomize}
                         >
                             Randomize Sun
-                        </button>
-                        <button
-                            type="button"
-                            className="studio-btn studio-btn--ghost studio-btn--sm"
-                            onClick={onReset}
-                        >
-                            Reset
                         </button>
                     </div>
                 </div>

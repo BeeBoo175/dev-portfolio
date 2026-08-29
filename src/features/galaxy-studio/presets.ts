@@ -98,7 +98,7 @@ export const BIOME_PRESETS: BiomePreset[] = [
     },
     {
         id: "glacier",
-        name: "Frostbite Tundra",
+        name: "Frost Tundra",
         description: "Frozen world of turquoise ice shelves and shimmering snowdrifts.",
         color: "#67e8f9",
         terrain: {

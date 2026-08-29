@@ -1,4 +1,3 @@
-import { Link } from "react-router-dom";
 import type { GalaxyVisualSettings } from "../../galaxy";
 
 export interface GalaxyToolbarProps {
@@ -8,10 +7,12 @@ export interface GalaxyToolbarProps {
     onToggleOrbitPaths: () => void;
     onToggleOrbitalAxes: () => void;
     onRandomizeAll: () => void;
+    onResetGalaxy: () => void;
     onResolveCollisions: () => void;
     onOpenDataModal: () => void;
     onSaveAndApply: () => void;
     onDiscard: () => void;
+    onExit: () => void;
 }
 
 export function GalaxyToolbar({
@@ -21,10 +22,12 @@ export function GalaxyToolbar({
     onToggleOrbitPaths,
     onToggleOrbitalAxes,
     onRandomizeAll,
+    onResetGalaxy,
     onResolveCollisions,
     onOpenDataModal,
     onSaveAndApply,
     onDiscard,
+    onExit,
 }: GalaxyToolbarProps) {
     return (
         <header className="studio-toolbar">
@@ -50,6 +53,15 @@ export function GalaxyToolbar({
                     onClick={onRandomizeAll}
                 >
                     Randomize Galaxy
+                </button>
+
+                <button
+                    type="button"
+                    className="studio-toolbar__action-btn"
+                    onClick={onResetGalaxy}
+                    title="Reset all planets, star, and asteroid belt to original default configuration"
+                >
+                    Reset to Defaults
                 </button>
 
                 <div className="studio-toolbar__divider" />
@@ -94,8 +106,9 @@ export function GalaxyToolbar({
                         type="button"
                         className="studio-btn studio-btn--ghost studio-btn--sm"
                         onClick={onDiscard}
+                        title="Discard working changes and revert to your saved galaxy in storage"
                     >
-                        Discard
+                        Revert to Saved
                     </button>
                 )}
 
@@ -103,16 +116,18 @@ export function GalaxyToolbar({
                     type="button"
                     className="studio-btn studio-btn--primary studio-btn--sm"
                     onClick={onSaveAndApply}
+                    disabled={!isDirty}
                 >
                     Save & Apply
                 </button>
 
-                <Link
-                    to="/"
+                <button
+                    type="button"
                     className="studio-btn studio-btn--outline studio-btn--sm"
+                    onClick={onExit}
                 >
                     Exit Studio
-                </Link>
+                </button>
             </div>
         </header>
     );

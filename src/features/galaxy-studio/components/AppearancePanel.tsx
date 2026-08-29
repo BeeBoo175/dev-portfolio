@@ -5,7 +5,6 @@ import { Tooltip } from "../../../components/ui/Tooltip";
 export interface AppearancePanelProps {
     planet: OrbitConfig;
     onChange: (updater: (prev: OrbitConfig) => OrbitConfig) => void;
-    onReset?: () => void;
     isMoon?: boolean;
     minRadius?: number;
     maxRadius?: number;
@@ -14,7 +13,6 @@ export interface AppearancePanelProps {
 export function AppearancePanel({
     planet,
     onChange,
-    onReset,
     isMoon = false,
     minRadius = 0.5,
     maxRadius = 2.5,
@@ -68,15 +66,6 @@ export function AppearancePanel({
                         >
                             {isMoon ? "Randomize Moon" : "Randomize Planet"}
                         </button>
-                        {onReset && (
-                            <button
-                                type="button"
-                                className="studio-btn studio-btn--ghost studio-btn--sm"
-                                onClick={onReset}
-                            >
-                                Reset
-                            </button>
-                        )}
                     </div>
                 </div>
 
