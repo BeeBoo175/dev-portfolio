@@ -86,6 +86,51 @@
     font-weight: 600;
 }
 
+.docked-navigation__zoom-divider {
+    width: 1px;
+    height: 18px;
+    background: var(--border-subtle);
+    margin: 0 2px;
+    flex-shrink: 0;
+}
+
+.docked-navigation__zoom-controls {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    flex-shrink: 0;
+}
+
+.docked-navigation__zoom-btn {
+    width: 24px;
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border-radius: var(--radius-xs);
+    border: 1px solid var(--border-subtle);
+    background: var(--bg-surface-subtle);
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 600;
+    font-family: var(--font-mono, monospace);
+    cursor: pointer;
+    line-height: 1;
+    transition: all var(--transition-fast);
+    flex-shrink: 0;
+}
+
+.docked-navigation__zoom-btn:hover {
+    background: var(--bg-surface-hover);
+    color: var(--accent-cyan);
+    border-color: var(--accent-cyan);
+}
+
+.docked-navigation__zoom-btn:active {
+    transform: scale(0.92);
+}
+
 .docked-navigation__expand-tab {
     display: none;
 }

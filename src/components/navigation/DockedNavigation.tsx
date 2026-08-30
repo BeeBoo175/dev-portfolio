@@ -40,6 +40,22 @@ export function DockedNavigation({
         }
     }, [selectedId]);
 
+    const handleZoomIn = () => {
+        window.dispatchEvent(
+            new CustomEvent("portfolio:camera-zoom", {
+                detail: { delta: -4.0 },
+            })
+        );
+    };
+
+    const handleZoomOut = () => {
+        window.dispatchEvent(
+            new CustomEvent("portfolio:camera-zoom", {
+                detail: { delta: 4.0 },
+            })
+        );
+    };
+
     return (
         <nav
             className={`docked-navigation ${className}`}
@@ -99,6 +115,29 @@ export function DockedNavigation({
                         </button>
                     );
                 })}
+
+                <div className="docked-navigation__zoom-divider" />
+
+                <div className="docked-navigation__zoom-controls" aria-label="Camera Zoom Controls">
+                    <button
+                        type="button"
+                        className="docked-navigation__zoom-btn"
+                        onClick={handleZoomIn}
+                        aria-label="Zoom in camera"
+                        title="Zoom In (-)"
+                    >
+                        +
+                    </button>
+                    <button
+                        type="button"
+                        className="docked-navigation__zoom-btn"
+                        onClick={handleZoomOut}
+                        aria-label="Zoom out camera"
+                        title="Zoom Out (+)"
+                    >
+                        -
+                    </button>
+                </div>
             </div>
         </nav>
     );

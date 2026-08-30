@@ -11,6 +11,7 @@ export interface GalaxySceneProps {
     focusId: string;
     isEditorMode?: boolean;
     isCameraOrbitPaused?: boolean;
+    allowManualOrbit?: boolean;
     onSelect?: (id: string) => void;
 }
 
@@ -77,6 +78,7 @@ function GalaxyScene({
     focusId,
     isEditorMode = false,
     isCameraOrbitPaused,
+    allowManualOrbit = true,
     onSelect,
 }: GalaxySceneProps) {
     const bodyRefs = useRef<Record<string, THREE.Group | null>>({});
@@ -134,7 +136,8 @@ function GalaxyScene({
                 focusId={focusId}
                 centralId="home"
                 bodyRefs={bodyRefs}
-                allowManualOrbit={isEditorMode}
+                allowManualOrbit={allowManualOrbit}
+                allowZoom={isEditorMode}
                 cameraOrbitSpeed={sun.cameraOrbitSpeed}
                 isCameraOrbitPaused={effectiveCameraOrbitPaused}
                 onFocusChange={onSelect}
