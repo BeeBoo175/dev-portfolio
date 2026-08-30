@@ -404,7 +404,7 @@
 }
 
 .studio-sidebar {
-    position: absolute;
+    position: fixed;
     top: 68px;
     right: 12px;
     bottom: 68px;
@@ -423,6 +423,7 @@
 
 .studio-sidebar--collapsed {
     transform: translateX(calc(100% + 20px));
+    pointer-events: none;
 }
 
 .studio-sidebar__toggle-btn {
@@ -448,6 +449,10 @@
     box-shadow: -4px 0 16px rgba(0, 0, 0, 0.6), inset 0 0 0 1px rgba(93, 169, 255, 0.15);
     z-index: 100;
     transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
+}
+
+.studio-sidebar--collapsed .studio-sidebar__toggle-btn {
+    pointer-events: auto;
 }
 
 .studio-sidebar__toggle-btn:hover {

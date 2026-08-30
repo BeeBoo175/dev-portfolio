@@ -514,21 +514,20 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
                     </span>
                 </button>
 
-                {isSidebarOpen && (
-                    <div className="studio-sidebar__content">
-                        <div className="studio-sidebar__header">
-                            <div className="studio-sidebar__header-info">
-                                <span className="studio-sidebar__target-type">
-                                    {selectedId === "home" || selectedId === "sun"
-                                        ? "Star"
-                                        : selectedId === "asteroid-belt"
-                                            ? "Debris Belt"
-                                            : "Planet"}
-                                </span>
-                                <h2 className="studio-sidebar__target-name">
-                                    {TARGET_LIST.find((t) => t.id === selectedId)?.label || selectedId}
-                                </h2>
-                            </div>
+                <div className="studio-sidebar__content">
+                    <div className="studio-sidebar__header">
+                        <div className="studio-sidebar__header-info">
+                            <span className="studio-sidebar__target-type">
+                                {selectedId === "home" || selectedId === "sun"
+                                    ? "Star"
+                                    : selectedId === "asteroid-belt"
+                                        ? "Debris Belt"
+                                        : "Planet"}
+                            </span>
+                            <h2 className="studio-sidebar__target-name">
+                                {TARGET_LIST.find((t) => t.id === selectedId)?.label || selectedId}
+                            </h2>
+                        </div>
 
                             <div className="studio-sidebar__header-actions">
                                 {currentPlanet && (
@@ -653,7 +652,6 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
                             </>
                         ) : null}
                     </div>
-                )}
             </aside>
 
             {isConfirmExitOpen && (
