@@ -726,8 +726,11 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
                     <div
                         className="studio-confirm-dialog"
                         onClick={(e) => e.stopPropagation()}
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="studio-confirm-title"
                     >
-                        <div className="studio-confirm-title">
+                        <div className="studio-confirm-title" id="studio-confirm-title">
                             Unapplied Changes
                         </div>
                         <div className="studio-confirm-text">
@@ -736,7 +739,7 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
                         <div className="studio-confirm-actions">
                             <button
                                 type="button"
-                                className="studio-btn studio-btn--outline studio-btn--sm"
+                                className="studio-btn studio-btn--ghost studio-btn--sm"
                                 onClick={() => setIsConfirmExitOpen(false)}
                             >
                                 Keep Editing
@@ -754,11 +757,7 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
                             </button>
                             <button
                                 type="button"
-                                className="studio-btn studio-btn--primary studio-btn--sm"
-                                style={{
-                                    background: "var(--destructive)",
-                                    borderColor: "var(--destructive)",
-                                }}
+                                className="studio-btn studio-btn--danger studio-btn--sm"
                                 onClick={handleConfirmDiscardAndExit}
                                 title="Permanently discard all unapplied draft changes and revert to your published galaxy"
                             >
