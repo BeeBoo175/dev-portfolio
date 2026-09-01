@@ -385,7 +385,7 @@ export function generateRandomGalaxy(
 
     const asteroidBelt = generateRandomAsteroidBelt(baseBelt);
     const sun = generateRandomSun(baseSun);
-    const { resolvedPlanets: planets } = resolveGalaxyCollisions(rawPlanets, asteroidBelt);
+    const { resolvedPlanets: planets } = resolveGalaxyCollisions(rawPlanets, asteroidBelt, sun);
 
     return { planets, asteroidBelt, sun };
 }

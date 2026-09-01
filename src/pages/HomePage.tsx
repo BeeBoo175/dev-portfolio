@@ -55,7 +55,7 @@ export function HomePage() {
                 title="Launch 3D Galaxy Studio"
                 aria-label="Launch 3D Galaxy Studio"
             >
-                <span className="studio-launcher-btn__text">Galaxy Studio</span>
+                Galaxy Studio
             </Link>
         </div>
     );
