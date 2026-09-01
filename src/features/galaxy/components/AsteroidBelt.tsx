@@ -87,8 +87,13 @@ export function AsteroidBelt({ config, isEditorMode = false, isSelected = false,
     }, [count, innerRadius, outerRadius, minSize, maxSize, heightSpread, color, secondaryColor, seed]);
 
     const geometry = useMemo(() => {
-        return new THREE.DodecahedronGeometry(1, 0);
-    }, []);
+        const geom = new THREE.DodecahedronGeometry(1, 0);
+        geom.boundingSphere = new THREE.Sphere(
+            new THREE.Vector3(0, 0, 0),
+            outerRadius + maxSize + heightSpread
+        );
+        return geom;
+    }, [outerRadius, maxSize, heightSpread]);
 
     const hitGeometry = useMemo(() => {
         if (!isEditorMode) return null;
