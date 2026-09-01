@@ -14,6 +14,7 @@ export interface GalaxyToolbarProps {
     onToggleOrbitalAxes: () => void;
     onToggleSelectionGlow?: () => void;
     onTogglePlanetNames?: () => void;
+    onToggleBackgroundPhenomena?: () => void;
     onRandomizeAll: () => void;
     onResetGalaxy: () => void;
     onOpenDataModal: () => void;
@@ -29,6 +30,7 @@ export function GalaxyToolbar({
         showSelectionGlow: true,
         showPlanetNames: true,
         freezeCameraOrbit: false,
+        showBackgroundPhenomena: true,
     },
     isDirty,
     canUndo = false,
@@ -41,6 +43,7 @@ export function GalaxyToolbar({
     onToggleOrbitalAxes,
     onToggleSelectionGlow,
     onTogglePlanetNames,
+    onToggleBackgroundPhenomena,
     onRandomizeAll,
     onResetGalaxy,
     onOpenDataModal,
@@ -51,6 +54,7 @@ export function GalaxyToolbar({
     const [isMobileToolsOpen, setIsMobileToolsOpen] = useState(false);
     const isSelectionGlowActive = visuals?.showSelectionGlow !== false;
     const isPlanetNamesActive = visuals?.showPlanetNames !== false;
+    const isBackgroundPhenomenaActive = visuals?.showBackgroundPhenomena !== false;
 
     return (
         <header className={`studio-toolbar ${isMobileToolsOpen ? "studio-toolbar--mobile-open" : ""}`}>
@@ -215,6 +219,17 @@ export function GalaxyToolbar({
                         title="Toggle celestial body name labels"
                     >
                         Names
+                    </button>
+
+                    <button
+                        type="button"
+                        className={`studio-toolbar__toggle-btn ${isBackgroundPhenomenaActive ? "studio-toolbar__toggle-btn--active" : ""
+                            }`}
+                        onClick={onToggleBackgroundPhenomena}
+                        aria-pressed={isBackgroundPhenomenaActive}
+                        title="Toggle starfield, nebulae, and shooting stars in the background"
+                    >
+                        Cosmic BG
                     </button>
 
                     <button
