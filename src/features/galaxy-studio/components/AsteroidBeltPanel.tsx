@@ -30,7 +30,7 @@ export function AsteroidBeltPanel({
                 <div className="studio-panel__header-row">
                     <span className="studio-panel__title">Asteroid Belt System</span>
                     <div className="studio-panel__actions">
-                        <label className="studio-switch" style={{ marginRight: "0.5rem" }}>
+                        <label className="studio-switch" style={{ marginRight: "0.5rem" }} aria-label="Toggle Asteroid Belt">
                             <input
                                 type="checkbox"
                                 checked={config.enabled}
@@ -38,8 +38,9 @@ export function AsteroidBeltPanel({
                                     const checked = e.target.checked;
                                     onChange((prev) => ({ ...prev, enabled: checked }));
                                 }}
+                                aria-label="Toggle Asteroid Belt"
                             />
-                            <span className="studio-switch__slider" />
+                            <span className="studio-switch__slider" aria-hidden="true" />
                         </label>
                         <button
                             type="button"
