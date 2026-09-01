@@ -134,8 +134,13 @@ export function useSectionScroll({ onFocusChange, registerTrigger }: UseSectionS
         });
     }, [registerTrigger, navigate, onFocusChange, startProgrammaticScroll]);
 
+    const registerSectionRef = useCallback((id: string, el: HTMLElement | null) => {
+        sectionRefs.current[id] = el;
+    }, []);
+
     return {
         sectionRefs,
+        registerSectionRef,
         isProgrammaticScroll,
         showScrollTop,
         scrollToTop,

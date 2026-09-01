@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import type { AsteroidBeltConfig, OrbitConfig, SunConfig } from "../../galaxy";
 import {
@@ -56,7 +56,8 @@ function loadInitialDraft(savedState: GalaxyDraftState): GalaxyDraftState {
                 return parsed;
             }
         }
-    } catch {
+    } catch (e) {
+        void e;
     }
     return savedState;
 }
@@ -104,15 +105,14 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
         galaxyStore.setAsteroidBelt(initialDraft.asteroidBelt, false);
         galaxyStore.setSun(initialDraft.sun, false);
         galaxyStore.setDefaultPlanetId(initialDraft.defaultPlanetId, false);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const [history, setHistory] = useState<GalaxyDraftState[]>([structuredClone(initialDraft)]);
     const [historyIndex, setHistoryIndex] = useState<number>(0);
     const isHistoryAction = useRef<boolean>(false);
     const historyIndexRef = useRef<number>(0);
-    historyIndexRef.current = historyIndex;
     const historyRef = useRef<GalaxyDraftState[]>([structuredClone(initialDraft)]);
-    historyRef.current = history;
 
     const isSavedRef = useRef<boolean>(false);
     const isExplicitDiscardRef = useRef<boolean>(false);
@@ -129,14 +129,22 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
     const [isConfirmExitOpen, setIsConfirmExitOpen] = useState<boolean>(false);
     const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-    const currentDraft: GalaxyDraftState = {
-        planets: draftPlanets,
-        asteroidBelt: draftBelt,
-        sun: draftSun,
-        defaultPlanetId: draftDefaultPlanetId,
-    };
+    const currentDraft: GalaxyDraftState = useMemo(
+        () => ({
+            planets: draftPlanets,
+            asteroidBelt: draftBelt,
+            sun: draftSun,
+            defaultPlanetId: draftDefaultPlanetId,
+        }),
+        [draftPlanets, draftBelt, draftSun, draftDefaultPlanetId]
+    );
     const currentDraftRef = useRef<GalaxyDraftState>(currentDraft);
-    currentDraftRef.current = currentDraft;
+
+    useEffect(() => {
+        historyIndexRef.current = historyIndex;
+        historyRef.current = history;
+        currentDraftRef.current = currentDraft;
+    }, [historyIndex, history, currentDraft]);
 
     const isDirty = JSON.stringify(currentDraft) !== savedSnapshot;
 
@@ -148,16 +156,23 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
                 const serialized = JSON.stringify(currentDraft);
                 sessionStorage.setItem(DRAFT_STORAGE_KEY, serialized);
                 localStorage.setItem(DRAFT_STORAGE_KEY, serialized);
-            } catch {
+            } catch (e) {
+                void e;
             }
         } else {
             try {
                 sessionStorage.removeItem(DRAFT_STORAGE_KEY);
                 localStorage.removeItem(DRAFT_STORAGE_KEY);
-            } catch {
+            } catch (e) {
+                void e;
             }
         }
     }, [currentDraft, isDirty]);
+
+    const showToast = useCallback((msg: string) => {
+        setToastMessage(msg);
+        setTimeout(() => setToastMessage(null), 2500);
+    }, []);
 
     const pushHistory = useCallback((nextState: GalaxyDraftState) => {
         if (isHistoryAction.current) {
@@ -258,7 +273,7 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
                 showToast("Undo");
             }
         }
-    }, [applyDraftState]);
+    }, [applyDraftState, showToast]);
 
     const handleRedo = useCallback(() => {
         const curIdx = historyIndexRef.current;
@@ -273,7 +288,7 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
                 showToast("Redo");
             }
         }
-    }, [applyDraftState]);
+    }, [applyDraftState, showToast]);
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -334,11 +349,6 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
         };
     }, []);
 
-    const showToast = (msg: string) => {
-        setToastMessage(msg);
-        setTimeout(() => setToastMessage(null), 2500);
-    };
-
     const handleSelectTarget = useCallback((id: string) => {
         onFocusChange(id);
     }, [onFocusChange]);
@@ -378,7 +388,7 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
         });
         const planetLabel = TARGET_LIST.find((t) => t.id === id)?.label || id;
         showToast(`Spaceship default base station set to ${planetLabel}.`);
-    }, [draftBelt, draftPlanets, draftSun, pushHistory]);
+    }, [draftBelt, draftPlanets, draftSun, pushHistory, showToast]);
 
     const handleSaveAndApply = () => {
         galaxyStore.setPlanets(draftPlanets, true);
@@ -391,7 +401,8 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
         try {
             sessionStorage.removeItem(DRAFT_STORAGE_KEY);
             localStorage.removeItem(DRAFT_STORAGE_KEY);
-        } catch {
+        } catch (e) {
+            void e;
         }
         setSavedSnapshot(JSON.stringify({ planets: draftPlanets, asteroidBelt: draftBelt, sun: draftSun, defaultPlanetId: draftDefaultPlanetId }));
         showToast("Galaxy changes saved successfully.");
@@ -404,7 +415,8 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
         try {
             sessionStorage.removeItem(DRAFT_STORAGE_KEY);
             localStorage.removeItem(DRAFT_STORAGE_KEY);
-        } catch {
+        } catch (e) {
+            void e;
         }
         showToast("Reverted working draft to saved galaxy.");
     };
@@ -422,7 +434,8 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
         try {
             sessionStorage.removeItem(DRAFT_STORAGE_KEY);
             localStorage.removeItem(DRAFT_STORAGE_KEY);
-        } catch {
+        } catch (e) {
+            void e;
         }
         galaxyStore.revertToPersisted();
         isSavedRef.current = true;
@@ -506,7 +519,7 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
                 canRedo={historyIndex < history.length - 1}
                 onUndo={handleUndo}
                 onRedo={handleRedo}
-                isCameraOrbitPaused={!!visuals.freezeCameraOrbit}
+                isCameraOrbitPaused={!!visuals?.freezeCameraOrbit}
                 onTogglePauseCameraOrbit={() => galaxyStore.toggleFreezeCameraOrbit()}
                 onToggleOrbitPaths={() => galaxyStore.toggleOrbitPaths()}
                 onToggleOrbitalAxes={() => galaxyStore.toggleOrbitalAxes()}

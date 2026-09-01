@@ -25,7 +25,13 @@ export interface GalaxyToolbarProps {
 }
 
 export function GalaxyToolbar({
-    visuals,
+    visuals = {
+        showOrbitPaths: true,
+        showOrbitalAxes: false,
+        showSelectionGlow: true,
+        showPlanetNames: true,
+        freezeCameraOrbit: false,
+    },
     isDirty,
     warningCount,
     canUndo = false,
@@ -47,8 +53,8 @@ export function GalaxyToolbar({
     onExit,
 }: GalaxyToolbarProps) {
     const [isMobileToolsOpen, setIsMobileToolsOpen] = useState(false);
-    const isSelectionGlowActive = visuals.showSelectionGlow !== false;
-    const isPlanetNamesActive = visuals.showPlanetNames !== false;
+    const isSelectionGlowActive = visuals?.showSelectionGlow !== false;
+    const isPlanetNamesActive = visuals?.showPlanetNames !== false;
 
     return (
         <header className={`studio-toolbar ${isMobileToolsOpen ? "studio-toolbar--mobile-open" : ""}`}>

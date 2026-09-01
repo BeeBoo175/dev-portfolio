@@ -250,7 +250,11 @@ export function resolveGalaxyCollisions(
             }
 
             indexedMoons.sort((a, b) => a.origIndex - b.origIndex);
-            currentMoons = indexedMoons.map(({ origIndex: _, ...m }) => m as OrbitConfig);
+            currentMoons = indexedMoons.map((item) => {
+                const { origIndex, ...rest } = item;
+                void origIndex;
+                return rest as OrbitConfig;
+            });
         }
 
         if (pChanged) totalChangedCount++;

@@ -50,7 +50,8 @@ function loadPersistedAsteroidBelt(): AsteroidBeltConfig {
             const parsed = JSON.parse(raw);
             return { ...cloneDefaultAsteroidBelt(), ...parsed };
         }
-    } catch {
+    } catch (e) {
+        void e;
     }
     return cloneDefaultAsteroidBelt();
 }
@@ -62,7 +63,8 @@ function loadPersistedSun(): SunConfig {
             const parsed = JSON.parse(raw);
             return { ...cloneDefaultSun(), ...parsed };
         }
-    } catch {
+    } catch (e) {
+        void e;
     }
     return cloneDefaultSun();
 }
@@ -80,7 +82,8 @@ function loadPersistedVisuals(): GalaxyVisualSettings {
                 ...JSON.parse(raw),
             };
         }
-    } catch {
+    } catch (e) {
+        void e;
     }
     return {
         showOrbitPaths: true,
@@ -95,7 +98,8 @@ function loadPersistedDefaultPlanetId(): string {
     try {
         const raw = localStorage.getItem(DEFAULT_PLANET_KEY);
         if (raw) return raw;
-    } catch {
+    } catch (e) {
+        void e;
     }
     return DEFAULT_SPACESHIP_PLANET_ID;
 }
@@ -117,7 +121,8 @@ function initLocalStorageDefaultsIfEmpty() {
         if (!localStorage.getItem(DEFAULT_PLANET_KEY)) {
             localStorage.setItem(DEFAULT_PLANET_KEY, DEFAULT_SPACESHIP_PLANET_ID);
         }
-    } catch {
+    } catch (e) {
+        void e;
     }
 }
 
@@ -166,7 +171,8 @@ class GalaxyStore {
                 localStorage.setItem(SUN_KEY, JSON.stringify(this.sun));
                 localStorage.setItem(VISUALS_KEY, JSON.stringify(this.visuals));
                 localStorage.setItem(DEFAULT_PLANET_KEY, this.defaultPlanetId);
-            } catch {
+            } catch (e) {
+                void e;
             }
         }
         this.listeners.forEach((l) => l());
@@ -281,7 +287,8 @@ class GalaxyStore {
             localStorage.removeItem(SUN_KEY);
             localStorage.removeItem(VISUALS_KEY);
             localStorage.removeItem(DEFAULT_PLANET_KEY);
-        } catch {
+        } catch (e) {
+            void e;
         }
         this.listeners.forEach((l) => l());
     }

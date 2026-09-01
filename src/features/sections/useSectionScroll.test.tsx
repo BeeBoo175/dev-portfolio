@@ -19,6 +19,7 @@ function HookHarness({
     onHookReady,
 }: HookHarnessProps) {
     const result = useSectionScroll({ onFocusChange, registerTrigger });
+    const { registerSectionRef } = result;
     const navigate = useNavigate();
 
     React.useEffect(() => {
@@ -27,14 +28,14 @@ function HookHarness({
 
     React.useEffect(() => {
         onHookReady?.(result);
-    }, [result, onHookReady]);
+    }, [onHookReady, result]);
 
     return (
         <div>
             <section
                 id="home"
                 ref={(el) => {
-                    result.sectionRefs.current.home = el;
+                    registerSectionRef("home", el);
                 }}
             >
                 Home Section
@@ -42,7 +43,7 @@ function HookHarness({
             <section
                 id="about"
                 ref={(el) => {
-                    result.sectionRefs.current.about = el;
+                    registerSectionRef("about", el);
                 }}
             >
                 About Section
@@ -50,7 +51,7 @@ function HookHarness({
             <section
                 id="projects"
                 ref={(el) => {
-                    result.sectionRefs.current.projects = el;
+                    registerSectionRef("projects", el);
                 }}
             >
                 Projects Section
