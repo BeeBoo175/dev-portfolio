@@ -245,6 +245,60 @@ describe("GalaxyStudio Component & UX Features", () => {
         expect(redoneSlider.value).toBe("1.9");
     });
 
+    it("handles multiple consecutive biome preset changes and unwinds them sequentially with Ctrl+Z", () => {
+        const onFocusChange = vi.fn();
+
+        act(() => {
+            root?.render(
+                <MemoryRouter>
+                    <GalaxyStudio focusId="about" onFocusChange={onFocusChange} />
+                </MemoryRouter>
+            );
+        });
+
+        const presetButtons = Array.from(
+            container?.querySelectorAll(".studio-preset-chip") || []
+        ) as HTMLButtonElement[];
+
+        expect(presetButtons.length).toBeGreaterThanOrEqual(3);
+
+        const initialColorInput = container?.querySelector('input[type="color"]') as HTMLInputElement;
+        const initialColor = initialColorInput?.value;
+
+        act(() => {
+            presetButtons[0].click();
+        });
+
+        act(() => {
+            presetButtons[1].click();
+        });
+
+        act(() => {
+            presetButtons[2].click();
+        });
+
+        const colorInputAfter3 = container?.querySelector('input[type="color"]') as HTMLInputElement;
+        const color3 = colorInputAfter3?.value;
+
+        act(() => {
+            window.dispatchEvent(new KeyboardEvent("keydown", { key: "z", ctrlKey: true, bubbles: true }));
+        });
+
+        const colorInputAfterUndo1 = container?.querySelector('input[type="color"]') as HTMLInputElement;
+        expect(colorInputAfterUndo1?.value).not.toBe(color3);
+
+        act(() => {
+            window.dispatchEvent(new KeyboardEvent("keydown", { key: "z", ctrlKey: true, bubbles: true }));
+        });
+
+        act(() => {
+            window.dispatchEvent(new KeyboardEvent("keydown", { key: "z", ctrlKey: true, bubbles: true }));
+        });
+
+        const colorInputAfterUndoAll = container?.querySelector('input[type="color"]') as HTMLInputElement;
+        expect(colorInputAfterUndoAll?.value).toBe(initialColor);
+    });
+
     it("persists in-progress draft to local/session storage upon modification", () => {
         const onFocusChange = vi.fn();
 

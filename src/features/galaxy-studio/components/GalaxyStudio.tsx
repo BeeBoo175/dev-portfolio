@@ -248,11 +248,27 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
     }, [pushHistory]);
 
     const handleUndo = useCallback(() => {
-        const curIdx = historyIndexRef.current;
+        const current = currentDraftRef.current;
         const curHistory = historyRef.current;
-        if (curIdx > 0) {
-            const prevIndex = curIdx - 1;
-            const targetState = curHistory[prevIndex];
+        const curIdx = historyIndexRef.current;
+        const latestCommitted = curHistory[curIdx];
+
+        if (JSON.stringify(current) !== JSON.stringify(latestCommitted)) {
+            const nextHistory = curHistory.slice(0, curIdx + 1);
+            const updated = [...nextHistory.slice(-40), structuredClone(current)];
+            const newIndex = updated.length - 1;
+            historyRef.current = updated;
+            historyIndexRef.current = newIndex;
+            setHistory(updated);
+            setHistoryIndex(newIndex);
+        }
+
+        const activeIdx = historyIndexRef.current;
+        const activeHistory = historyRef.current;
+
+        if (activeIdx > 0) {
+            const prevIndex = activeIdx - 1;
+            const targetState = activeHistory[prevIndex];
             if (targetState) {
                 isHistoryAction.current = true;
                 setHistoryIndex(prevIndex);
