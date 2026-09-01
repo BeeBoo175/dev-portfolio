@@ -188,8 +188,31 @@ export function Spaceship({ focusId, bodyRefs }: SpaceshipProps) {
         }
     }, [focusId, defaultPlanetId, planets, bodyRefs]);
 
-    useFrame((_, delta) => {
+    const vtolLeftRef = useRef<THREE.Group>(null);
+    const vtolRightRef = useRef<THREE.Group>(null);
+    const beaconMeshRef = useRef<THREE.Mesh>(null);
+    const beaconHaloRef = useRef<THREE.Mesh>(null);
+
+    useFrame((state, delta) => {
         if (!groupRef.current) return;
+
+        if (beaconMeshRef.current) {
+            const isLit = Math.sin(state.clock.elapsedTime * 6) > 0;
+            (beaconMeshRef.current.material as THREE.MeshBasicMaterial).color.set(
+                isLit ? "#ff4d4d" : "#450a0a"
+            );
+            if (beaconHaloRef.current) {
+                (beaconHaloRef.current.material as THREE.MeshBasicMaterial).opacity = isLit ? 0.35 : 0.0;
+            }
+        }
+
+        if (vtolLeftRef.current && vtolRightRef.current) {
+            const targetVtolAngle = isFlying.current ? Math.PI / 2 : 0;
+            const currentRotX = vtolLeftRef.current.rotation.x;
+            const nextRotX = THREE.MathUtils.damp(currentRotX, targetVtolAngle, 8, delta);
+            vtolLeftRef.current.rotation.x = nextRotX;
+            vtolRightRef.current.rotation.x = nextRotX;
+        }
 
         if (!isInitialized.current) {
             const initialPlanetId = defaultPlanetId;
@@ -467,51 +490,195 @@ export function Spaceship({ focusId, bodyRefs }: SpaceshipProps) {
 
     return (
         <group ref={groupRef}>
-            <mesh castShadow receiveShadow>
-                <boxGeometry args={[0.32, 0.16, 0.65]} />
+            <mesh
+                castShadow
+                receiveShadow
+                position={[0, 0, 0]}
+                rotation={[Math.PI / 2, 0, 0]}
+            >
+                <cylinderGeometry args={[0.13, 0.13, 0.32, 24]} />
                 <meshStandardMaterial
-                    color="#e0e7ff"
-                    roughness={0.3}
+                    color="#b45309"
+                    roughness={0.75}
+                    metalness={0.15}
+                />
+            </mesh>
+
+            <mesh position={[0, 0, 0.16]} rotation={[Math.PI / 2, 0, 0]}>
+                <sphereGeometry args={[0.13, 20, 16, 0, Math.PI * 2, 0, Math.PI / 2]} />
+                <meshPhysicalMaterial
+                    color="#67e8f9"
+                    emissive="#0284c7"
+                    emissiveIntensity={0.22}
+                    roughness={0.15}
+                    metalness={0.05}
+                    transmission={0.65}
+                    thickness={0.25}
+                    ior={1.4}
+                />
+            </mesh>
+
+            <mesh position={[0, 0, 0.16]}>
+                <torusGeometry args={[0.13, 0.007, 8, 24]} />
+                <meshStandardMaterial
+                    color="#334155"
+                    roughness={0.4}
                     metalness={0.85}
                 />
             </mesh>
 
-            <mesh position={[0, 0.07, 0.1]}>
-                <boxGeometry args={[0.22, 0.09, 0.32]} />
+            <group position={[-0.08, -0.11, 0.07]}>
+                <mesh position={[-0.03, -0.04, 0.02]} rotation={[-0.35, 0, -0.55]}>
+                    <cylinderGeometry args={[0.007, 0.007, 0.11, 6]} />
+                    <meshStandardMaterial color="#475569" roughness={0.4} metalness={0.8} />
+                </mesh>
+                <mesh position={[-0.055, -0.08, 0.035]}>
+                    <boxGeometry args={[0.045, 0.008, 0.045]} />
+                    <meshStandardMaterial color="#1e293b" roughness={0.6} metalness={0.9} />
+                </mesh>
+            </group>
+
+            <group position={[0.08, -0.11, 0.07]}>
+                <mesh position={[0.03, -0.04, 0.02]} rotation={[-0.35, 0, 0.55]}>
+                    <cylinderGeometry args={[0.007, 0.007, 0.11, 6]} />
+                    <meshStandardMaterial color="#475569" roughness={0.4} metalness={0.8} />
+                </mesh>
+                <mesh position={[0.055, -0.08, 0.035]}>
+                    <boxGeometry args={[0.045, 0.008, 0.045]} />
+                    <meshStandardMaterial color="#1e293b" roughness={0.6} metalness={0.9} />
+                </mesh>
+            </group>
+
+            <group position={[0, -0.11, -0.08]}>
+                <mesh position={[0, -0.04, -0.03]} rotation={[0.6, 0, 0]}>
+                    <cylinderGeometry args={[0.007, 0.007, 0.11, 6]} />
+                    <meshStandardMaterial color="#475569" roughness={0.4} metalness={0.8} />
+                </mesh>
+                <mesh position={[0, -0.08, -0.055]}>
+                    <boxGeometry args={[0.045, 0.008, 0.045]} />
+                    <meshStandardMaterial color="#1e293b" roughness={0.6} metalness={0.9} />
+                </mesh>
+            </group>
+
+            <group position={[0, 0.13, -0.02]}>
+                <mesh position={[0, 0.02, 0]}>
+                    <cylinderGeometry args={[0.02, 0.03, 0.04, 8]} />
+                    <meshStandardMaterial color="#475569" roughness={0.5} metalness={0.8} />
+                </mesh>
+                <mesh position={[0, 0.07, 0]} rotation={[0.4, 0, 0]}>
+                    <cylinderGeometry args={[0.08, 0.015, 0.03, 12, 1, true]} />
+                    <meshStandardMaterial color="#94a3b8" roughness={0.3} metalness={0.9} side={THREE.DoubleSide} />
+                </mesh>
+                <mesh position={[0, 0.07, 0]} rotation={[0.4, 0, 0]}>
+                    <sphereGeometry args={[0.02, 8, 8]} />
+                    <meshStandardMaterial color="#e2e8f0" roughness={0.4} metalness={0.7} />
+                </mesh>
+                <mesh position={[0, 0.09, 0.01]} rotation={[0.4, 0, 0]}>
+                    <cylinderGeometry args={[0.004, 0.004, 0.05, 4]} />
+                    <meshStandardMaterial color="#f59e0b" roughness={0.3} metalness={0.9} />
+                </mesh>
+
+                <mesh ref={beaconMeshRef} position={[0, 0.12, 0.02]}>
+                    <sphereGeometry args={[0.007, 8, 8]} />
+                    <meshBasicMaterial color="#ff4d4d" />
+                </mesh>
+                <mesh ref={beaconHaloRef} position={[0, 0.12, 0.02]}>
+                    <sphereGeometry args={[0.015, 12, 12]} />
+                    <meshBasicMaterial
+                        color="#ff3333"
+                        transparent
+                        opacity={0.35}
+                        depthWrite={false}
+                    />
+                </mesh>
+            </group>
+
+            <mesh position={[0, 0, 0]}>
+                <boxGeometry args={[0.52, 0.028, 0.09]} />
                 <meshStandardMaterial
-                    color="#0284c7"
-                    roughness={0.1}
+                    color="#1e293b"
+                    roughness={0.6}
+                    metalness={0.85}
+                />
+            </mesh>
+
+            <group ref={vtolLeftRef} position={[-0.26, 0, 0]}>
+                <mesh>
+                    <cylinderGeometry args={[0.055, 0.075, 0.18, 16]} />
+                    <meshStandardMaterial
+                        color="#475569"
+                        roughness={0.5}
+                        metalness={0.8}
+                    />
+                </mesh>
+                <mesh position={[0, 0, 0]}>
+                    <torusGeometry args={[0.06, 0.01, 6, 16]} />
+                    <meshStandardMaterial
+                        color="#f59e0b"
+                        roughness={0.4}
+                        metalness={0.7}
+                    />
+                </mesh>
+                <mesh position={[0, -0.09, 0]}>
+                    <sphereGeometry args={[0.038, 10, 10]} />
+                    <meshBasicMaterial color="#38bdf8" />
+                </mesh>
+                <pointLight
+                    position={[0, -0.12, 0]}
+                    color="#38bdf8"
+                    intensity={0.4}
+                    distance={0.8}
+                    decay={2}
+                />
+            </group>
+
+            <group ref={vtolRightRef} position={[0.26, 0, 0]}>
+                <mesh>
+                    <cylinderGeometry args={[0.055, 0.075, 0.18, 16]} />
+                    <meshStandardMaterial
+                        color="#475569"
+                        roughness={0.5}
+                        metalness={0.8}
+                    />
+                </mesh>
+                <mesh position={[0, 0, 0]}>
+                    <torusGeometry args={[0.06, 0.01, 6, 16]} />
+                    <meshStandardMaterial
+                        color="#f59e0b"
+                        roughness={0.4}
+                        metalness={0.7}
+                    />
+                </mesh>
+                <mesh position={[0, -0.09, 0]}>
+                    <sphereGeometry args={[0.038, 10, 10]} />
+                    <meshBasicMaterial color="#38bdf8" />
+                </mesh>
+                <pointLight
+                    position={[0, -0.12, 0]}
+                    color="#38bdf8"
+                    intensity={0.4}
+                    distance={0.8}
+                    decay={2}
+                />
+            </group>
+
+            <mesh position={[0, 0, -0.17]} rotation={[Math.PI / 2, 0, 0]}>
+                <cylinderGeometry args={[0.065, 0.08, 0.08, 12]} />
+                <meshStandardMaterial
+                    color="#334155"
+                    roughness={0.5}
                     metalness={0.9}
                 />
             </mesh>
-
-            <mesh position={[-0.24, -0.01, -0.08]} rotation={[0, 0, -0.2]}>
-                <boxGeometry args={[0.18, 0.04, 0.38]} />
-                <meshStandardMaterial
-                    color="#38bdf8"
-                    roughness={0.4}
-                    metalness={0.7}
-                />
-            </mesh>
-            <mesh position={[0.24, -0.01, -0.08]} rotation={[0, 0, 0.2]}>
-                <boxGeometry args={[0.18, 0.04, 0.38]} />
-                <meshStandardMaterial
-                    color="#38bdf8"
-                    roughness={0.4}
-                    metalness={0.7}
-                />
-            </mesh>
-
-            <mesh position={[0, 0, -0.34]}>
-                <boxGeometry args={[0.16, 0.08, 0.04]} />
+            <mesh position={[0, 0, -0.22]}>
+                <sphereGeometry args={[0.045, 10, 10]} />
                 <meshBasicMaterial color="#38bdf8" />
             </mesh>
-
             <pointLight
-                position={[0, 0, -0.4]}
+                position={[0, 0, -0.26]}
                 color="#38bdf8"
-                intensity={1.2}
-                distance={2.5}
+                intensity={0.5}
+                distance={0.9}
                 decay={2}
             />
         </group>
