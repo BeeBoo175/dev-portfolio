@@ -160,15 +160,12 @@
     border-color: var(--border-hover);
 }
 
-.studio-toolbar__action-btn--glow {
+.studio-toolbar__action-btn--glow:hover,
+.studio-toolbar__action-btn--glow:focus-visible {
     background: var(--accent-subtle);
     border-color: rgba(56, 189, 248, 0.4);
     color: var(--accent-cyan);
-}
-
-.studio-toolbar__action-btn--glow:hover {
-    background: rgba(56, 189, 248, 0.25);
-    box-shadow: 0 0 12px var(--accent-glow);
+    box-shadow: 0 0 10px var(--accent-glow);
 }
 
 .studio-toolbar__toggle-btn {
