@@ -147,7 +147,9 @@ export function AppearancePanel({
                             return (
                                 <div key={layer.key} className="studio-color-picker studio-color-picker--compact">
                                     <input
+                                        id={`palette-${layer.key}`}
                                         type="color"
+                                        aria-label={layer.label}
                                         value={currentColor}
                                         onChange={(e) => {
                                             const val = e.target.value;
@@ -157,7 +159,7 @@ export function AppearancePanel({
                                             }));
                                         }}
                                     />
-                                    <span className="studio-color-picker__label">{layer.label}</span>
+                                    <label htmlFor={`palette-${layer.key}`} className="studio-color-picker__label">{layer.label}</label>
                                 </div>
                             );
                         })}
@@ -364,6 +366,7 @@ export function AppearancePanel({
                                     <input
                                         id="ring-color"
                                         type="color"
+                                        aria-label="Ring Color"
                                         value={ring.color || "#38bdf8"}
                                         onChange={(e) => {
                                             const val = e.target.value;
