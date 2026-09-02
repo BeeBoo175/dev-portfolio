@@ -68,9 +68,10 @@ export function SelectionGlow({
     const labelSpriteRef = useRef<THREE.Sprite>(null);
     const reticleRotation = useRef(0);
 
-    const cornerSize = Math.max(0.18, radius * 0.28);
+    const cornerSize = Math.max(0.06, Math.min(0.28, radius * 0.28));
     const bracketGeom = useMemo(() => createBracketsGeometry(radius, cornerSize), [radius, cornerSize]);
     const dottedGeom = useMemo(() => createDottedRingGeometry(radius, 28), [radius]);
+
 
     const lineColor = useMemo(() => new THREE.Color(color), [color]);
     const idleTextColor = useMemo(() => new THREE.Color("#94a3b8"), []);

@@ -25,17 +25,31 @@ const TARGET_LIST: TargetItem[] = [
     { id: "asteroid-belt", label: "Asteroids", type: "belt" },
 ];
 
-type PlanetTab = "appearance" | "orbit" | "terrain" | "moons";
+export type PlanetTab = "appearance" | "orbit" | "terrain" | "moons";
 
 export interface GalaxyStudioProps {
     focusId: string;
     onFocusChange: (id: string) => void;
+    activeTab?: PlanetTab;
+    onTabChange?: (tab: PlanetTab) => void;
+    activeMoonIndex?: number;
+    onSelectMoon?: (index: number) => void;
+    isSidebarOpen?: boolean;
+    onToggleSidebar?: () => void;
 }
 
-export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
+export function GalaxyStudio({
+    focusId,
+    onFocusChange,
+    activeTab: activeTabProp,
+    onTabChange: onTabChangeProp,
+    activeMoonIndex: activeMoonIndexProp,
+    onSelectMoon: onSelectMoonProp,
+    isSidebarOpen: isSidebarOpenProp,
+    onToggleSidebar: onToggleSidebarProp,
+}: GalaxyStudioProps) {
     const navigate = useNavigate();
     const visuals = useGalaxyVisuals();
-    const selectedId = focusId || "home";
 
     const {
         draftPlanets,
@@ -66,16 +80,74 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
         currentPlanet,
         allWarnings,
         isSavedRef,
-    } = useGalaxyStudioDraft(selectedId);
+        selectedId,
+        resolvedSelection,
+    } = useGalaxyStudioDraft(focusId);
 
-    const [activeTab, setActiveTab] = useState<PlanetTab>("appearance");
-    const [activeMoonIndex, setActiveMoonIndex] = useState<number>(0);
-    const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(() => {
+    const [internalActiveTab, setInternalActiveTab] = useState<PlanetTab>(() => {
+        if (resolvedSelection.isMoon && resolvedSelection.tab) {
+            return resolvedSelection.tab;
+        }
+        return "appearance";
+    });
+    const [internalActiveMoonIndex, setInternalActiveMoonIndex] = useState<number>(() => {
+        if (resolvedSelection.isMoon && resolvedSelection.moonIndex !== undefined) {
+            return resolvedSelection.moonIndex;
+        }
+        return 0;
+    });
+    const [internalIsSidebarOpen, setInternalIsSidebarOpen] = useState<boolean>(() => {
         if (typeof window !== "undefined" && window.innerWidth <= 960) {
             return false;
         }
         return true;
     });
+
+    const [prevFocusId, setPrevFocusId] = useState<string>(focusId);
+    if (focusId !== prevFocusId) {
+        setPrevFocusId(focusId);
+        if (!isSidebarOpenProp) {
+            setInternalIsSidebarOpen(true);
+        }
+        if (resolvedSelection.tab && !activeTabProp) {
+            setInternalActiveTab(resolvedSelection.tab);
+        }
+        if (resolvedSelection.isMoon && resolvedSelection.moonIndex !== undefined && activeMoonIndexProp === undefined) {
+            setInternalActiveMoonIndex(resolvedSelection.moonIndex);
+        }
+    }
+
+
+    const activeTab = activeTabProp ?? internalActiveTab;
+    const activeMoonIndex = activeMoonIndexProp ?? internalActiveMoonIndex;
+    const isSidebarOpen = isSidebarOpenProp ?? internalIsSidebarOpen;
+
+    const handleSetActiveTab = useCallback((tab: PlanetTab) => {
+        if (onTabChangeProp) {
+            onTabChangeProp(tab);
+        } else {
+            setInternalActiveTab(tab);
+        }
+    }, [onTabChangeProp]);
+
+    const handleSelectMoon = useCallback((index: number) => {
+        if (onSelectMoonProp) {
+            onSelectMoonProp(index);
+        } else {
+            setInternalActiveMoonIndex(index);
+        }
+    }, [onSelectMoonProp]);
+
+    const handleToggleSidebar = useCallback(() => {
+        if (onToggleSidebarProp) {
+            onToggleSidebarProp();
+        } else {
+            setInternalIsSidebarOpen((prev) => !prev);
+        }
+    }, [onToggleSidebarProp]);
+
+
+
     const [isDataModalOpen, setIsDataModalOpen] = useState<boolean>(false);
     const [isConfirmExitOpen, setIsConfirmExitOpen] = useState<boolean>(false);
 
@@ -148,7 +220,7 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
                 asteroidBelt={draftBelt}
                 defaultPlanetId={draftDefaultPlanetId}
                 isSidebarOpen={isSidebarOpen}
-                onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+                onToggleSidebar={handleToggleSidebar}
             />
 
             <aside className={`studio-sidebar ${isSidebarOpen ? "studio-sidebar--open" : "studio-sidebar--collapsed"}`}>
@@ -156,7 +228,7 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
                     type="button"
                     className="studio-sidebar__toggle-btn"
                     onClick={(e) => {
-                        setIsSidebarOpen(!isSidebarOpen);
+                        handleToggleSidebar();
                         e.currentTarget.blur();
                     }}
                     aria-expanded={isSidebarOpen}
@@ -272,7 +344,7 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
                                         aria-controls={`planet-panel-${tab.id}`}
                                         className={`studio-tab ${activeTab === tab.id ? "studio-tab--active" : ""
                                             }`}
-                                        onClick={() => setActiveTab(tab.id as PlanetTab)}
+                                        onClick={() => handleSetActiveTab(tab.id as PlanetTab)}
                                     >
                                         {tab.label}
                                     </button>
@@ -310,11 +382,12 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
                                     <MoonsPanel
                                         planet={currentPlanet}
                                         activeMoonIndex={activeMoonIndex}
-                                        onSelectMoon={setActiveMoonIndex}
+                                        onSelectMoon={handleSelectMoon}
                                         onChange={updatePlanet}
                                     />
                                 )}
                             </div>
+
                         </>
                     ) : null}
                 </div>

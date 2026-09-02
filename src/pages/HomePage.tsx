@@ -21,6 +21,8 @@ export function HomePage() {
         triggerRef.current(id as SectionId);
     }, []);
 
+
+
     const navTargets: DockedTargetItem[] = useMemo(() => {
         return PLANET_SECTIONS.map((section) => {
             const planetConfig = dynamicPlanets.find((p) => p.id === section.id);
