@@ -2,6 +2,14 @@ import type { AsteroidBeltConfig, OrbitConfig, SunConfig } from "./types";
 
 export const DEFAULT_SPACESHIP_PLANET_ID = "skills";
 
+export const DEFAULT_RING_CONFIG = {
+    opacity: 0.75,
+    emissiveIntensity: 0.15,
+    gapPosition: 0.62,
+    gapWidth: 0.07,
+    seed: 42,
+} as const;
+
 export const DEFAULT_ASTEROID_BELT: AsteroidBeltConfig = {
     enabled: true,
     innerRadius: 14.8,
@@ -152,6 +160,9 @@ export const ORBIT_LAYOUT: OrbitConfig[] = [
             outerRadius: 4.78,
             color: "#6ee7b7",
             opacity: 0.8,
+            emissiveIntensity: 0.15,
+            gapPosition: 0.62,
+            gapWidth: 0.07,
             tilt: [
                 1.0471975511965976,
                 0,

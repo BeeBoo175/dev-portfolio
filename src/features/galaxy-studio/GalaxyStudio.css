@@ -854,6 +854,12 @@
     color: var(--hud-cyan);
     font-size: 11.5px;
     font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+    margin-left: auto;
+    margin-right: 6px;
+    text-align: right;
+    white-space: nowrap;
 }
 
 .studio-field input[type="range"] {
@@ -1390,7 +1396,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    cursor: help;
+    cursor: pointer;
     outline: none;
 }
 
@@ -1851,6 +1857,32 @@
 
     .studio-modal {
         max-height: calc(100dvh - 32px);
+    }
+
+    .ui-tooltip-icon {
+        width: 18px;
+        height: 18px;
+        font-size: 11px;
+    }
+
+    .ui-tooltip-bubble {
+        max-width: calc(100vw - 24px);
+        width: 240px;
+        font-size: 11.5px;
+    }
+
+    .studio-field input[type="range"] {
+        height: 8px;
+    }
+
+    .studio-field input[type="range"]::-webkit-slider-thumb {
+        width: 20px;
+        height: 20px;
+    }
+
+    .studio-field input[type="range"]::-moz-range-thumb {
+        width: 20px;
+        height: 20px;
     }
 
     .studio-modal__body {
