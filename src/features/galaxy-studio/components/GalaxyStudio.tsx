@@ -111,7 +111,7 @@ export function GalaxyStudio({ focusId, onFocusChange }: GalaxyStudioProps) {
     const [activeTab, setActiveTab] = useState<PlanetTab>("appearance");
     const [activeMoonIndex, setActiveMoonIndex] = useState<number>(0);
     const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(() => {
-        if (typeof window !== "undefined" && window.innerWidth <= 1280) {
+        if (typeof window !== "undefined" && window.innerWidth <= 960) {
             return false;
         }
         return true;
