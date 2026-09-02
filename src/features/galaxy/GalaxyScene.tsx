@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useMemo, useRef } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import CosmicBackground from "./components/CosmicBackground";
@@ -23,55 +23,168 @@ interface CameraFillLightProps {
     color?: string;
 }
 
-const IN_FOCUS_DISTANCE = 6.8;
-const FADE_START_DISTANCE = 14.0;
-
 function CameraFillLight({
     focusId,
     bodyRefs,
-    maxIntensity = 0.45,
+    maxIntensity = 3.2,
     color = "#ffffff",
 }: CameraFillLightProps) {
     const { camera } = useThree();
-    const lightRef = useRef<THREE.PointLight>(null);
-    const targetWorldPos = useRef(new THREE.Vector3());
+    const lightRef = useRef<THREE.SpotLight>(null);
+    const targetRef = useRef<THREE.Object3D>(null);
+    const targetPos = useRef(new THREE.Vector3());
+    const prevFocusId = useRef(focusId);
+    const activeTargetId = useRef(focusId);
+    const isTransitioning = useRef(false);
+    const transitionElapsed = useRef(0);
+    const transitionStartDist = useRef(0);
 
     useFrame((_, delta) => {
-        if (!lightRef.current) return;
+        if (!lightRef.current || !targetRef.current) return;
+
         lightRef.current.position.copy(camera.position);
 
-        let targetIntensity = 0;
-        if (focusId !== "home" && focusId !== "sun") {
-            const planetGroup = bodyRefs.current[focusId];
-            if (planetGroup) {
-                planetGroup.getWorldPosition(targetWorldPos.current);
-                const distance = camera.position.distanceTo(targetWorldPos.current);
-                const progress = THREE.MathUtils.clamp(
-                    1 - (distance - IN_FOCUS_DISTANCE) / (FADE_START_DISTANCE - IN_FOCUS_DISTANCE),
-                    0,
-                    1
-                );
-                const eased = progress * progress * (3 - 2 * progress);
-                targetIntensity = eased * maxIntensity;
+        if (focusId !== prevFocusId.current) {
+            prevFocusId.current = focusId;
+            isTransitioning.current = true;
+            transitionElapsed.current = 0;
+            const newGroup = bodyRefs.current[focusId];
+            if (newGroup && focusId !== "home" && focusId !== "sun") {
+                newGroup.getWorldPosition(targetPos.current);
+                transitionStartDist.current = camera.position.distanceTo(targetPos.current);
+            } else {
+                transitionStartDist.current = 0;
             }
         }
 
-        lightRef.current.intensity = THREE.MathUtils.damp(
-            lightRef.current.intensity,
-            targetIntensity,
-            6,
-            delta
-        );
+        const newTargetIsBody = focusId !== "home" && focusId !== "sun";
+        const newGroup = bodyRefs.current[focusId];
+
+        if (isTransitioning.current) {
+            transitionElapsed.current += delta;
+            const timeProgress = Math.min(transitionElapsed.current / 0.72, 1.0);
+
+            if (activeTargetId.current !== focusId) {
+                const oldGroup = bodyRefs.current[activeTargetId.current];
+                if (oldGroup && activeTargetId.current !== "home" && activeTargetId.current !== "sun") {
+                    oldGroup.getWorldPosition(targetPos.current);
+                    targetRef.current.position.copy(targetPos.current);
+
+                    const surfaceMesh = oldGroup.userData?.surfaceMesh as THREE.Mesh | undefined;
+                    let bodyRadius = 2.0;
+                    if (surfaceMesh?.geometry?.boundingSphere) {
+                        bodyRadius = surfaceMesh.geometry.boundingSphere.radius;
+                    }
+
+                    const dist = camera.position.distanceTo(targetPos.current);
+                    const angularRadius = Math.atan2(bodyRadius * 1.15, Math.max(dist, 0.1));
+                    lightRef.current.angle = THREE.MathUtils.clamp(angularRadius, 0.05, Math.PI / 3);
+                    lightRef.current.distance = dist + bodyRadius * 0.2;
+
+                    lightRef.current.intensity = THREE.MathUtils.damp(
+                        lightRef.current.intensity,
+                        0,
+                        12.0,
+                        delta
+                    );
+
+                    if (lightRef.current.intensity < 0.02 || timeProgress > 0.3) {
+                        activeTargetId.current = focusId;
+                        lightRef.current.intensity = 0;
+                    }
+                } else {
+                    activeTargetId.current = focusId;
+                    lightRef.current.intensity = 0;
+                }
+            } else if (newGroup && newTargetIsBody) {
+                newGroup.getWorldPosition(targetPos.current);
+                targetRef.current.position.copy(targetPos.current);
+
+                const surfaceMesh = newGroup.userData?.surfaceMesh as THREE.Mesh | undefined;
+                let bodyRadius = 2.0;
+                if (surfaceMesh?.geometry?.boundingSphere) {
+                    bodyRadius = surfaceMesh.geometry.boundingSphere.radius;
+                }
+
+                const dist = camera.position.distanceTo(targetPos.current);
+                const angularRadius = Math.atan2(bodyRadius * 1.15, Math.max(dist, 0.1));
+                lightRef.current.angle = THREE.MathUtils.clamp(angularRadius, 0.05, Math.PI / 3);
+                lightRef.current.distance = dist + bodyRadius * 0.2;
+
+                const startDist = Math.max(transitionStartDist.current, 15);
+                const focusDist = 9.5;
+                const distProgress = THREE.MathUtils.clamp(
+                    1 - (dist - focusDist) / Math.max(startDist - focusDist, 1),
+                    0,
+                    1
+                );
+                const progress = Math.max(distProgress, timeProgress);
+                const easedProgress = progress * progress * (3 - 2 * progress);
+                const targetIntensity = maxIntensity * easedProgress;
+
+                lightRef.current.intensity = THREE.MathUtils.damp(
+                    lightRef.current.intensity,
+                    targetIntensity,
+                    6.0,
+                    delta
+                );
+
+                if (timeProgress >= 1.0) {
+                    isTransitioning.current = false;
+                }
+            } else {
+                isTransitioning.current = false;
+            }
+        } else if (newGroup && newTargetIsBody) {
+            activeTargetId.current = focusId;
+            newGroup.getWorldPosition(targetPos.current);
+            targetRef.current.position.copy(targetPos.current);
+
+            const surfaceMesh = newGroup.userData?.surfaceMesh as THREE.Mesh | undefined;
+            let bodyRadius = 2.0;
+            if (surfaceMesh?.geometry?.boundingSphere) {
+                bodyRadius = surfaceMesh.geometry.boundingSphere.radius;
+            }
+
+            const dist = camera.position.distanceTo(targetPos.current);
+            const angularRadius = Math.atan2(bodyRadius * 1.15, Math.max(dist, 0.1));
+            lightRef.current.angle = THREE.MathUtils.clamp(angularRadius, 0.05, Math.PI / 3);
+            lightRef.current.distance = dist + bodyRadius * 0.2;
+
+            const baseDist = 9.5;
+            const distanceCompFactor = Math.max(dist / baseDist, 0.2);
+            lightRef.current.intensity = maxIntensity * (distanceCompFactor * distanceCompFactor);
+        } else {
+            activeTargetId.current = focusId;
+            isTransitioning.current = false;
+            lightRef.current.distance = 0;
+            lightRef.current.intensity = THREE.MathUtils.damp(
+                lightRef.current.intensity,
+                0,
+                8.0,
+                delta
+            );
+        }
     });
 
+    const effectiveColor = useMemo(() => {
+        return new THREE.Color(color).lerp(new THREE.Color("#ffffff"), 0.55);
+    }, [color]);
+
     return (
-        <pointLight
-            ref={lightRef}
-            color={color}
-            intensity={0}
-            distance={0}
-            decay={0}
-        />
+        <>
+            <object3D ref={targetRef} />
+            <spotLight
+                ref={lightRef}
+                target={targetRef.current ?? undefined}
+                color={effectiveColor}
+                intensity={0}
+                distance={0}
+                decay={0}
+                penumbra={0.2}
+                angle={Math.PI / 6}
+            />
+        </>
     );
 }
 
@@ -99,7 +212,7 @@ function GalaxyScene({
             style={{ touchAction: isEditorMode ? "none" : "pan-y" }}
         >
             <ambientLight intensity={0.15} />
-            <CameraFillLight focusId={focusId} bodyRefs={bodyRefs} />
+            <CameraFillLight focusId={focusId} bodyRefs={bodyRefs} color={sun.color} />
 
             <CosmicBackground visible={visuals.showBackgroundPhenomena !== false} />
 
