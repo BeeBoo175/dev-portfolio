@@ -96,8 +96,9 @@ export const CelestialBody = forwardRef<THREE.Group, CelestialBodyProps>(
                                     e.stopPropagation();
                                     onSelect?.(body.id);
                                 }}
-                                onPointerOver={() => {
+                                onPointerOver={(e) => {
                                     if (isMoon && !isEditorMode) return;
+                                    e.stopPropagation();
                                     setIsHovered(true);
                                     document.body.style.cursor = "pointer";
                                 }}
@@ -107,6 +108,39 @@ export const CelestialBody = forwardRef<THREE.Group, CelestialBodyProps>(
                                     document.body.style.cursor = "default";
                                 }}
                             />
+
+                            <mesh
+                                visible={false}
+                                onClick={(e) => {
+                                    if (isMoon && !isEditorMode) return;
+                                    e.stopPropagation();
+                                    onSelect?.(body.id);
+                                }}
+                                onPointerOver={(e) => {
+                                    if (isMoon && !isEditorMode) return;
+                                    e.stopPropagation();
+                                    setIsHovered(true);
+                                    document.body.style.cursor = "pointer";
+                                }}
+                                onPointerOut={() => {
+                                    if (isMoon && !isEditorMode) return;
+                                    setIsHovered(false);
+                                    document.body.style.cursor = "default";
+                                }}
+                            >
+                                <sphereGeometry
+                                    args={[
+                                        isSun
+                                            ? body.radius * 1.15
+                                            : isMoon
+                                            ? Math.max(body.radius * 1.8, body.radius + 0.3)
+                                            : Math.max(body.radius * 1.4, body.radius + 0.5),
+                                        12,
+                                        12,
+                                    ]}
+                                />
+                                <meshBasicMaterial transparent opacity={0} />
+                            </mesh>
 
                             <SelectionGlow
                                 radius={body.radius}
