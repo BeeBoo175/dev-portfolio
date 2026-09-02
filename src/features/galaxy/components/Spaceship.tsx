@@ -267,211 +267,7 @@ export function Spaceship({ focusId, bodyRefs }: SpaceshipProps) {
             return;
         }
 
-        if (isFlying.current) {
-            flightElapsed.current += delta;
-            const p = Math.min(flightElapsed.current / flightDuration.current, 1.0);
-
-            const destSurface = getSurfaceMesh(bodyRefs, targetPlanetId.current);
-            if (!destSurface) return;
-
-            const destRadius = getPlanetRadius(planets, targetPlanetId.current);
-            const destLiftDist = THREE.MathUtils.clamp(
-                destRadius * 0.8 + 0.8,
-                1.4,
-                2.4
-            );
-
-            const destNormal = targetLocalPos.current.clone().normalize();
-            const destApexPos = destNormal
-                .clone()
-                .multiplyScalar(destRadius + HOVER_ALTITUDE + destLiftDist);
-            const destSurfacePos = destNormal
-                .clone()
-                .multiplyScalar(destRadius + HOVER_ALTITUDE);
-
-            destSurface.updateWorldMatrix(true, false);
-            const destApexWorld = destApexPos
-                .clone()
-                .applyMatrix4(destSurface.matrixWorld);
-            const destQuat = new THREE.Quaternion();
-            destSurface.getWorldQuaternion(destQuat);
-            const destLandedWorldQuat = new THREE.Quaternion().multiplyQuaternions(
-                destQuat,
-                targetLocalQuat.current
-            );
-
-            const newPos = new THREE.Vector3();
-            const desiredQuat = new THREE.Quaternion();
-
-            if (isMidFlightRedirect.current) {
-                const startPt = midFlightStartPos.current;
-                const cp = calculateCruiseControlPoint(startPt, destApexWorld);
-
-                if (p < LANDING_PHASE_START) {
-                    const u = p / LANDING_PHASE_START;
-                    const s = u * u * (3 - 2 * u);
-
-                    const oneMinusS = 1 - s;
-                    const term1 = startPt.clone().multiplyScalar(oneMinusS * oneMinusS);
-                    const term2 = cp.clone().multiplyScalar(2 * oneMinusS * s);
-                    const term3 = destApexWorld.clone().multiplyScalar(s * s);
-
-                    newPos.copy(term1).add(term2).add(term3);
-
-                    const tangent = new THREE.Vector3()
-                        .subVectors(cp, startPt)
-                        .multiplyScalar(oneMinusS)
-                        .add(
-                            new THREE.Vector3()
-                                .subVectors(destApexWorld, cp)
-                                .multiplyScalar(s)
-                        )
-                        .normalize();
-
-                    const cruiseQuat = computeForwardRotation(tangent);
-
-                    if (u < 0.25) {
-                        const blend = u / 0.25;
-                        desiredQuat
-                            .copy(midFlightStartQuat.current)
-                            .slerp(cruiseQuat, blend * blend * (3 - 2 * blend));
-                    } else if (u < 0.7) {
-                        desiredQuat.copy(cruiseQuat);
-                    } else {
-                        const blend = (u - 0.7) / 0.3;
-                        const blendEased = blend * blend * (3 - 2 * blend);
-                        desiredQuat.copy(cruiseQuat).slerp(destLandedWorldQuat, blendEased);
-                    }
-                } else {
-                    const subP = (p - LANDING_PHASE_START) / (1 - LANDING_PHASE_START);
-                    const eased = subP * subP * (3 - 2 * subP);
-
-                    const localPos = new THREE.Vector3().lerpVectors(
-                        destApexPos,
-                        destSurfacePos,
-                        eased
-                    );
-                    newPos.copy(localPos).applyMatrix4(destSurface.matrixWorld);
-                    desiredQuat.copy(destLandedWorldQuat);
-                }
-            } else {
-                const originSurface = getSurfaceMesh(bodyRefs, originPlanetId.current);
-                const originRadius = getPlanetRadius(planets, originPlanetId.current);
-                const originLiftDist = THREE.MathUtils.clamp(
-                    originRadius * 0.8 + 0.8,
-                    1.4,
-                    2.4
-                );
-
-                const originNormal = originLocalPos.current.clone().normalize();
-                const originSurfacePos = originNormal
-                    .clone()
-                    .multiplyScalar(originRadius + HOVER_ALTITUDE);
-                const originApexPos = originNormal
-                    .clone()
-                    .multiplyScalar(originRadius + HOVER_ALTITUDE + originLiftDist);
-
-                const originApexWorld = new THREE.Vector3();
-                const originLandedWorldQuat = new THREE.Quaternion();
-                if (originSurface) {
-                    originSurface.updateWorldMatrix(true, false);
-                    originApexWorld.copy(originApexPos).applyMatrix4(originSurface.matrixWorld);
-                    const originQuat = new THREE.Quaternion();
-                    originSurface.getWorldQuaternion(originQuat);
-                    originLandedWorldQuat.multiplyQuaternions(
-                        originQuat,
-                        originLocalQuat.current
-                    );
-                } else {
-                    originApexWorld.copy(flightStartPos.current);
-                }
-
-                const cp = calculateCruiseControlPoint(originApexWorld, destApexWorld);
-                const departureTangent = new THREE.Vector3()
-                    .subVectors(cp, originApexWorld)
-                    .normalize();
-                const departureQuat = computeForwardRotation(departureTangent);
-
-                if (p < TAKEOFF_PHASE_END) {
-                    const subP = p / TAKEOFF_PHASE_END;
-                    const eased = subP * subP * (3 - 2 * subP);
-
-                    if (originSurface) {
-                        const localPos = new THREE.Vector3().lerpVectors(
-                            originSurfacePos,
-                            originApexPos,
-                            eased
-                        );
-                        newPos.copy(localPos).applyMatrix4(originSurface.matrixWorld);
-                    } else {
-                        newPos.lerpVectors(flightStartPos.current, originApexWorld, eased);
-                    }
-
-                    if (subP < 0.5) {
-                        desiredQuat.copy(originLandedWorldQuat);
-                    } else {
-                        const turnBlend = (subP - 0.5) / 0.5;
-                        const turnEased = turnBlend * turnBlend * (3 - 2 * turnBlend);
-                        desiredQuat.copy(originLandedWorldQuat).slerp(departureQuat, turnEased);
-                    }
-                } else if (p > LANDING_PHASE_START) {
-                    const subP = (p - LANDING_PHASE_START) / (1 - LANDING_PHASE_START);
-                    const eased = subP * subP * (3 - 2 * subP);
-
-                    const localPos = new THREE.Vector3().lerpVectors(
-                        destApexPos,
-                        destSurfacePos,
-                        eased
-                    );
-                    newPos.copy(localPos).applyMatrix4(destSurface.matrixWorld);
-                    desiredQuat.copy(destLandedWorldQuat);
-                } else {
-                    const u = (p - TAKEOFF_PHASE_END) / CRUISE_PHASE_RANGE;
-                    const s = u * u * (3 - 2 * u);
-
-                    const oneMinusS = 1 - s;
-                    const term1 = originApexWorld.clone().multiplyScalar(oneMinusS * oneMinusS);
-                    const term2 = cp.clone().multiplyScalar(2 * oneMinusS * s);
-                    const term3 = destApexWorld.clone().multiplyScalar(s * s);
-
-                    newPos.copy(term1).add(term2).add(term3);
-
-                    const tangent = new THREE.Vector3()
-                        .subVectors(cp, originApexWorld)
-                        .multiplyScalar(oneMinusS)
-                        .add(
-                            new THREE.Vector3()
-                                .subVectors(destApexWorld, cp)
-                                .multiplyScalar(s)
-                        )
-                        .normalize();
-
-                    const cruiseQuat = computeForwardRotation(tangent);
-
-                    if (u < 0.7) {
-                        desiredQuat.copy(cruiseQuat);
-                    } else {
-                        const blend = (u - 0.7) / 0.3;
-                        const blendEased = blend * blend * (3 - 2 * blend);
-                        desiredQuat.copy(cruiseQuat).slerp(destLandedWorldQuat, blendEased);
-                    }
-                }
-            }
-
-            groupRef.current.position.copy(newPos);
-            groupRef.current.quaternion.copy(desiredQuat);
-
-            if (p >= 1.0) {
-                isFlying.current = false;
-                isMidFlightRedirect.current = false;
-                currentPlanetId.current = targetPlanetId.current;
-                originPlanetId.current = targetPlanetId.current;
-                originLocalPos.current.copy(targetLocalPos.current);
-                originLocalQuat.current.copy(targetLocalQuat.current);
-                landedLocalPos.current.copy(targetLocalPos.current);
-                landedLocalQuat.current.copy(targetLocalQuat.current);
-            }
-        } else {
+        if (!isFlying.current) {
             const currentSurface = getSurfaceMesh(bodyRefs, currentPlanetId.current);
             if (currentSurface) {
                 currentSurface.updateWorldMatrix(true, false);
@@ -489,6 +285,211 @@ export function Spaceship({ focusId, bodyRefs }: SpaceshipProps) {
                     landedLocalQuat.current
                 );
             }
+            return;
+        }
+
+        flightElapsed.current += delta;
+        const p = Math.min(flightElapsed.current / flightDuration.current, 1.0);
+
+        const destSurface = getSurfaceMesh(bodyRefs, targetPlanetId.current);
+        if (!destSurface) return;
+
+        const destRadius = getPlanetRadius(planets, targetPlanetId.current);
+        const destLiftDist = THREE.MathUtils.clamp(
+            destRadius * 0.8 + 0.8,
+            1.4,
+            2.4
+        );
+
+        const destNormal = targetLocalPos.current.clone().normalize();
+        const destApexPos = destNormal
+            .clone()
+            .multiplyScalar(destRadius + HOVER_ALTITUDE + destLiftDist);
+        const destSurfacePos = destNormal
+            .clone()
+            .multiplyScalar(destRadius + HOVER_ALTITUDE);
+
+        destSurface.updateWorldMatrix(true, false);
+        const destApexWorld = destApexPos
+            .clone()
+            .applyMatrix4(destSurface.matrixWorld);
+        const destQuat = new THREE.Quaternion();
+        destSurface.getWorldQuaternion(destQuat);
+        const destLandedWorldQuat = new THREE.Quaternion().multiplyQuaternions(
+            destQuat,
+            targetLocalQuat.current
+        );
+
+        const newPos = new THREE.Vector3();
+        const desiredQuat = new THREE.Quaternion();
+
+        if (isMidFlightRedirect.current) {
+            const startPt = midFlightStartPos.current;
+            const cp = calculateCruiseControlPoint(startPt, destApexWorld);
+
+            if (p < LANDING_PHASE_START) {
+                const u = p / LANDING_PHASE_START;
+                const s = u * u * (3 - 2 * u);
+
+                const oneMinusS = 1 - s;
+                const term1 = startPt.clone().multiplyScalar(oneMinusS * oneMinusS);
+                const term2 = cp.clone().multiplyScalar(2 * oneMinusS * s);
+                const term3 = destApexWorld.clone().multiplyScalar(s * s);
+
+                newPos.copy(term1).add(term2).add(term3);
+
+                const tangent = new THREE.Vector3()
+                    .subVectors(cp, startPt)
+                    .multiplyScalar(oneMinusS)
+                    .add(
+                        new THREE.Vector3()
+                            .subVectors(destApexWorld, cp)
+                            .multiplyScalar(s)
+                    )
+                    .normalize();
+
+                const cruiseQuat = computeForwardRotation(tangent);
+
+                if (u < 0.25) {
+                    const blend = u / 0.25;
+                    desiredQuat
+                        .copy(midFlightStartQuat.current)
+                        .slerp(cruiseQuat, blend * blend * (3 - 2 * blend));
+                } else if (u < 0.7) {
+                    desiredQuat.copy(cruiseQuat);
+                } else {
+                    const blend = (u - 0.7) / 0.3;
+                    const blendEased = blend * blend * (3 - 2 * blend);
+                    desiredQuat.copy(cruiseQuat).slerp(destLandedWorldQuat, blendEased);
+                }
+            } else {
+                const subP = (p - LANDING_PHASE_START) / (1 - LANDING_PHASE_START);
+                const eased = subP * subP * (3 - 2 * subP);
+
+                const localPos = new THREE.Vector3().lerpVectors(
+                    destApexPos,
+                    destSurfacePos,
+                    eased
+                );
+                newPos.copy(localPos).applyMatrix4(destSurface.matrixWorld);
+                desiredQuat.copy(destLandedWorldQuat);
+            }
+        } else {
+            const originSurface = getSurfaceMesh(bodyRefs, originPlanetId.current);
+            const originRadius = getPlanetRadius(planets, originPlanetId.current);
+            const originLiftDist = THREE.MathUtils.clamp(
+                originRadius * 0.8 + 0.8,
+                1.4,
+                2.4
+            );
+
+            const originNormal = originLocalPos.current.clone().normalize();
+            const originSurfacePos = originNormal
+                .clone()
+                .multiplyScalar(originRadius + HOVER_ALTITUDE);
+            const originApexPos = originNormal
+                .clone()
+                .multiplyScalar(originRadius + HOVER_ALTITUDE + originLiftDist);
+
+            const originApexWorld = new THREE.Vector3();
+            const originLandedWorldQuat = new THREE.Quaternion();
+            if (originSurface) {
+                originSurface.updateWorldMatrix(true, false);
+                originApexWorld.copy(originApexPos).applyMatrix4(originSurface.matrixWorld);
+                const originQuat = new THREE.Quaternion();
+                originSurface.getWorldQuaternion(originQuat);
+                originLandedWorldQuat.multiplyQuaternions(
+                    originQuat,
+                    originLocalQuat.current
+                );
+            } else {
+                originApexWorld.copy(flightStartPos.current);
+            }
+
+            const cp = calculateCruiseControlPoint(originApexWorld, destApexWorld);
+            const departureTangent = new THREE.Vector3()
+                .subVectors(cp, originApexWorld)
+                .normalize();
+            const departureQuat = computeForwardRotation(departureTangent);
+
+            if (p < TAKEOFF_PHASE_END) {
+                const subP = p / TAKEOFF_PHASE_END;
+                const eased = subP * subP * (3 - 2 * subP);
+
+                if (originSurface) {
+                    const localPos = new THREE.Vector3().lerpVectors(
+                        originSurfacePos,
+                        originApexPos,
+                        eased
+                    );
+                    newPos.copy(localPos).applyMatrix4(originSurface.matrixWorld);
+                } else {
+                    newPos.lerpVectors(flightStartPos.current, originApexWorld, eased);
+                }
+
+                if (subP < 0.5) {
+                    desiredQuat.copy(originLandedWorldQuat);
+                } else {
+                    const turnBlend = (subP - 0.5) / 0.5;
+                    const turnEased = turnBlend * turnBlend * (3 - 2 * turnBlend);
+                    desiredQuat.copy(originLandedWorldQuat).slerp(departureQuat, turnEased);
+                }
+            } else if (p > LANDING_PHASE_START) {
+                const subP = (p - LANDING_PHASE_START) / (1 - LANDING_PHASE_START);
+                const eased = subP * subP * (3 - 2 * subP);
+
+                const localPos = new THREE.Vector3().lerpVectors(
+                    destApexPos,
+                    destSurfacePos,
+                    eased
+                );
+                newPos.copy(localPos).applyMatrix4(destSurface.matrixWorld);
+                desiredQuat.copy(destLandedWorldQuat);
+            } else {
+                const u = (p - TAKEOFF_PHASE_END) / CRUISE_PHASE_RANGE;
+                const s = u * u * (3 - 2 * u);
+
+                const oneMinusS = 1 - s;
+                const term1 = originApexWorld.clone().multiplyScalar(oneMinusS * oneMinusS);
+                const term2 = cp.clone().multiplyScalar(2 * oneMinusS * s);
+                const term3 = destApexWorld.clone().multiplyScalar(s * s);
+
+                newPos.copy(term1).add(term2).add(term3);
+
+                const tangent = new THREE.Vector3()
+                    .subVectors(cp, originApexWorld)
+                    .multiplyScalar(oneMinusS)
+                    .add(
+                        new THREE.Vector3()
+                            .subVectors(destApexWorld, cp)
+                            .multiplyScalar(s)
+                    )
+                    .normalize();
+
+                const cruiseQuat = computeForwardRotation(tangent);
+
+                if (u < 0.7) {
+                    desiredQuat.copy(cruiseQuat);
+                } else {
+                    const blend = (u - 0.7) / 0.3;
+                    const blendEased = blend * blend * (3 - 2 * blend);
+                    desiredQuat.copy(cruiseQuat).slerp(destLandedWorldQuat, blendEased);
+                }
+            }
+        }
+
+        groupRef.current.position.copy(newPos);
+        groupRef.current.quaternion.copy(desiredQuat);
+
+        if (p >= 1.0) {
+            isFlying.current = false;
+            isMidFlightRedirect.current = false;
+            currentPlanetId.current = targetPlanetId.current;
+            originPlanetId.current = targetPlanetId.current;
+            originLocalPos.current.copy(targetLocalPos.current);
+            originLocalQuat.current.copy(targetLocalQuat.current);
+            landedLocalPos.current.copy(targetLocalPos.current);
+            landedLocalQuat.current.copy(targetLocalQuat.current);
         }
     });
 
