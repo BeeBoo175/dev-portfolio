@@ -8,6 +8,7 @@ import OrbitPathLine from "./OrbitPathLine";
 import OrbitalAxisLine from "./OrbitalAxisLine";
 import SunGlow from "./SunGlow";
 import SelectionGlow from "./SelectionGlow";
+import { useTheme } from "../../theme";
 
 export interface CelestialBodyProps {
     body: OrbitConfig | SunConfig;
@@ -28,6 +29,7 @@ export const CelestialBody = forwardRef<THREE.Group, CelestialBodyProps>(
         const bodyRef = useRef<THREE.Mesh>(null);
         const [isHovered, setIsHovered] = useState(false);
         const visuals = useGalaxyVisuals();
+        const { isLight } = useTheme();
         const effectiveColor = color ?? body.color ?? "white";
 
         useImperativeHandle(ref, () => {
@@ -133,8 +135,8 @@ export const CelestialBody = forwardRef<THREE.Group, CelestialBodyProps>(
                                         isSun
                                             ? body.radius * 1.15
                                             : isMoon
-                                            ? Math.max(body.radius * 1.8, body.radius + 0.3)
-                                            : Math.max(body.radius * 1.4, body.radius + 0.5),
+                                                ? Math.max(body.radius * 1.8, body.radius + 0.3)
+                                                : Math.max(body.radius * 1.4, body.radius + 0.5),
                                         12,
                                         12,
                                     ]}
@@ -158,23 +160,31 @@ export const CelestialBody = forwardRef<THREE.Group, CelestialBodyProps>(
                                     opacity={0.6}
                                 />
                             )}
-                        </group>
 
-                        {isSun && (
-                            <>
-                                <pointLight
-                                    color={effectiveColor}
-                                    intensity={sunConfig.lightIntensity ?? 6}
-                                    distance={0}
-                                    decay={0}
-                                />
-                                <SunGlow
-                                    radius={body.radius}
-                                    color={effectiveColor}
-                                    glowIntensity={sunConfig.glowIntensity ?? 1.0}
-                                />
-                            </>
-                        )}
+                            {isSun ? (
+                                <>
+                                    <pointLight
+                                        color={effectiveColor}
+                                        intensity={sunConfig.lightIntensity ?? 6}
+                                        distance={0}
+                                        decay={0}
+                                    />
+                                    <SunGlow
+                                        radius={body.radius}
+                                        color={effectiveColor}
+                                        glowIntensity={sunConfig.glowIntensity ?? 1.0}
+                                    />
+                                </>
+                            ) : (
+                                isLight && (
+                                    <SunGlow
+                                        radius={body.radius}
+                                        color={effectiveColor}
+                                        glowIntensity={1.0}
+                                    />
+                                )
+                            )}
+                        </group>
 
                         {orbitConfig.children?.map((child) => (
                             <CelestialBody

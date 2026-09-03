@@ -1,6 +1,7 @@
 import { useMemo, useEffect, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
+import { useTheme } from "../../theme";
 
 interface SunGlowProps {
     radius: number;
@@ -9,11 +10,12 @@ interface SunGlowProps {
 }
 
 export function SunGlow({ radius, color = "#ffd76b", glowIntensity = 1.0 }: SunGlowProps) {
+    const { isLight } = useTheme();
     const innerGlowRef = useRef<THREE.Mesh>(null);
     const outerGlowRef = useRef<THREE.Mesh>(null);
 
-    const brightColor = useMemo(() => new THREE.Color("#fffbeb"), []);
-    const warmOrangeColor = useMemo(() => new THREE.Color(color), [color]);
+    const brightColor = useMemo(() => new THREE.Color(isLight ? "#0284c7" : "#fffbeb"), [isLight]);
+    const warmOrangeColor = useMemo(() => new THREE.Color(isLight ? "#0369a1" : color), [isLight, color]);
 
     const glowTexture = useMemo(() => {
         const canvas = document.createElement("canvas");
@@ -22,22 +24,32 @@ export function SunGlow({ radius, color = "#ffd76b", glowIntensity = 1.0 }: SunG
         const ctx = canvas.getContext("2d");
         if (ctx) {
             const gradient = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
-            gradient.addColorStop(0, "rgba(255, 255, 255, 1)");
-            gradient.addColorStop(0.25, "rgba(255, 251, 235, 0.85)");
-            gradient.addColorStop(0.55, "rgba(255, 215, 107, 0.35)");
-            gradient.addColorStop(0.8, "rgba(245, 158, 11, 0.12)");
-            gradient.addColorStop(1, "rgba(245, 158, 11, 0)");
+            if (isLight) {
+                gradient.addColorStop(0, "rgba(2, 132, 199, 0.2)");
+                gradient.addColorStop(0.35, "rgba(2, 132, 199, 0.12)");
+                gradient.addColorStop(0.65, "rgba(3, 105, 161, 0.05)");
+                gradient.addColorStop(0.85, "rgba(3, 105, 161, 0.02)");
+                gradient.addColorStop(1, "rgba(3, 105, 161, 0)");
+            } else {
+                gradient.addColorStop(0, "rgba(255, 255, 255, 1)");
+                gradient.addColorStop(0.25, "rgba(255, 251, 235, 0.85)");
+                gradient.addColorStop(0.55, "rgba(255, 215, 107, 0.35)");
+                gradient.addColorStop(0.8, "rgba(245, 158, 11, 0.12)");
+                gradient.addColorStop(1, "rgba(245, 158, 11, 0)");
+            }
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, 128, 128);
         }
         return new THREE.CanvasTexture(canvas);
-    }, []);
+    }, [isLight]);
 
     useEffect(() => {
         return () => {
             glowTexture.dispose();
         };
     }, [glowTexture]);
+
+    const worldPos = useRef(new THREE.Vector3());
 
     useFrame((state) => {
         const time = state.clock.getElapsedTime();
@@ -46,6 +58,7 @@ export function SunGlow({ radius, color = "#ffd76b", glowIntensity = 1.0 }: SunG
         if (innerGlowRef.current) {
             const s = 1.0 + pulse;
             innerGlowRef.current.scale.set(s, s, s);
+            innerGlowRef.current.getWorldPosition(worldPos.current);
             innerGlowRef.current.lookAt(state.camera.position);
         }
 
@@ -64,8 +77,8 @@ export function SunGlow({ radius, color = "#ffd76b", glowIntensity = 1.0 }: SunG
                     map={glowTexture}
                     color={brightColor}
                     transparent
-                    opacity={0.65 * glowIntensity}
-                    blending={THREE.AdditiveBlending}
+                    opacity={(isLight ? 0.45 : 0.65) * glowIntensity}
+                    blending={isLight ? THREE.NormalBlending : THREE.AdditiveBlending}
                     depthWrite={false}
                 />
             </mesh>
@@ -76,8 +89,8 @@ export function SunGlow({ radius, color = "#ffd76b", glowIntensity = 1.0 }: SunG
                     map={glowTexture}
                     color={warmOrangeColor}
                     transparent
-                    opacity={0.4 * glowIntensity}
-                    blending={THREE.AdditiveBlending}
+                    opacity={(isLight ? 0.3 : 0.4) * glowIntensity}
+                    blending={isLight ? THREE.NormalBlending : THREE.AdditiveBlending}
                     depthWrite={false}
                 />
             </mesh>

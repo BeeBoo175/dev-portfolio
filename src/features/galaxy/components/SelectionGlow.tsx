@@ -2,6 +2,7 @@ import { useMemo, useRef, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { useGalaxyVisuals } from "../store";
+import { useTheme } from "../../theme";
 
 export interface SelectionGlowProps {
     radius: number;
@@ -58,6 +59,7 @@ export function SelectionGlow({
     showReticle,
     showLabel,
 }: SelectionGlowProps) {
+    const { isLight } = useTheme();
     const visuals = useGalaxyVisuals();
     const effectiveShowReticle = showReticle ?? (visuals.showSelectionGlow !== false);
     const effectiveShowLabel = showLabel ?? (visuals.showPlanetNames !== false);
@@ -72,9 +74,13 @@ export function SelectionGlow({
     const bracketGeom = useMemo(() => createBracketsGeometry(radius, cornerSize), [radius, cornerSize]);
     const dottedGeom = useMemo(() => createDottedRingGeometry(radius, 28), [radius]);
 
-
-    const lineColor = useMemo(() => new THREE.Color(color), [color]);
-    const idleTextColor = useMemo(() => new THREE.Color("#94a3b8"), []);
+    const lineColor = useMemo(() => {
+        if (isLight) {
+            return new THREE.Color(color).lerp(new THREE.Color("#0284c7"), 0.35);
+        }
+        return new THREE.Color(color);
+    }, [color, isLight]);
+    const idleTextColor = useMemo(() => new THREE.Color(isLight ? "#334155" : "#94a3b8"), [isLight]);
 
     const labelTexture = useMemo(() => {
         if (!label) return null;
@@ -89,20 +95,29 @@ export function SelectionGlow({
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
 
-            ctx.shadowColor = "rgba(0, 0, 0, 0.95)";
-            ctx.shadowBlur = 12;
-            ctx.shadowOffsetX = 0;
-            ctx.shadowOffsetY = 2;
+            if (isLight) {
+                ctx.fillStyle = "#0f172a";
+                ctx.strokeStyle = "rgba(255, 255, 255, 0.85)";
+                ctx.lineWidth = 6;
+                ctx.letterSpacing = "6px";
+                ctx.strokeText(label.toUpperCase(), 512, 128);
+                ctx.fillText(label.toUpperCase(), 512, 128);
+            } else {
+                ctx.shadowColor = "rgba(0, 0, 0, 0.95)";
+                ctx.shadowBlur = 12;
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = 2;
 
-            ctx.fillStyle = "#ffffff";
-            ctx.letterSpacing = "6px";
-            ctx.fillText(label.toUpperCase(), 512, 128);
+                ctx.fillStyle = "#ffffff";
+                ctx.letterSpacing = "6px";
+                ctx.fillText(label.toUpperCase(), 512, 128);
+            }
         }
         const tex = new THREE.CanvasTexture(canvas);
         tex.minFilter = THREE.LinearFilter;
         tex.magFilter = THREE.LinearFilter;
         return tex;
-    }, [label]);
+    }, [label, isLight]);
 
     useEffect(() => {
         return () => {

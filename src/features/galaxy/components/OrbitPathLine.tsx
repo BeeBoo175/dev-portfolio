@@ -1,5 +1,6 @@
 import { useMemo, useEffect } from "react";
 import * as THREE from "three";
+import { useTheme } from "../../theme";
 
 interface OrbitPathLineProps {
     radius: number;
@@ -14,6 +15,17 @@ export function OrbitPathLine({
     opacity = 0.25,
     segments = 128,
 }: OrbitPathLineProps) {
+    const { isLight } = useTheme();
+
+    const effectiveColor = useMemo(() => {
+        if (isLight) {
+            return new THREE.Color(color).lerp(new THREE.Color("#0284c7"), 0.45);
+        }
+        return new THREE.Color(color);
+    }, [color, isLight]);
+
+    const effectiveOpacity = isLight ? Math.max(opacity * 1.5, 0.45) : opacity;
+
     const lineLoopMesh = useMemo(() => {
         const points: THREE.Vector3[] = [];
         for (let i = 0; i <= segments; i++) {
@@ -22,13 +34,13 @@ export function OrbitPathLine({
         }
         const geometry = new THREE.BufferGeometry().setFromPoints(points);
         const material = new THREE.LineBasicMaterial({
-            color,
+            color: effectiveColor,
             transparent: true,
-            opacity,
+            opacity: effectiveOpacity,
             depthWrite: false,
         });
         return new THREE.LineLoop(geometry, material);
-    }, [radius, color, opacity, segments]);
+    }, [radius, effectiveColor, effectiveOpacity, segments]);
 
     useEffect(() => {
         return () => {

@@ -83,6 +83,11 @@
     text-shadow: 0 4px 24px rgba(0, 0, 0, 0.9);
 }
 
+:root[data-theme="light"] .sections-overlay__title,
+body.light-theme .sections-overlay__title {
+    text-shadow: 0 2px 12px rgba(255, 255, 255, 0.8), 0 1px 3px rgba(15, 23, 42, 0.2);
+}
+
 .sections-overlay__section--home .sections-overlay__title {
     font-size: clamp(38px, 9vw, 68px);
     letter-spacing: -0.03em;

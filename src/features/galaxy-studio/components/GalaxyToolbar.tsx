@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { GalaxyVisualSettings } from "../../galaxy";
+import { ThemeToggle } from "../../theme";
 
 export interface GalaxyToolbarProps {
     visuals: GalaxyVisualSettings;
@@ -114,6 +115,8 @@ export function GalaxyToolbar({
                             Redo
                         </button>
                     </div>
+
+                    <ThemeToggle />
                 </div>
 
                 <div className="studio-toolbar__right">
