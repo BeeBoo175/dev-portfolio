@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import * as THREE from "three";
-import { useGalaxyPlanets, useGalaxySun } from "../galaxy";
+import { useGalaxyPlanets, useGalaxySun, getEffectiveAccentColor } from "../galaxy";
+import { useTheme } from "../theme";
 import { ALL_SECTIONS } from "./data";
 import { useSectionScroll } from "./useSectionScroll";
 import type { SectionId } from "./types";
@@ -12,6 +13,7 @@ export interface HomeOverlayProps {
 }
 
 export function HomeOverlay({ onFocusChange, registerTrigger }: HomeOverlayProps) {
+    const { isLight } = useTheme();
     const { sectionRefs, showScrollTop, scrollToTop } = useSectionScroll({
         onFocusChange,
         registerTrigger,
@@ -20,7 +22,8 @@ export function HomeOverlay({ onFocusChange, registerTrigger }: HomeOverlayProps
     const dynamicPlanets = useGalaxyPlanets();
 
     const sunStyle = useMemo(() => {
-        const baseHex = sun.color || "#ffe59e";
+        const rawHex = sun.color || "#ffe59e";
+        const baseHex = getEffectiveAccentColor(rawHex, isLight);
         const peakHex = sun.palette?.peak || "#fffbeb";
         const baseColor = new THREE.Color(baseHex);
         const peakColor = new THREE.Color(peakHex);
@@ -43,12 +46,13 @@ export function HomeOverlay({ onFocusChange, registerTrigger }: HomeOverlayProps
             "--sun-glow-rgb": `${r}, ${g}, ${b}`,
             "--sun-icon-color": iconColor,
         } as React.CSSProperties;
-    }, [sun.color, sun.palette?.peak]);
+    }, [sun.color, sun.palette?.peak, isLight]);
 
     const getSectionCardStyle = (sectionId: string): React.CSSProperties => {
         if (sectionId === "home") return {};
         const planet = dynamicPlanets.find((p) => p.id === sectionId);
-        const planetColor = planet?.color || (sectionId === "about" ? "#ffb15d" : sectionId === "skills" ? "#5da9ff" : sectionId === "projects" ? "#7dff9c" : "#ff5d8f");
+        const rawColor = planet?.color || (sectionId === "about" ? "#ffb15d" : sectionId === "skills" ? "#5da9ff" : sectionId === "projects" ? "#7dff9c" : "#ff5d8f");
+        const planetColor = getEffectiveAccentColor(rawColor, isLight);
         return {
             "--card-accent": planetColor,
         } as React.CSSProperties;

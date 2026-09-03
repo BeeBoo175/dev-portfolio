@@ -100,57 +100,124 @@ export interface LowPolyOptions {
     subdivisionDetail?: number;
 }
 
-export function samplePlanetPoint(
+export interface TerrainPaletteColors {
+    cWater: THREE.Color;
+    cCoast: THREE.Color;
+    cLand: THREE.Color;
+    cMountain: THREE.Color;
+    cPeak: THREE.Color;
+}
+
+const _scratchSampleColor = new THREE.Color();
+const _scratchUnitVec = new THREE.Vector3();
+
+export interface PlanetTerrainPointData {
+    count: number;
+    waterThreshold: number;
+    normalizedNoise: Float32Array;
+    heightRatio: Float32Array;
+}
+
+function samplePlanetPoint(
     unit: THREE.Vector3,
     radius: number,
     terrain: PlanetTerrainConfig = {},
-    palette?: PaletteConfig,
-    fallbackColor = "#5da9ff",
+    colors: TerrainPaletteColors,
     isSun = false
-): { elevation: number; color: THREE.Color } {
+): { elevation: number; color: THREE.Color; normalizedNoise: number; heightRatio: number } {
     const noiseScale = terrain.noiseScale ?? 1.2;
     const roughness = terrain.roughness ?? 0.18;
     const waterLevel = terrain.waterLevel ?? 0.0;
     const seed = (terrain.seed ?? 42) * 17.13;
 
-    const cWater = new THREE.Color(palette?.water ?? fallbackColor);
-    const cCoast = new THREE.Color(palette?.coast ?? palette?.land ?? fallbackColor);
-    const cLand = new THREE.Color(palette?.land ?? fallbackColor);
-    const cMountain = new THREE.Color(palette?.mountain ?? palette?.land ?? fallbackColor);
-    const cPeak = new THREE.Color(palette?.peak ?? "#ffffff");
-
     const nx = unit.x * noiseScale + seed;
     const ny = unit.y * noiseScale + seed * 1.31;
     const nz = unit.z * noiseScale + seed * 0.77;
 
-    const color = new THREE.Color();
     let elevation = 0;
+    let normalizedNoise: number;
+    let heightRatio = 0;
 
     if (!isSun) {
         const rawNoise = fbm3D(nx, ny, nz, 3, 2.1, 0.5);
-        const normalizedNoise = (rawNoise + 1) * 0.5;
+        normalizedNoise = (rawNoise + 1) * 0.5;
 
         elevation = normalizedNoise < waterLevel
             ? 0
             : Math.pow((normalizedNoise - waterLevel) / (1 - waterLevel), 1.3) * roughness * radius;
 
-        const heightRatio = elevation / (roughness * radius || 1);
+        heightRatio = elevation / (roughness * radius || 1);
 
         if (normalizedNoise < waterLevel + 0.04) {
-            color.copy(cWater);
+            _scratchSampleColor.copy(colors.cWater);
         } else if (heightRatio < 0.15) {
-            color.copy(cCoast);
+            _scratchSampleColor.copy(colors.cCoast);
         } else if (heightRatio < 0.55) {
-            color.lerpColors(cLand, cMountain, (heightRatio - 0.15) / 0.4);
+            _scratchSampleColor.lerpColors(colors.cLand, colors.cMountain, (heightRatio - 0.15) / 0.4);
         } else {
-            color.lerpColors(cMountain, cPeak, (heightRatio - 0.55) / 0.45);
+            _scratchSampleColor.lerpColors(colors.cMountain, colors.cPeak, (heightRatio - 0.55) / 0.45);
         }
     } else {
         const sunNoise = fbm3D(nx * 0.8, ny * 0.8, nz * 0.8, 2, 2.0, 0.5);
-        color.lerpColors(cWater, cPeak, (sunNoise + 1) * 0.5);
+        normalizedNoise = (sunNoise + 1) * 0.5;
+        _scratchSampleColor.lerpColors(colors.cWater, colors.cPeak, normalizedNoise);
     }
 
-    return { elevation, color };
+    return { elevation, color: _scratchSampleColor, normalizedNoise, heightRatio };
+}
+
+export function updatePlanetGeometryColors(
+    geom: THREE.BufferGeometry,
+    palette?: PaletteConfig,
+    fallbackColor = "#5da9ff",
+    isSun = false
+): void {
+    const colorAttr = geom.getAttribute("color") as THREE.BufferAttribute | undefined;
+    if (!colorAttr) return;
+
+    const pointData = geom.userData.terrainPointsData as PlanetTerrainPointData | undefined;
+    if (!pointData) return;
+
+    const paletteColors: TerrainPaletteColors = {
+        cWater: new THREE.Color(palette?.water ?? fallbackColor),
+        cCoast: new THREE.Color(palette?.coast ?? palette?.land ?? fallbackColor),
+        cLand: new THREE.Color(palette?.land ?? fallbackColor),
+        cMountain: new THREE.Color(palette?.mountain ?? palette?.land ?? fallbackColor),
+        cPeak: new THREE.Color(palette?.peak ?? "#ffffff"),
+    };
+
+    const colors = colorAttr.array as Float32Array;
+    const { count, waterThreshold, normalizedNoise, heightRatio } = pointData;
+
+    if (!isSun) {
+        for (let i = 0; i < count; i++) {
+            const norm = normalizedNoise[i];
+            const hRatio = heightRatio[i];
+
+            if (norm < waterThreshold) {
+                _scratchSampleColor.copy(paletteColors.cWater);
+            } else if (hRatio < 0.15) {
+                _scratchSampleColor.copy(paletteColors.cCoast);
+            } else if (hRatio < 0.55) {
+                _scratchSampleColor.lerpColors(paletteColors.cLand, paletteColors.cMountain, (hRatio - 0.15) / 0.4);
+            } else {
+                _scratchSampleColor.lerpColors(paletteColors.cMountain, paletteColors.cPeak, (hRatio - 0.55) / 0.45);
+            }
+
+            colors[i * 3] = _scratchSampleColor.r;
+            colors[i * 3 + 1] = _scratchSampleColor.g;
+            colors[i * 3 + 2] = _scratchSampleColor.b;
+        }
+    } else {
+        for (let i = 0; i < count; i++) {
+            _scratchSampleColor.lerpColors(paletteColors.cWater, paletteColors.cPeak, normalizedNoise[i]);
+            colors[i * 3] = _scratchSampleColor.r;
+            colors[i * 3 + 1] = _scratchSampleColor.g;
+            colors[i * 3 + 2] = _scratchSampleColor.b;
+        }
+    }
+
+    colorAttr.needsUpdate = true;
 }
 
 export function buildPlanetDisplacedGeometry(
@@ -172,21 +239,38 @@ export function buildPlanetDisplacedGeometry(
     const colors = new Float32Array(count * 3);
     const tempVec = new THREE.Vector3();
 
+    const paletteColors: TerrainPaletteColors = {
+        cWater: new THREE.Color(palette?.water ?? fallbackColor),
+        cCoast: new THREE.Color(palette?.coast ?? palette?.land ?? fallbackColor),
+        cLand: new THREE.Color(palette?.land ?? fallbackColor),
+        cMountain: new THREE.Color(palette?.mountain ?? palette?.land ?? fallbackColor),
+        cPeak: new THREE.Color(palette?.peak ?? "#ffffff"),
+    };
+
+    const pointData: PlanetTerrainPointData = {
+        count,
+        waterThreshold: (terrain.waterLevel ?? 0.0) + 0.04,
+        normalizedNoise: new Float32Array(count),
+        heightRatio: new Float32Array(count),
+    };
+
     for (let i = 0; i < count; i++) {
         tempVec.fromBufferAttribute(posAttr, i);
-        const unit = tempVec.clone().normalize();
+        _scratchUnitVec.copy(tempVec).normalize();
 
-        const { elevation, color } = samplePlanetPoint(
-            unit,
+        const { elevation, color, normalizedNoise, heightRatio } = samplePlanetPoint(
+            _scratchUnitVec,
             radius,
             terrain,
-            palette,
-            fallbackColor,
+            paletteColors,
             isSun
         );
 
+        pointData.normalizedNoise[i] = normalizedNoise;
+        pointData.heightRatio[i] = heightRatio;
+
         const newRadius = radius + elevation;
-        tempVec.copy(unit).multiplyScalar(newRadius);
+        tempVec.copy(_scratchUnitVec).multiplyScalar(newRadius);
         posAttr.setXYZ(i, tempVec.x, tempVec.y, tempVec.z);
 
         colors[i * 3] = color.r;
@@ -196,6 +280,7 @@ export function buildPlanetDisplacedGeometry(
 
     baseGeom.setAttribute("color", new THREE.BufferAttribute(colors, 3));
     baseGeom.computeVertexNormals();
+    baseGeom.userData.terrainPointsData = pointData;
 
     return baseGeom;
 }

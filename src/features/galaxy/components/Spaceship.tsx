@@ -1,9 +1,9 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, memo } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import type { OrbitConfig } from "../types";
 import { ORBIT_LAYOUT } from "../data";
-import { useGalaxyPlanets, useGalaxyDefaultPlanetId } from "../store";
+import { galaxyStore, useGalaxyDefaultPlanetId } from "../store";
+import { useTheme } from "../../theme";
 
 export interface SpaceshipProps {
     focusId: string;
@@ -81,7 +81,8 @@ function computeForwardRotation(
     return new THREE.Quaternion().setFromRotationMatrix(matrix);
 }
 
-function getPlanetRadius(planets: OrbitConfig[], id: string): number {
+function getPlanetRadius(id: string): number {
+    const planets = galaxyStore.getSnapshot();
     return (
         planets.find((p) => p.id === id)?.radius ??
         ORBIT_LAYOUT.find((p) => p.id === id)?.radius ??
@@ -98,9 +99,8 @@ function getSurfaceMesh(
     return (group.userData?.surfaceMesh as THREE.Object3D) ?? null;
 }
 
-export function Spaceship({ focusId, bodyRefs }: SpaceshipProps) {
+export const Spaceship = memo(function Spaceship({ focusId, bodyRefs }: SpaceshipProps) {
     const groupRef = useRef<THREE.Group>(null);
-    const planets = useGalaxyPlanets();
     const defaultPlanetId = useGalaxyDefaultPlanetId();
 
     const originPlanetId = useRef<string>(defaultPlanetId);
@@ -126,8 +126,9 @@ export function Spaceship({ focusId, bodyRefs }: SpaceshipProps) {
 
     useEffect(() => {
         const activeTargetId = focusId === "home" ? defaultPlanetId : focusId;
+        const currentPlanets = galaxyStore.getSnapshot();
         const targetPlanet =
-            planets.find((p) => p.id === activeTargetId) ??
+            currentPlanets.find((p) => p.id === activeTargetId) ??
             ORBIT_LAYOUT.find((p) => p.id === activeTargetId);
         if (!targetPlanet) return;
 
@@ -165,7 +166,7 @@ export function Spaceship({ focusId, bodyRefs }: SpaceshipProps) {
                     .clone()
                     .transformDirection(invDestMatrix)
                     .normalize();
-                const radius = getPlanetRadius(planets, activeTargetId);
+                const radius = getPlanetRadius(activeTargetId);
 
                 targetLocalPos.current
                     .copy(localNormal)
@@ -190,7 +191,7 @@ export function Spaceship({ focusId, bodyRefs }: SpaceshipProps) {
                 isFlying.current = true;
             }
         }
-    }, [focusId, defaultPlanetId, planets, bodyRefs]);
+    }, [focusId, defaultPlanetId, bodyRefs]);
 
     const vtolLeftRef = useRef<THREE.Group>(null);
     const vtolRightRef = useRef<THREE.Group>(null);
@@ -241,7 +242,7 @@ export function Spaceship({ focusId, bodyRefs }: SpaceshipProps) {
                 const initialNormal = cameraFacingDirWorld
                     .transformDirection(invInitialMatrix)
                     .normalize();
-                const radius = getPlanetRadius(planets, initialPlanetId);
+                const radius = getPlanetRadius(initialPlanetId);
 
                 originLocalPos.current
                     .copy(initialNormal)
@@ -272,7 +273,7 @@ export function Spaceship({ focusId, bodyRefs }: SpaceshipProps) {
             if (currentSurface) {
                 currentSurface.updateWorldMatrix(true, false);
 
-                const currentRadius = getPlanetRadius(planets, currentPlanetId.current);
+                const currentRadius = getPlanetRadius(currentPlanetId.current);
                 landedLocalPos.current.setLength(currentRadius + HOVER_ALTITUDE);
 
                 groupRef.current.position
@@ -294,7 +295,7 @@ export function Spaceship({ focusId, bodyRefs }: SpaceshipProps) {
         const destSurface = getSurfaceMesh(bodyRefs, targetPlanetId.current);
         if (!destSurface) return;
 
-        const destRadius = getPlanetRadius(planets, targetPlanetId.current);
+        const destRadius = getPlanetRadius(targetPlanetId.current);
         const destLiftDist = THREE.MathUtils.clamp(
             destRadius * 0.8 + 0.8,
             1.4,
@@ -376,7 +377,7 @@ export function Spaceship({ focusId, bodyRefs }: SpaceshipProps) {
             }
         } else {
             const originSurface = getSurfaceMesh(bodyRefs, originPlanetId.current);
-            const originRadius = getPlanetRadius(planets, originPlanetId.current);
+            const originRadius = getPlanetRadius(originPlanetId.current);
             const originLiftDist = THREE.MathUtils.clamp(
                 originRadius * 0.8 + 0.8,
                 1.4,
@@ -493,6 +494,8 @@ export function Spaceship({ focusId, bodyRefs }: SpaceshipProps) {
         }
     });
 
+    const { isLight } = useTheme();
+
     return (
         <group ref={groupRef}>
             <mesh
@@ -506,21 +509,29 @@ export function Spaceship({ focusId, bodyRefs }: SpaceshipProps) {
                     color="#b45309"
                     roughness={0.75}
                     metalness={0.15}
+                    wireframe={isLight}
                 />
             </mesh>
 
             <mesh position={[0, 0, 0.16]} rotation={[Math.PI / 2, 0, 0]}>
                 <sphereGeometry args={[0.13, 20, 16, 0, Math.PI * 2, 0, Math.PI / 2]} />
-                <meshPhysicalMaterial
-                    color="#67e8f9"
-                    emissive="#0284c7"
-                    emissiveIntensity={0.22}
-                    roughness={0.15}
-                    metalness={0.05}
-                    transmission={0.65}
-                    thickness={0.25}
-                    ior={1.4}
-                />
+                {isLight ? (
+                    <meshBasicMaterial
+                        color="#0284c7"
+                        wireframe
+                    />
+                ) : (
+                    <meshPhysicalMaterial
+                        color="#67e8f9"
+                        emissive="#0284c7"
+                        emissiveIntensity={0.22}
+                        roughness={0.15}
+                        metalness={0.05}
+                        transmission={0.65}
+                        thickness={0.25}
+                        ior={1.4}
+                    />
+                )}
             </mesh>
 
             <mesh position={[0, 0, 0.16]}>
@@ -529,63 +540,64 @@ export function Spaceship({ focusId, bodyRefs }: SpaceshipProps) {
                     color="#334155"
                     roughness={0.4}
                     metalness={0.85}
+                    wireframe={isLight}
                 />
             </mesh>
 
             <group position={[-0.08, -0.11, 0.07]}>
                 <mesh position={[-0.03, -0.04, 0.02]} rotation={[-0.35, 0, -0.55]}>
                     <cylinderGeometry args={[0.007, 0.007, 0.11, 6]} />
-                    <meshStandardMaterial color="#475569" roughness={0.4} metalness={0.8} />
+                    <meshStandardMaterial color="#475569" roughness={0.4} metalness={0.8} wireframe={isLight} />
                 </mesh>
                 <mesh position={[-0.055, -0.08, 0.035]}>
                     <boxGeometry args={[0.045, 0.008, 0.045]} />
-                    <meshStandardMaterial color="#1e293b" roughness={0.6} metalness={0.9} />
+                    <meshStandardMaterial color="#1e293b" roughness={0.6} metalness={0.9} wireframe={isLight} />
                 </mesh>
             </group>
 
             <group position={[0.08, -0.11, 0.07]}>
                 <mesh position={[0.03, -0.04, 0.02]} rotation={[-0.35, 0, 0.55]}>
                     <cylinderGeometry args={[0.007, 0.007, 0.11, 6]} />
-                    <meshStandardMaterial color="#475569" roughness={0.4} metalness={0.8} />
+                    <meshStandardMaterial color="#475569" roughness={0.4} metalness={0.8} wireframe={isLight} />
                 </mesh>
                 <mesh position={[0.055, -0.08, 0.035]}>
                     <boxGeometry args={[0.045, 0.008, 0.045]} />
-                    <meshStandardMaterial color="#1e293b" roughness={0.6} metalness={0.9} />
+                    <meshStandardMaterial color="#1e293b" roughness={0.6} metalness={0.9} wireframe={isLight} />
                 </mesh>
             </group>
 
             <group position={[0, -0.11, -0.08]}>
                 <mesh position={[0, -0.04, -0.03]} rotation={[0.6, 0, 0]}>
                     <cylinderGeometry args={[0.007, 0.007, 0.11, 6]} />
-                    <meshStandardMaterial color="#475569" roughness={0.4} metalness={0.8} />
+                    <meshStandardMaterial color="#475569" roughness={0.4} metalness={0.8} wireframe={isLight} />
                 </mesh>
                 <mesh position={[0, -0.08, -0.055]}>
                     <boxGeometry args={[0.045, 0.008, 0.045]} />
-                    <meshStandardMaterial color="#1e293b" roughness={0.6} metalness={0.9} />
+                    <meshStandardMaterial color="#1e293b" roughness={0.6} metalness={0.9} wireframe={isLight} />
                 </mesh>
             </group>
 
             <group position={[0, 0.13, -0.02]}>
                 <mesh position={[0, 0.02, 0]}>
                     <cylinderGeometry args={[0.02, 0.03, 0.04, 8]} />
-                    <meshStandardMaterial color="#475569" roughness={0.5} metalness={0.8} />
+                    <meshStandardMaterial color="#475569" roughness={0.5} metalness={0.8} wireframe={isLight} />
                 </mesh>
                 <mesh position={[0, 0.07, 0]} rotation={[0.4, 0, 0]}>
                     <cylinderGeometry args={[0.08, 0.015, 0.03, 12, 1, true]} />
-                    <meshStandardMaterial color="#94a3b8" roughness={0.3} metalness={0.9} side={THREE.DoubleSide} />
+                    <meshStandardMaterial color="#94a3b8" roughness={0.3} metalness={0.9} side={THREE.DoubleSide} wireframe={isLight} />
                 </mesh>
                 <mesh position={[0, 0.07, 0]} rotation={[0.4, 0, 0]}>
                     <sphereGeometry args={[0.02, 8, 8]} />
-                    <meshStandardMaterial color="#e2e8f0" roughness={0.4} metalness={0.7} />
+                    <meshStandardMaterial color="#e2e8f0" roughness={0.4} metalness={0.7} wireframe={isLight} />
                 </mesh>
                 <mesh position={[0, 0.09, 0.01]} rotation={[0.4, 0, 0]}>
                     <cylinderGeometry args={[0.004, 0.004, 0.05, 4]} />
-                    <meshStandardMaterial color="#f59e0b" roughness={0.3} metalness={0.9} />
+                    <meshStandardMaterial color="#f59e0b" roughness={0.3} metalness={0.9} wireframe={isLight} />
                 </mesh>
 
                 <mesh ref={beaconMeshRef} position={[0, 0.12, 0.02]}>
                     <sphereGeometry args={[0.007, 8, 8]} />
-                    <meshBasicMaterial color="#ff4d4d" />
+                    <meshBasicMaterial color="#ff4d4d" wireframe={isLight} />
                 </mesh>
                 <mesh ref={beaconHaloRef} position={[0, 0.12, 0.02]}>
                     <sphereGeometry args={[0.015, 12, 12]} />
@@ -594,6 +606,7 @@ export function Spaceship({ focusId, bodyRefs }: SpaceshipProps) {
                         transparent
                         opacity={0.35}
                         depthWrite={false}
+                        wireframe={isLight}
                     />
                 </mesh>
             </group>
@@ -604,6 +617,7 @@ export function Spaceship({ focusId, bodyRefs }: SpaceshipProps) {
                     color="#1e293b"
                     roughness={0.6}
                     metalness={0.85}
+                    wireframe={isLight}
                 />
             </mesh>
 
@@ -614,6 +628,7 @@ export function Spaceship({ focusId, bodyRefs }: SpaceshipProps) {
                         color="#475569"
                         roughness={0.5}
                         metalness={0.8}
+                        wireframe={isLight}
                     />
                 </mesh>
                 <mesh position={[0, 0, 0]}>
@@ -622,11 +637,12 @@ export function Spaceship({ focusId, bodyRefs }: SpaceshipProps) {
                         color="#f59e0b"
                         roughness={0.4}
                         metalness={0.7}
+                        wireframe={isLight}
                     />
                 </mesh>
                 <mesh position={[0, -0.09, 0]}>
                     <sphereGeometry args={[0.038, 10, 10]} />
-                    <meshBasicMaterial color="#38bdf8" />
+                    <meshBasicMaterial color="#38bdf8" wireframe={isLight} />
                 </mesh>
                 <pointLight
                     position={[0, -0.12, 0]}
@@ -644,6 +660,7 @@ export function Spaceship({ focusId, bodyRefs }: SpaceshipProps) {
                         color="#475569"
                         roughness={0.5}
                         metalness={0.8}
+                        wireframe={isLight}
                     />
                 </mesh>
                 <mesh position={[0, 0, 0]}>
@@ -652,11 +669,12 @@ export function Spaceship({ focusId, bodyRefs }: SpaceshipProps) {
                         color="#f59e0b"
                         roughness={0.4}
                         metalness={0.7}
+                        wireframe={isLight}
                     />
                 </mesh>
                 <mesh position={[0, -0.09, 0]}>
                     <sphereGeometry args={[0.038, 10, 10]} />
-                    <meshBasicMaterial color="#38bdf8" />
+                    <meshBasicMaterial color="#38bdf8" wireframe={isLight} />
                 </mesh>
                 <pointLight
                     position={[0, -0.12, 0]}
@@ -673,11 +691,12 @@ export function Spaceship({ focusId, bodyRefs }: SpaceshipProps) {
                     color="#334155"
                     roughness={0.5}
                     metalness={0.9}
+                    wireframe={isLight}
                 />
             </mesh>
             <mesh position={[0, 0, -0.22]}>
                 <sphereGeometry args={[0.045, 10, 10]} />
-                <meshBasicMaterial color="#38bdf8" />
+                <meshBasicMaterial color="#38bdf8" wireframe={isLight} />
             </mesh>
             <pointLight
                 position={[0, 0, -0.26]}
@@ -688,6 +707,6 @@ export function Spaceship({ focusId, bodyRefs }: SpaceshipProps) {
             />
         </group>
     );
-}
+});
 
 export default Spaceship;

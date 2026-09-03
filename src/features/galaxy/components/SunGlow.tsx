@@ -14,8 +14,8 @@ export function SunGlow({ radius, color = "#ffd76b", glowIntensity = 1.0 }: SunG
     const innerGlowRef = useRef<THREE.Mesh>(null);
     const outerGlowRef = useRef<THREE.Mesh>(null);
 
-    const brightColor = useMemo(() => new THREE.Color(isLight ? "#0284c7" : "#fffbeb"), [isLight]);
-    const warmOrangeColor = useMemo(() => new THREE.Color(isLight ? "#0369a1" : color), [isLight, color]);
+    const brightColor = useMemo(() => new THREE.Color(isLight ? color : "#fffbeb"), [isLight, color]);
+    const warmOrangeColor = useMemo(() => new THREE.Color(color), [color]);
 
     const glowTexture = useMemo(() => {
         const canvas = document.createElement("canvas");

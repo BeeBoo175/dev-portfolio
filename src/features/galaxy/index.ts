@@ -11,6 +11,7 @@ export { default as OrbitPathLine } from "./components/OrbitPathLine";
 export { default as OrbitalAxisLine } from "./components/OrbitalAxisLine";
 export * from "./utils/proceduralTerrain";
 export * from "./utils/collisionDetection";
+export * from "./utils/colorUtils";
 export * from "./types";
 export * from "./data";
 export * from "./cameraConfig";

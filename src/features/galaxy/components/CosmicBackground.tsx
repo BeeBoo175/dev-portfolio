@@ -1,4 +1,4 @@
-import { useMemo, useEffect, useRef } from "react";
+import { useMemo, useEffect, useRef, memo } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { useTheme } from "../../theme";
@@ -118,6 +118,90 @@ function generateBrightStarData(isLight = false) {
     return { brightPositions: positions, brightColors: colors };
 }
 
+function createLightModeSkyDomeTexture(): THREE.CanvasTexture {
+    const width = 1024;
+    const height = 512;
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d");
+    if (ctx) {
+        const imgData = ctx.createImageData(width, height);
+        const data = imgData.data;
+
+        for (let y = 0; y < height; y++) {
+            const v = y / (height - 1);
+            const lat = (v - 0.5) * Math.PI;
+            const cosLat = Math.cos(lat);
+            const sinLat = Math.sin(lat);
+
+            for (let x = 0; x < width; x++) {
+                const u = x / width;
+                const lon = u * Math.PI * 2.0;
+
+                const nx = cosLat * Math.sin(lon);
+                const ny = sinLat;
+                const nz = cosLat * Math.cos(lon);
+
+                const tVert = Math.sin(lat) * 0.5 + 0.5;
+                const topR = 190, topG = 212, topB = 240;
+                const botR = 244, botG = 232, botB = 246;
+
+                let r = botR + (topR - botR) * tVert;
+                let g = botG + (topG - botG) * tVert;
+                let b = botB + (topB - botB) * tVert;
+
+                const pinkField = Math.max(0, nx * 0.65 + ny * 0.25 + nz * 0.7);
+                const pinkWeight = Math.pow(pinkField, 1.8) * 0.6;
+                r = r * (1 - pinkWeight) + 252 * pinkWeight;
+                g = g * (1 - pinkWeight) + 195 * pinkWeight;
+                b = b * (1 - pinkWeight) + 225 * pinkWeight;
+
+                const cyanField = Math.max(0, -nx * 0.72 - ny * 0.18 - nz * 0.65);
+                const cyanWeight = Math.pow(cyanField, 1.8) * 0.58;
+                r = r * (1 - cyanWeight) + 175 * cyanWeight;
+                g = g * (1 - cyanWeight) + 228 * cyanWeight;
+                b = b * (1 - cyanWeight) + 255 * cyanWeight;
+
+                const violetField = Math.max(0, -nx * 0.55 + ny * 0.75 + nz * 0.35);
+                const violetWeight = Math.pow(violetField, 2.0) * 0.48;
+                r = r * (1 - violetWeight) + 220 * violetWeight;
+                g = g * (1 - violetWeight) + 205 * violetWeight;
+                b = b * (1 - violetWeight) + 250 * violetWeight;
+
+                const amberField = Math.max(0, nx * 0.5 - ny * 0.65 - nz * 0.55);
+                const amberWeight = Math.pow(amberField, 2.2) * 0.45;
+                r = r * (1 - amberWeight) + 254 * amberWeight;
+                g = g * (1 - amberWeight) + 225 * amberWeight;
+                b = b * (1 - amberWeight) + 195 * amberWeight;
+
+                const brightCore1 = Math.max(0, nx * 0.55 + ny * 0.35 + nz * 0.75);
+                const glow1 = Math.pow(brightCore1, 4.0) * 0.65;
+                r += (255 - r) * glow1;
+                g += (245 - g) * glow1;
+                b += (252 - b) * glow1;
+
+                const brightCore2 = Math.max(0, -nx * 0.65 - ny * 0.15 - nz * 0.73);
+                const glow2 = Math.pow(brightCore2, 3.8) * 0.6;
+                r += (240 - r) * glow2;
+                g += (252 - g) * glow2;
+                b += (255 - b) * glow2;
+
+                const idx = (y * width + x) * 4;
+                data[idx] = Math.min(255, Math.max(0, Math.round(r)));
+                data[idx + 1] = Math.min(255, Math.max(0, Math.round(g)));
+                data[idx + 2] = Math.min(255, Math.max(0, Math.round(b)));
+                data[idx + 3] = 255;
+            }
+        }
+        ctx.putImageData(imgData, 0, 0);
+    }
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.ClampToEdgeWrapping;
+    return texture;
+}
+
 function createCircleTexture(): THREE.CanvasTexture {
     const canvas = document.createElement("canvas");
     canvas.width = 64;
@@ -142,7 +226,8 @@ function createCircleTexture(): THREE.CanvasTexture {
 function createOrganicNebulaTexture(
     primaryColor: { r: number; g: number; b: number },
     highlightColor: { r: number; g: number; b: number },
-    seed: number
+    seed: number,
+    isLight = false
 ): THREE.CanvasTexture {
     const size = 512;
     const canvas = document.createElement("canvas");
@@ -158,9 +243,9 @@ function createOrganicNebulaTexture(
             return x - Math.floor(x);
         }
 
-        const numFilaments = 20;
+        const numFilaments = isLight ? 28 : 20;
         const center = size / 2;
-        const maxAllowedRadius = 220;
+        const maxAllowedRadius = 230;
 
         for (let i = 0; i < numFilaments; i++) {
             const r1 = pseudoRand(seed + i * 11.37);
@@ -170,24 +255,24 @@ function createOrganicNebulaTexture(
             const r5 = pseudoRand(seed + i * 61.29);
 
             const angle = r1 * Math.PI * 2;
-            const dist = 15 + r2 * 95;
+            const dist = 15 + r2 * 110;
             const px = center + Math.cos(angle) * dist * (0.7 + r5 * 0.6);
             const py = center + Math.sin(angle) * dist * (0.7 + (1 - r5) * 0.6);
             const maxPuffDistFromEdge = Math.min(px, py, size - px, size - py);
-            const puffRadius = Math.min(50 + r3 * 75, maxPuffDistFromEdge * 0.85);
+            const puffRadius = Math.min(60 + r3 * 90, maxPuffDistFromEdge * 0.9);
 
             if (puffRadius > 5) {
                 const grad = ctx.createRadialGradient(px, py, 0, px, py, puffRadius);
 
-                const isCore = r4 > 0.65;
+                const isCore = r4 > 0.6;
                 const col = isCore ? highlightColor : primaryColor;
                 const centerDist = Math.hypot(px - center, py - center);
                 const distanceFactor = Math.max(0, 1.0 - centerDist / maxAllowedRadius);
-                const maxAlpha = (isCore ? 0.24 : 0.16) * distanceFactor;
+                const maxAlpha = (isLight ? (isCore ? 0.45 : 0.32) : (isCore ? 0.24 : 0.16)) * distanceFactor;
 
                 grad.addColorStop(0, `rgba(${col.r}, ${col.g}, ${col.b}, ${maxAlpha})`);
-                grad.addColorStop(0.35, `rgba(${col.r}, ${col.g}, ${col.b}, ${maxAlpha * 0.6})`);
-                grad.addColorStop(0.7, `rgba(${col.r}, ${col.g}, ${col.b}, ${maxAlpha * 0.15})`);
+                grad.addColorStop(0.35, `rgba(${col.r}, ${col.g}, ${col.b}, ${maxAlpha * 0.65})`);
+                grad.addColorStop(0.7, `rgba(${col.r}, ${col.g}, ${col.b}, ${maxAlpha * 0.2})`);
                 grad.addColorStop(1, `rgba(${col.r}, ${col.g}, ${col.b}, 0)`);
 
                 ctx.fillStyle = grad;
@@ -197,18 +282,19 @@ function createOrganicNebulaTexture(
             }
         }
 
-        for (let j = 0; j < 10; j++) {
+        for (let j = 0; j < 14; j++) {
             const r1 = pseudoRand(seed + 100 + j * 17.3);
             const r2 = pseudoRand(seed + 100 + j * 31.7);
             const r3 = pseudoRand(seed + 100 + j * 47.9);
 
-            const sx = center + (r1 - 0.5) * 120;
-            const sy = center + (r2 - 0.5) * 120;
-            const whispyRadius = 35 + r3 * 45;
+            const sx = center + (r1 - 0.5) * 140;
+            const sy = center + (r2 - 0.5) * 140;
+            const whispyRadius = 45 + r3 * 65;
 
             const wGrad = ctx.createRadialGradient(sx, sy, 0, sx, sy, whispyRadius);
-            wGrad.addColorStop(0, `rgba(${highlightColor.r}, ${highlightColor.g}, ${highlightColor.b}, 0.18)`);
-            wGrad.addColorStop(0.5, `rgba(${primaryColor.r}, ${primaryColor.g}, ${primaryColor.b}, 0.05)`);
+            const baseAlpha = isLight ? 0.35 : 0.18;
+            wGrad.addColorStop(0, `rgba(${highlightColor.r}, ${highlightColor.g}, ${highlightColor.b}, ${baseAlpha})`);
+            wGrad.addColorStop(0.5, `rgba(${primaryColor.r}, ${primaryColor.g}, ${primaryColor.b}, ${baseAlpha * 0.35})`);
             wGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
 
             ctx.fillStyle = wGrad;
@@ -245,7 +331,7 @@ interface MeteorState {
     nextSpawnTime: number;
 }
 
-export function CosmicBackground({ visible = true }: CosmicBackgroundProps) {
+export const CosmicBackground = memo(function CosmicBackground({ visible = true }: CosmicBackgroundProps) {
     const { isLight } = useTheme();
     const starsRef = useRef<THREE.Points>(null);
     const brightStarsRef = useRef<THREE.Points>(null);
@@ -253,34 +339,36 @@ export function CosmicBackground({ visible = true }: CosmicBackgroundProps) {
     const meteorsGroupRef = useRef<THREE.Group>(null);
 
     const circleTexture = useMemo(() => createCircleTexture(), []);
+    const skyDomeTexture = useMemo(() => (isLight ? createLightModeSkyDomeTexture() : null), [isLight]);
 
     const nebulaTextures = useMemo(() => {
         if (isLight) {
             return [
-                createOrganicNebulaTexture({ r: 2, g: 132, b: 199 }, { r: 56, g: 189, b: 248 }, 101),
-                createOrganicNebulaTexture({ r: 79, g: 70, b: 229 }, { r: 129, g: 140, b: 248 }, 202),
-                createOrganicNebulaTexture({ r: 190, g: 24, b: 93 }, { r: 244, g: 114, b: 182 }, 303),
-                createOrganicNebulaTexture({ r: 217, g: 119, b: 6 }, { r: 251, g: 191, b: 36 }, 404),
-                createOrganicNebulaTexture({ r: 13, g: 148, b: 136 }, { r: 45, g: 212, b: 191 }, 505),
-                createOrganicNebulaTexture({ r: 126, g: 34, b: 206 }, { r: 192, g: 132, b: 252 }, 606),
+                createOrganicNebulaTexture({ r: 56, g: 189, b: 248 }, { r: 186, g: 230, b: 253 }, 101, true),
+                createOrganicNebulaTexture({ r: 129, g: 140, b: 248 }, { r: 224, g: 231, b: 255 }, 202, true),
+                createOrganicNebulaTexture({ r: 244, g: 114, b: 182 }, { r: 251, g: 207, b: 232 }, 303, true),
+                createOrganicNebulaTexture({ r: 251, g: 146, b: 60 }, { r: 254, g: 243, b: 199 }, 404, true),
+                createOrganicNebulaTexture({ r: 45, g: 212, b: 191 }, { r: 204, g: 251, b: 241 }, 505, true),
+                createOrganicNebulaTexture({ r: 192, g: 132, b: 252 }, { r: 243, g: 232, b: 255 }, 606, true),
             ];
         }
         return [
-            createOrganicNebulaTexture({ r: 56, g: 189, b: 248 }, { r: 186, g: 230, b: 253 }, 101),
-            createOrganicNebulaTexture({ r: 129, g: 140, b: 248 }, { r: 224, g: 231, b: 255 }, 202),
-            createOrganicNebulaTexture({ r: 236, g: 72, b: 153 }, { r: 251, g: 207, b: 232 }, 303),
-            createOrganicNebulaTexture({ r: 251, g: 191, b: 36 }, { r: 254, g: 243, b: 199 }, 404),
-            createOrganicNebulaTexture({ r: 45, g: 212, b: 191 }, { r: 204, g: 251, b: 241 }, 505),
-            createOrganicNebulaTexture({ r: 168, g: 85, b: 247 }, { r: 243, g: 232, b: 255 }, 606),
+            createOrganicNebulaTexture({ r: 56, g: 189, b: 248 }, { r: 186, g: 230, b: 253 }, 101, false),
+            createOrganicNebulaTexture({ r: 129, g: 140, b: 248 }, { r: 224, g: 231, b: 255 }, 202, false),
+            createOrganicNebulaTexture({ r: 236, g: 72, b: 153 }, { r: 251, g: 207, b: 232 }, 303, false),
+            createOrganicNebulaTexture({ r: 251, g: 191, b: 36 }, { r: 254, g: 243, b: 199 }, 404, false),
+            createOrganicNebulaTexture({ r: 45, g: 212, b: 191 }, { r: 204, g: 251, b: 241 }, 505, false),
+            createOrganicNebulaTexture({ r: 168, g: 85, b: 247 }, { r: 243, g: 232, b: 255 }, 606, false),
         ];
     }, [isLight]);
 
     useEffect(() => {
         return () => {
             circleTexture.dispose();
+            skyDomeTexture?.dispose();
             nebulaTextures.forEach((tex) => tex.dispose());
         };
-    }, [circleTexture, nebulaTextures]);
+    }, [circleTexture, skyDomeTexture, nebulaTextures]);
 
     const { starPositions, starColors, starPhases } = useMemo(
         () => generateStarfieldData(isLight),
@@ -491,6 +579,17 @@ export function CosmicBackground({ visible = true }: CosmicBackgroundProps) {
 
     return (
         <group name="CosmicBackground">
+            {isLight && skyDomeTexture && (
+                <mesh raycast={() => null}>
+                    <sphereGeometry args={[1100, 32, 16]} />
+                    <meshBasicMaterial
+                        map={skyDomeTexture}
+                        side={THREE.BackSide}
+                        depthWrite={false}
+                        depthTest={false}
+                    />
+                </mesh>
+            )}
             <points ref={starsRef} key={`stars-${isLight ? "light" : "dark"}`}>
                 <bufferGeometry>
                     <bufferAttribute
@@ -544,7 +643,7 @@ export function CosmicBackground({ visible = true }: CosmicBackgroundProps) {
                         <meshBasicMaterial
                             map={item.texture}
                             transparent
-                            opacity={isLight ? 0.25 : 0.65}
+                            opacity={isLight ? 0.22 : 0.65}
                             blending={isLight ? THREE.NormalBlending : THREE.AdditiveBlending}
                             depthWrite={false}
                             side={THREE.DoubleSide}
@@ -560,6 +659,6 @@ export function CosmicBackground({ visible = true }: CosmicBackgroundProps) {
             </group>
         </group>
     );
-}
+});
 
 export default CosmicBackground;

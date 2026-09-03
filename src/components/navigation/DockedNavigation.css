@@ -33,6 +33,22 @@
     scrollbar-width: none;
     min-width: 0;
     flex: 1 1 auto;
+    transition: -webkit-mask-image var(--transition-fast), mask-image var(--transition-fast);
+}
+
+.docked-navigation__pills--fade-left:not(.docked-navigation__pills--fade-right) {
+    -webkit-mask-image: linear-gradient(to right, transparent 0, black 24px, black 100%);
+    mask-image: linear-gradient(to right, transparent 0, black 24px, black 100%);
+}
+
+.docked-navigation__pills--fade-right:not(.docked-navigation__pills--fade-left) {
+    -webkit-mask-image: linear-gradient(to right, black 0, black calc(100% - 24px), transparent 100%);
+    mask-image: linear-gradient(to right, black 0, black calc(100% - 24px), transparent 100%);
+}
+
+.docked-navigation__pills--fade-left.docked-navigation__pills--fade-right {
+    -webkit-mask-image: linear-gradient(to right, transparent 0, black 24px, black calc(100% - 24px), transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0, black 24px, black calc(100% - 24px), transparent 100%);
 }
 
 .docked-navigation__pills::-webkit-scrollbar {
@@ -82,12 +98,23 @@
     box-shadow: 0 0 16px rgba(255, 255, 255, 0.12), inset 0 0 8px rgba(255, 255, 255, 0.05);
 }
 
+:root[data-theme="light"] .docked-navigation__chip--active,
+body.light-theme .docked-navigation__chip--active {
+    background: rgba(15, 23, 42, 0.08);
+    color: var(--text-primary);
+}
+
 .docked-navigation__dot {
     width: 7px;
     height: 7px;
     border-radius: 50%;
-    box-shadow: 0 0 8px currentColor;
+    box-shadow: 0 0 6px currentColor;
     flex-shrink: 0;
+}
+
+:root[data-theme="light"] .docked-navigation__dot,
+body.light-theme .docked-navigation__dot {
+    box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.12);
 }
 
 .docked-navigation__label {
@@ -109,9 +136,9 @@
 }
 
 .docked-navigation__badge--station {
-    background: rgba(255, 215, 107, 0.15);
-    color: #ffd76b;
-    border: 1px solid rgba(255, 215, 107, 0.4);
+    background: var(--badge-station-bg);
+    color: var(--badge-station-text);
+    border: 1px solid var(--badge-station-border);
     font-weight: 600;
 }
 

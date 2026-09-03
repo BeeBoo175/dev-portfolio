@@ -1,5 +1,6 @@
-import { useEffect, useRef } from "react";
-import { ThemeToggle } from "../../features/theme";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { ThemeToggle, useTheme } from "../../features/theme";
+import { getEffectiveAccentColor } from "../../features/galaxy";
 import "./DockedNavigation.css";
 
 export interface DockedTargetItem {
@@ -31,7 +32,33 @@ export function DockedNavigation({
     className = "",
     ref,
 }: DockedNavigationProps) {
+    const { isLight } = useTheme();
     const activeChipRef = useRef<HTMLButtonElement | null>(null);
+    const pillsRef = useRef<HTMLDivElement | null>(null);
+    const [canScrollLeft, setCanScrollLeft] = useState(false);
+    const [canScrollRight, setCanScrollRight] = useState(false);
+
+    const updateScrollState = useCallback(() => {
+        const el = pillsRef.current;
+        if (!el) return;
+        const { scrollLeft, scrollWidth, clientWidth } = el;
+        setCanScrollLeft(scrollLeft > 2);
+        setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 2);
+    }, []);
+
+    useEffect(() => {
+        updateScrollState();
+        const el = pillsRef.current;
+        if (!el) return;
+
+        el.addEventListener("scroll", updateScrollState, { passive: true });
+        window.addEventListener("resize", updateScrollState);
+
+        return () => {
+            el.removeEventListener("scroll", updateScrollState);
+            window.removeEventListener("resize", updateScrollState);
+        };
+    }, [targets, updateScrollState]);
 
     useEffect(() => {
         if (activeChipRef.current && typeof activeChipRef.current.scrollIntoView === "function") {
@@ -41,7 +68,8 @@ export function DockedNavigation({
                 block: "nearest",
             });
         }
-    }, [selectedId]);
+        updateScrollState();
+    }, [selectedId, updateScrollState]);
 
     const handleZoomIn = () => {
         window.dispatchEvent(
@@ -81,10 +109,18 @@ export function DockedNavigation({
                 </button>
             )}
             <div className="docked-navigation__track">
-                <div className="docked-navigation__pills">
+                <div
+                    ref={pillsRef}
+                    className={`docked-navigation__pills ${
+                        canScrollLeft ? "docked-navigation__pills--fade-left" : ""
+                    } ${
+                        canScrollRight ? "docked-navigation__pills--fade-right" : ""
+                    }`}
+                >
                     {targets.map((target) => {
                         const isSelected = selectedId === target.id;
-                        const color = target.color || "#38bdf8";
+                        const rawColor = target.color || "#38bdf8";
+                        const color = getEffectiveAccentColor(rawColor, isLight);
                         const isSpaceshipBase = Boolean(defaultPlanetId && target.id === defaultPlanetId);
 
                         return (

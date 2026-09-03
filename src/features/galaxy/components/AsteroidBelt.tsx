@@ -1,8 +1,9 @@
-import { useMemo, useEffect, useRef, useState } from "react";
+import { useMemo, useEffect, useRef, useState, memo } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import type { AsteroidBeltConfig } from "../types";
 import { useTheme } from "../../theme";
+import { getEffectiveAccentColor } from "../utils/colorUtils";
 
 export interface AsteroidBeltProps {
     config: AsteroidBeltConfig;
@@ -16,7 +17,7 @@ function pseudoRandom(seed: number) {
     return x - Math.floor(x);
 }
 
-export function AsteroidBelt({ config, isEditorMode = false, isSelected = false, onSelect }: AsteroidBeltProps) {
+export const AsteroidBelt = memo(function AsteroidBelt({ config, isEditorMode = false, isSelected = false, onSelect }: AsteroidBeltProps) {
     const { isLight } = useTheme();
     const groupRef = useRef<THREE.Group>(null);
     const meshRef = useRef<THREE.InstancedMesh>(null);
@@ -25,12 +26,12 @@ export function AsteroidBelt({ config, isEditorMode = false, isSelected = false,
 
     const {
         enabled = true,
-        innerRadius = 13.6,
-        outerRadius = 16.2,
+        innerRadius = 14.8,
+        outerRadius = 17.3,
         count = 450,
         minSize = 0.05,
         maxSize = 0.16,
-        orbitSpeed = 0.09,
+        orbitSpeed = 0.045,
         heightSpread = 0.6,
         inclination = 0.035,
         ascendingNode = 0,
@@ -43,45 +44,47 @@ export function AsteroidBelt({ config, isEditorMode = false, isSelected = false,
     const asteroidData = useMemo(() => {
         const data = [];
         const baseSeed = seed * 19.37;
-        const colorA = new THREE.Color(isLight ? "#475569" : color);
-        const colorB = new THREE.Color(isLight ? "#1e293b" : secondaryColor);
+        const colA = isLight ? getEffectiveAccentColor(color, true) : color;
+        const colB = isLight ? getEffectiveAccentColor(secondaryColor, true) : secondaryColor;
+        const colorA = new THREE.Color(colA);
+        const colorB = new THREE.Color(colB);
         const interpolatedColor = new THREE.Color();
 
         for (let i = 0; i < count; i++) {
-            const r1 = pseudoRandom(baseSeed + i * 7.13);
-            const r2 = pseudoRandom(baseSeed + i * 13.37);
-            const r3 = pseudoRandom(baseSeed + i * 23.71);
-            const r4 = pseudoRandom(baseSeed + i * 31.19);
-            const r5 = pseudoRandom(baseSeed + i * 41.53);
-            const r6 = pseudoRandom(baseSeed + i * 53.87);
-            const r7 = pseudoRandom(baseSeed + i * 67.29);
+            const s1 = baseSeed + i * 7.13;
+            const s2 = baseSeed + i * 13.37;
+            const s3 = baseSeed + i * 23.91;
+            const s4 = baseSeed + i * 37.77;
+            const s5 = baseSeed + i * 49.19;
 
-            const radius = innerRadius + (outerRadius - innerRadius) * Math.sqrt(r1);
-            const angle = r2 * Math.PI * 2;
-            const y = (r3 - 0.5) * heightSpread * (1 - Math.abs(r1 - 0.5) * 0.5);
+            const u = pseudoRandom(s1);
+            const radius = Math.sqrt(
+                u * (outerRadius * outerRadius - innerRadius * innerRadius) + innerRadius * innerRadius
+            );
 
-            const scaleVal = minSize + (maxSize - minSize) * Math.pow(r4, 1.8);
-            const scaleX = scaleVal * (0.8 + r5 * 0.4);
-            const scaleY = scaleVal * (0.7 + r6 * 0.6);
-            const scaleZ = scaleVal * (0.8 + r7 * 0.4);
+            const initialAngle = pseudoRandom(s2) * Math.PI * 2;
+            const heightGaussian = (pseudoRandom(s3) + pseudoRandom(s3 + 1) - 1.0);
+            const y = heightGaussian * heightSpread * 0.5;
 
-            const rotX = r3 * Math.PI * 2;
-            const rotY = r4 * Math.PI * 2;
-            const rotZ = r5 * Math.PI * 2;
+            const sizeT = pseudoRandom(s4);
+            const scaleBase = minSize + Math.pow(sizeT, 2.2) * (maxSize - minSize);
+            const scaleX = scaleBase * (0.8 + pseudoRandom(s5) * 0.4);
+            const scaleY = scaleBase * (0.8 + pseudoRandom(s5 + 1) * 0.4);
+            const scaleZ = scaleBase * (0.8 + pseudoRandom(s5 + 2) * 0.4);
 
-            const tumbleSpeedX = (r1 - 0.5) * 1.5;
-            const tumbleSpeedY = (r2 - 0.5) * 1.5;
-            const tumbleSpeedZ = (r6 - 0.5) * 1.5;
-
-            interpolatedColor.lerpColors(colorA, colorB, r7);
+            const colorT = pseudoRandom(s5 + 3);
+            interpolatedColor.copy(colorA).lerp(colorB, colorT);
 
             data.push({
                 radius,
-                initialAngle: angle,
+                initialAngle,
                 y,
                 scale: [scaleX, scaleY, scaleZ] as [number, number, number],
-                rotation: [rotX, rotY, rotZ] as [number, number, number],
-                tumble: [tumbleSpeedX, tumbleSpeedY, tumbleSpeedZ] as [number, number, number],
+                rotation: [
+                    pseudoRandom(s5 + 4) * Math.PI * 2,
+                    pseudoRandom(s5 + 5) * Math.PI * 2,
+                    pseudoRandom(s5 + 6) * Math.PI * 2,
+                ] as [number, number, number],
                 color: interpolatedColor.clone(),
             });
         }
@@ -123,7 +126,7 @@ export function AsteroidBelt({ config, isEditorMode = false, isSelected = false,
 
         mesh.instanceMatrix.needsUpdate = true;
         if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
-    }, [asteroidData, enabled]);
+    }, [asteroidData, enabled, geometry]);
 
     const innerBoundaryGeom = useMemo(() => {
         if (!isEditorMode) return null;
@@ -167,8 +170,8 @@ export function AsteroidBelt({ config, isEditorMode = false, isSelected = false,
                 const line = child as THREE.Line;
                 if (line.material) {
                     const mat = line.material as THREE.LineBasicMaterial;
-                    mat.opacity = THREE.MathUtils.damp(mat.opacity, targetOpacity, 10, delta);
-                    mat.visible = mat.opacity > 0.01;
+                    mat.opacity = THREE.MathUtils.damp(mat.opacity, targetOpacity, 8, delta);
+                    line.visible = mat.opacity > 0.01;
                 }
             });
 
@@ -195,6 +198,7 @@ export function AsteroidBelt({ config, isEditorMode = false, isSelected = false,
                     <meshStandardMaterial
                         roughness={isLight ? 0.6 : 0.88}
                         metalness={isLight ? 0.25 : 0.12}
+                        wireframe={isLight}
                         flatShading
                     />
                 </instancedMesh>
@@ -247,6 +251,8 @@ export function AsteroidBelt({ config, isEditorMode = false, isSelected = false,
             </group>
         </group>
     );
-}
+});
+
+AsteroidBelt.displayName = "AsteroidBelt";
 
 export default AsteroidBelt;
