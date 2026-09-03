@@ -72,6 +72,59 @@
     --sal: env(safe-area-inset-left, 0px);
 }
 
+:root[data-theme="light"],
+body.light-theme {
+    --bg-canvas: #dbe4ee;
+    --bg-surface: rgba(235, 242, 250, 0.88);
+    --bg-surface-elevated: rgba(244, 248, 253, 0.95);
+    --bg-surface-subtle: rgba(15, 23, 42, 0.05);
+    --bg-surface-hover: rgba(15, 23, 42, 0.09);
+
+    --obsidian-bg: rgba(230, 238, 247, 0.9);
+    --obsidian-bg-card: rgba(238, 244, 251, 0.88);
+    --obsidian-bg-elevated: rgba(246, 250, 254, 0.96);
+    --obsidian-bg-subtle: rgba(15, 23, 42, 0.06);
+    --obsidian-bg-hover: rgba(15, 23, 42, 0.1);
+
+    --obsidian-border: rgba(15, 23, 42, 0.16);
+    --obsidian-border-subtle: rgba(15, 23, 42, 0.1);
+    --obsidian-border-highlight: rgba(2, 132, 199, 0.5);
+
+    --celestial-sun: #d97706;
+    --celestial-about: #ea580c;
+    --celestial-skills: #0284c7;
+    --celestial-projects: #059669;
+    --celestial-contact: #db2777;
+
+    --accent-cyan: #0284c7;
+    --accent-starlight: #d97706;
+    --accent-subtle: rgba(2, 132, 199, 0.12);
+
+    --glass-shadow: 0 16px 36px rgba(15, 23, 42, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.85);
+    --glass-shadow-elevated: 0 24px 50px rgba(15, 23, 42, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.95);
+    --glass-shadow-subtle: 0 6px 18px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+
+    --border-subtle: rgba(15, 23, 42, 0.1);
+    --border-default: rgba(15, 23, 42, 0.18);
+    --border-hover: rgba(15, 23, 42, 0.38);
+    --border-focus: rgba(2, 132, 199, 0.8);
+
+    --text-primary: #0f172a;
+    --text-secondary: #334155;
+    --text-muted: #64748b;
+    --text-dim: #94a3b8;
+
+    --accent-primary: #0284c7;
+    --accent-hover: #0369a1;
+    --accent-subtle: rgba(2, 132, 199, 0.12);
+    --accent-glow: rgba(2, 132, 199, 0.25);
+
+    --destructive: #ef4444;
+    --destructive-bg: rgba(239, 68, 68, 0.12);
+    --destructive-border: rgba(239, 68, 68, 0.25);
+    --destructive-hover-bg: rgba(239, 68, 68, 0.22);
+}
+
 * {
     box-sizing: border-box;
 }

@@ -1,0 +1,63 @@
+.theme-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 36px;
+    padding: 0 14px;
+    background: var(--obsidian-bg);
+    border: 1px solid var(--obsidian-border);
+    border-radius: var(--radius-xs);
+    box-shadow: var(--glass-shadow-subtle);
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    cursor: pointer;
+    white-space: nowrap;
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    transition: all var(--transition-fast);
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.theme-toggle-btn:hover {
+    background: var(--obsidian-bg-hover);
+    border-color: var(--obsidian-border-highlight);
+    color: var(--text-primary);
+}
+
+.theme-toggle-btn:focus-visible {
+    outline: 2px solid var(--accent-cyan);
+    outline-offset: 2px;
+}
+
+.theme-toggle-btn:active {
+    filter: brightness(0.9);
+    transform: scale(0.97);
+}
+
+.theme-toggle-btn__indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent-cyan);
+    box-shadow: 0 0 8px var(--accent-cyan);
+    flex-shrink: 0;
+}
+
+.theme-toggle-btn__text {
+    line-height: 1;
+}
+
+@media (max-width: 1280px) {
+    .theme-toggle-btn {
+        height: 32px;
+        padding: 0 10px;
+        font-size: 11px;
+        gap: 6px;
+    }
+}

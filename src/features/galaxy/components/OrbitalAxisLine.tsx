@@ -1,5 +1,6 @@
 import { useMemo, useEffect } from "react";
 import * as THREE from "three";
+import { useTheme } from "../../theme";
 
 interface OrbitalAxisLineProps {
     radius: number;
@@ -12,6 +13,17 @@ export function OrbitalAxisLine({
     color = "#38bdf8",
     opacity = 0.45,
 }: OrbitalAxisLineProps) {
+    const { isLight } = useTheme();
+
+    const effectiveColor = useMemo(() => {
+        if (isLight) {
+            return new THREE.Color(color).lerp(new THREE.Color("#0284c7"), 0.45);
+        }
+        return new THREE.Color(color);
+    }, [color, isLight]);
+
+    const effectiveOpacity = isLight ? Math.max(opacity * 1.4, 0.65) : opacity;
+
     const lineMesh = useMemo(() => {
         const length = radius * 1.6;
         const points = [
@@ -20,13 +32,13 @@ export function OrbitalAxisLine({
         ];
         const geometry = new THREE.BufferGeometry().setFromPoints(points);
         const material = new THREE.LineBasicMaterial({
-            color,
+            color: effectiveColor,
             transparent: true,
-            opacity,
+            opacity: effectiveOpacity,
             depthWrite: false,
         });
         return new THREE.Line(geometry, material);
-    }, [radius, color, opacity]);
+    }, [radius, effectiveColor, effectiveOpacity]);
 
     useEffect(() => {
         return () => {

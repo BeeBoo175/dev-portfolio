@@ -8,6 +8,7 @@ import Spaceship from "./components/Spaceship";
 import AsteroidBelt from "./components/AsteroidBelt";
 import CameraFillLight from "./components/CameraFillLight";
 import { useGalaxyAsteroidBelt, useGalaxyPlanets, useGalaxySun, useGalaxyVisuals } from "./store";
+import { useTheme } from "../theme";
 
 export interface GalaxySceneProps {
     focusId: string;
@@ -31,6 +32,7 @@ export function GalaxyScene({
     const planets = useGalaxyPlanets();
     const asteroidBelt = useGalaxyAsteroidBelt();
     const visuals = useGalaxyVisuals();
+    const { isLight } = useTheme();
 
     const effectiveCameraOrbitPaused =
         isEditorMode
@@ -42,7 +44,8 @@ export function GalaxyScene({
             camera={{ position: [0, 20, 42], fov: 50, near: 0.1, far: 2000 }}
             style={{ touchAction: isEditorMode ? "none" : "pan-y" }}
         >
-            <ambientLight intensity={0.15} />
+            <color attach="background" args={[isLight ? "#dbe4ee" : "#02040a"]} />
+            <ambientLight intensity={isLight ? 0.85 : 0.15} />
             <CameraFillLight focusId={focusId} bodyRefs={bodyRefs} color={sun.color} />
 
             <CosmicBackground visible={visuals.showBackgroundPhenomena !== false} />

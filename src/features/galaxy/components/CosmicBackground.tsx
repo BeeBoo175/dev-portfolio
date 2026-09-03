@@ -1,6 +1,7 @@
 import { useMemo, useEffect, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
+import { useTheme } from "../../theme";
 
 export interface CosmicBackgroundProps {
     visible?: boolean;
@@ -11,25 +12,35 @@ const BRIGHT_STAR_COUNT = 75;
 const NEBULA_COUNT = 6;
 const METEOR_COUNT = 4;
 const METEOR_COLORS = ["#38bdf8", "#818cf8", "#fef08a", "#f472b6"];
+const BLUEPRINT_METEOR_COLORS = ["#0284c7", "#4338ca", "#0d9488", "#b91c1c"];
 
 function seededRandom(seed: number) {
     const x = Math.sin(seed) * 10000;
     return x - Math.floor(x);
 }
 
-function generateStarfieldData() {
+function generateStarfieldData(isLight = false) {
     const positions = new Float32Array(STAR_COUNT * 3);
     const colors = new Float32Array(STAR_COUNT * 3);
     const phases = new Float32Array(STAR_COUNT);
 
-    const starPalettes = [
-        new THREE.Color("#ffffff"),
-        new THREE.Color("#e0f2fe"),
-        new THREE.Color("#bae6fd"),
-        new THREE.Color("#fef08a"),
-        new THREE.Color("#fbcfe8"),
-        new THREE.Color("#c7d2fe"),
-    ];
+    const starPalettes = isLight
+        ? [
+            new THREE.Color("#0369a1"),
+            new THREE.Color("#1e40af"),
+            new THREE.Color("#0284c7"),
+            new THREE.Color("#0f766e"),
+            new THREE.Color("#475569"),
+            new THREE.Color("#334155"),
+        ]
+        : [
+            new THREE.Color("#ffffff"),
+            new THREE.Color("#e0f2fe"),
+            new THREE.Color("#bae6fd"),
+            new THREE.Color("#fef08a"),
+            new THREE.Color("#fbcfe8"),
+            new THREE.Color("#c7d2fe"),
+        ];
 
     for (let i = 0; i < STAR_COUNT; i++) {
         const u = seededRandom(i * 1.37 + 10.1);
@@ -49,7 +60,9 @@ function generateStarfieldData() {
 
         const paletteIndex = Math.floor(seededRandom(i * 4.91 + 40.4) * starPalettes.length);
         const baseColor = starPalettes[paletteIndex];
-        const brightness = 0.55 + seededRandom(i * 5.33 + 50.5) * 0.45;
+        const brightness = isLight
+            ? 0.75 + seededRandom(i * 5.33 + 50.5) * 0.25
+            : 0.55 + seededRandom(i * 5.33 + 50.5) * 0.45;
 
         colors[i * 3] = baseColor.r * brightness;
         colors[i * 3 + 1] = baseColor.g * brightness;
@@ -61,18 +74,27 @@ function generateStarfieldData() {
     return { starPositions: positions, starColors: colors, starPhases: phases };
 }
 
-function generateBrightStarData() {
+function generateBrightStarData(isLight = false) {
     const positions = new Float32Array(BRIGHT_STAR_COUNT * 3);
     const colors = new Float32Array(BRIGHT_STAR_COUNT * 3);
 
-    const heroPalettes = [
-        new THREE.Color("#38bdf8"),
-        new THREE.Color("#fbbf24"),
-        new THREE.Color("#818cf8"),
-        new THREE.Color("#34d399"),
-        new THREE.Color("#f472b6"),
-        new THREE.Color("#ffffff"),
-    ];
+    const heroPalettes = isLight
+        ? [
+            new THREE.Color("#0284c7"),
+            new THREE.Color("#2563eb"),
+            new THREE.Color("#0d9488"),
+            new THREE.Color("#0369a1"),
+            new THREE.Color("#4338ca"),
+            new THREE.Color("#1e293b"),
+        ]
+        : [
+            new THREE.Color("#38bdf8"),
+            new THREE.Color("#fbbf24"),
+            new THREE.Color("#818cf8"),
+            new THREE.Color("#34d399"),
+            new THREE.Color("#f472b6"),
+            new THREE.Color("#ffffff"),
+        ];
 
     for (let i = 0; i < BRIGHT_STAR_COUNT; i++) {
         const u = seededRandom(i * 7.13 + 100.1);
@@ -94,9 +116,6 @@ function generateBrightStarData() {
 
     return { brightPositions: positions, brightColors: colors };
 }
-
-const STATIC_STARFIELD_DATA = generateStarfieldData();
-const STATIC_BRIGHT_STAR_DATA = generateBrightStarData();
 
 function createCircleTexture(): THREE.CanvasTexture {
     const canvas = document.createElement("canvas");
@@ -226,6 +245,7 @@ interface MeteorState {
 }
 
 export function CosmicBackground({ visible = true }: CosmicBackgroundProps) {
+    const { isLight } = useTheme();
     const starsRef = useRef<THREE.Points>(null);
     const brightStarsRef = useRef<THREE.Points>(null);
     const nebulaeGroupRef = useRef<THREE.Group>(null);
@@ -234,6 +254,16 @@ export function CosmicBackground({ visible = true }: CosmicBackgroundProps) {
     const circleTexture = useMemo(() => createCircleTexture(), []);
 
     const nebulaTextures = useMemo(() => {
+        if (isLight) {
+            return [
+                createOrganicNebulaTexture({ r: 2, g: 132, b: 199 }, { r: 56, g: 189, b: 248 }, 101),
+                createOrganicNebulaTexture({ r: 79, g: 70, b: 229 }, { r: 129, g: 140, b: 248 }, 202),
+                createOrganicNebulaTexture({ r: 190, g: 24, b: 93 }, { r: 244, g: 114, b: 182 }, 303),
+                createOrganicNebulaTexture({ r: 217, g: 119, b: 6 }, { r: 251, g: 191, b: 36 }, 404),
+                createOrganicNebulaTexture({ r: 13, g: 148, b: 136 }, { r: 45, g: 212, b: 191 }, 505),
+                createOrganicNebulaTexture({ r: 126, g: 34, b: 206 }, { r: 192, g: 132, b: 252 }, 606),
+            ];
+        }
         return [
             createOrganicNebulaTexture({ r: 56, g: 189, b: 248 }, { r: 186, g: 230, b: 253 }, 101),
             createOrganicNebulaTexture({ r: 129, g: 140, b: 248 }, { r: 224, g: 231, b: 255 }, 202),
@@ -242,7 +272,7 @@ export function CosmicBackground({ visible = true }: CosmicBackgroundProps) {
             createOrganicNebulaTexture({ r: 45, g: 212, b: 191 }, { r: 204, g: 251, b: 241 }, 505),
             createOrganicNebulaTexture({ r: 168, g: 85, b: 247 }, { r: 243, g: 232, b: 255 }, 606),
         ];
-    }, []);
+    }, [isLight]);
 
     useEffect(() => {
         return () => {
@@ -251,8 +281,14 @@ export function CosmicBackground({ visible = true }: CosmicBackgroundProps) {
         };
     }, [circleTexture, nebulaTextures]);
 
-    const { starPositions, starColors, starPhases } = STATIC_STARFIELD_DATA;
-    const { brightPositions, brightColors } = STATIC_BRIGHT_STAR_DATA;
+    const { starPositions, starColors, starPhases } = useMemo(
+        () => generateStarfieldData(isLight),
+        [isLight]
+    );
+    const { brightPositions, brightColors } = useMemo(
+        () => generateBrightStarData(isLight),
+        [isLight]
+    );
 
     const nebulae = useMemo(() => {
         const items = [];
@@ -322,20 +358,21 @@ export function CosmicBackground({ visible = true }: CosmicBackgroundProps) {
     ]);
 
     const meteorLines = useMemo(() => {
+        const palette = isLight ? BLUEPRINT_METEOR_COLORS : METEOR_COLORS;
         return Array.from({ length: METEOR_COUNT }, (_, idx) => {
             const geom = new THREE.BufferGeometry();
             const pos = new Float32Array(6);
             geom.setAttribute("position", new THREE.BufferAttribute(pos, 3));
             const mat = new THREE.LineBasicMaterial({
-                color: METEOR_COLORS[idx % METEOR_COLORS.length],
+                color: palette[idx % palette.length],
                 transparent: true,
-                opacity: 0.85,
-                blending: THREE.AdditiveBlending,
+                opacity: isLight ? 0.75 : 0.85,
+                blending: isLight ? THREE.NormalBlending : THREE.AdditiveBlending,
                 depthWrite: false,
             });
             return new THREE.Line(geom, mat);
         });
-    }, []);
+    }, [isLight]);
 
     useEffect(() => {
         return () => {
@@ -453,7 +490,7 @@ export function CosmicBackground({ visible = true }: CosmicBackgroundProps) {
 
     return (
         <group name="CosmicBackground">
-            <points ref={starsRef}>
+            <points ref={starsRef} key={`stars-${isLight ? "light" : "dark"}`}>
                 <bufferGeometry>
                     <bufferAttribute
                         attach="attributes-position"
@@ -466,17 +503,17 @@ export function CosmicBackground({ visible = true }: CosmicBackgroundProps) {
                 </bufferGeometry>
                 <pointsMaterial
                     map={circleTexture}
-                    size={3.0}
+                    size={isLight ? 3.5 : 3.0}
                     vertexColors
                     transparent
-                    opacity={0.88}
-                    blending={THREE.AdditiveBlending}
+                    opacity={isLight ? 0.75 : 0.88}
+                    blending={isLight ? THREE.NormalBlending : THREE.AdditiveBlending}
                     depthWrite={false}
                     sizeAttenuation
                 />
             </points>
 
-            <points ref={brightStarsRef}>
+            <points ref={brightStarsRef} key={`bright-stars-${isLight ? "light" : "dark"}`}>
                 <bufferGeometry>
                     <bufferAttribute
                         attach="attributes-position"
@@ -489,11 +526,11 @@ export function CosmicBackground({ visible = true }: CosmicBackgroundProps) {
                 </bufferGeometry>
                 <pointsMaterial
                     map={circleTexture}
-                    size={5.5}
+                    size={isLight ? 6.0 : 5.5}
                     vertexColors
                     transparent
-                    opacity={0.95}
-                    blending={THREE.AdditiveBlending}
+                    opacity={isLight ? 0.85 : 0.95}
+                    blending={isLight ? THREE.NormalBlending : THREE.AdditiveBlending}
                     depthWrite={false}
                     sizeAttenuation
                 />
@@ -506,8 +543,8 @@ export function CosmicBackground({ visible = true }: CosmicBackgroundProps) {
                         <meshBasicMaterial
                             map={item.texture}
                             transparent
-                            opacity={0.65}
-                            blending={THREE.AdditiveBlending}
+                            opacity={isLight ? 0.35 : 0.65}
+                            blending={isLight ? THREE.NormalBlending : THREE.AdditiveBlending}
                             depthWrite={false}
                             side={THREE.DoubleSide}
                         />

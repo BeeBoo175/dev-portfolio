@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { GalaxyScene, galaxyStore, useGalaxyPlanets } from "../features/galaxy";
 import { HomeOverlay, PLANET_SECTIONS, type SectionId } from "../features/sections";
 import { DockedNavigation, type DockedTargetItem } from "../components/navigation";
+import { ThemeToggle } from "../features/theme";
 
 export function HomePage() {
     const [focusId, setFocusId] = useState<SectionId>("home");
@@ -51,14 +52,17 @@ export function HomePage() {
                 onSelectTarget={handleSelect}
             />
 
-            <Link
-                to="/studio"
-                className="studio-launcher-btn"
-                title="Launch 3D Galaxy Studio"
-                aria-label="Launch 3D Galaxy Studio"
-            >
-                Galaxy Studio
-            </Link>
+            <div className="app-shell__top-actions">
+                <ThemeToggle />
+                <Link
+                    to="/studio"
+                    className="studio-launcher-btn"
+                    title="Launch 3D Galaxy Studio"
+                    aria-label="Launch 3D Galaxy Studio"
+                >
+                    Galaxy Studio
+                </Link>
+            </div>
         </div>
     );
 }

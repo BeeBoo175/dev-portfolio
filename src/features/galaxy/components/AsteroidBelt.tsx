@@ -2,6 +2,7 @@ import { useMemo, useEffect, useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import type { AsteroidBeltConfig } from "../types";
+import { useTheme } from "../../theme";
 
 export interface AsteroidBeltProps {
     config: AsteroidBeltConfig;
@@ -16,6 +17,7 @@ function pseudoRandom(seed: number) {
 }
 
 export function AsteroidBelt({ config, isEditorMode = false, isSelected = false, onSelect }: AsteroidBeltProps) {
+    const { isLight } = useTheme();
     const groupRef = useRef<THREE.Group>(null);
     const meshRef = useRef<THREE.InstancedMesh>(null);
     const highlightMeshRef = useRef<THREE.Mesh>(null);
@@ -41,8 +43,8 @@ export function AsteroidBelt({ config, isEditorMode = false, isSelected = false,
     const asteroidData = useMemo(() => {
         const data = [];
         const baseSeed = seed * 19.37;
-        const colorA = new THREE.Color(color);
-        const colorB = new THREE.Color(secondaryColor);
+        const colorA = new THREE.Color(isLight ? "#475569" : color);
+        const colorB = new THREE.Color(isLight ? "#1e293b" : secondaryColor);
         const interpolatedColor = new THREE.Color();
 
         for (let i = 0; i < count; i++) {
@@ -84,7 +86,7 @@ export function AsteroidBelt({ config, isEditorMode = false, isSelected = false,
             });
         }
         return data;
-    }, [count, innerRadius, outerRadius, minSize, maxSize, heightSpread, color, secondaryColor, seed]);
+    }, [count, innerRadius, outerRadius, minSize, maxSize, heightSpread, color, secondaryColor, seed, isLight]);
 
     const geometry = useMemo(() => {
         const geom = new THREE.DodecahedronGeometry(1, 0);
@@ -185,14 +187,14 @@ export function AsteroidBelt({ config, isEditorMode = false, isSelected = false,
         <group rotation={[inclination, ascendingNode, argument]}>
             <group ref={groupRef}>
                 <instancedMesh
-                    key={`belt-${seed}-${count}-${enabled ? "on" : "off"}`}
+                    key={`belt-${seed}-${count}-${enabled ? "on" : "off"}-${isLight ? "light" : "dark"}`}
                     ref={meshRef}
                     args={[geometry, undefined, count]}
                     raycast={() => null}
                 >
                     <meshStandardMaterial
-                        roughness={0.88}
-                        metalness={0.12}
+                        roughness={isLight ? 0.6 : 0.88}
+                        metalness={isLight ? 0.25 : 0.12}
                         flatShading
                     />
                 </instancedMesh>
