@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { GalaxyScene, useGalaxyPlanets } from "../features/galaxy";
 import { GalaxyStudio, resolveTargetSelection, type PlanetTab } from "../features/galaxy-studio";
@@ -19,8 +19,13 @@ export function StudioPage() {
         return true;
     });
 
+    const planetsRef = useRef(planets);
+    useEffect(() => {
+        planetsRef.current = planets;
+    }, [planets]);
+
     const handleFocusChange = useCallback((rawTarget: string) => {
-        const resolved = resolveTargetSelection(rawTarget, planets);
+        const resolved = resolveTargetSelection(rawTarget, planetsRef.current);
         setSearchParams((prev) => {
             const next = new URLSearchParams(prev);
             if (resolved.focusId === "home" || resolved.focusId === "sun") {
@@ -39,7 +44,7 @@ export function StudioPage() {
             setActiveMoonIndex(resolved.moonIndex);
         }
 
-    }, [planets, setSearchParams]);
+    }, [setSearchParams]);
 
     const currentFocusedPlanet = planets.find((p) => p.id === focusId);
     const selectedMoonId = activeTab === "moons" && currentFocusedPlanet?.children

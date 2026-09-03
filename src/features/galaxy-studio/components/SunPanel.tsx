@@ -1,6 +1,7 @@
 import type { SunConfig } from "../../galaxy";
 import { generateRandomSun } from "../presets";
 import { Tooltip } from "../../../components/ui/Tooltip";
+import { StudioColorPicker } from "./StudioColorPicker";
 
 export interface SunPanelProps {
     sun: SunConfig;
@@ -137,42 +138,34 @@ export function SunPanel({ sun, onChange }: SunPanelProps) {
                 <span className="studio-panel__title">Stellar Palette</span>
 
                 <div className="studio-palette-grid">
-                    <div className="studio-color-picker studio-color-picker--compact">
-                        <input
-                            id="sun-color"
-                            type="color"
-                            aria-label="Core Color"
-                            value={sun.color || "#ffd76b"}
-                            onChange={(e) => {
-                                const val = e.target.value;
-                                onChange((prev) => ({
-                                    ...prev,
-                                    color: val,
-                                    palette: { ...prev.palette, water: val },
-                                }));
-                            }}
-                        />
-                        <label htmlFor="sun-color" className="studio-color-picker__label">Core Color</label>
-                        <span className="studio-color-picker__hex">{sun.color || "#ffd76b"}</span>
-                    </div>
+                    <StudioColorPicker
+                        id="sun-color"
+                        label="Core Color"
+                        value={sun.color || "#ffd76b"}
+                        compact
+                        showHex
+                        onChange={(val) => {
+                            onChange((prev) => ({
+                                ...prev,
+                                color: val,
+                                palette: { ...prev.palette, water: val },
+                            }));
+                        }}
+                    />
 
-                    <div className="studio-color-picker studio-color-picker--compact">
-                        <input
-                            id="sun-flare-color"
-                            type="color"
-                            aria-label="Flare Highlight"
-                            value={sun.palette?.peak || "#fffbeb"}
-                            onChange={(e) => {
-                                const val = e.target.value;
-                                onChange((prev) => ({
-                                    ...prev,
-                                    palette: { ...prev.palette, peak: val },
-                                }));
-                            }}
-                        />
-                        <label htmlFor="sun-flare-color" className="studio-color-picker__label">Flare Highlight</label>
-                        <span className="studio-color-picker__hex">{sun.palette?.peak || "#fffbeb"}</span>
-                    </div>
+                    <StudioColorPicker
+                        id="sun-flare-color"
+                        label="Flare Highlight"
+                        value={sun.palette?.peak || "#fffbeb"}
+                        compact
+                        showHex
+                        onChange={(val) => {
+                            onChange((prev) => ({
+                                ...prev,
+                                palette: { ...prev.palette, peak: val },
+                            }));
+                        }}
+                    />
                 </div>
             </div>
         </div>

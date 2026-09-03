@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { perlin3D, fbm3D, createLowPolyPlanetGeometry, createMultiLODPlanetGeometries } from "./proceduralTerrain";
+import { perlin3D, fbm3D, createLowPolyPlanetGeometry, createMultiLODPlanetGeometries, updatePlanetGeometryColors } from "./proceduralTerrain";
 
 describe("proceduralTerrain utils", () => {
     describe("perlin3D", () => {
@@ -61,6 +61,35 @@ describe("proceduralTerrain utils", () => {
 
             expect(geom.getAttribute("position")).toBeDefined();
             expect(geom.getAttribute("color")).toBeDefined();
+        });
+
+        it("updates vertex colors in-place without altering geometry instance", () => {
+            const geom = createLowPolyPlanetGeometry({
+                radius: 1.5,
+                palette: {
+                    water: "#0000ff",
+                    land: "#00ff00",
+                },
+            });
+
+            const initialColors = (geom.getAttribute("color").array as Float32Array).slice();
+
+            updatePlanetGeometryColors(geom, {
+                water: "#ff0000",
+                land: "#ffff00",
+            });
+
+            const updatedColors = geom.getAttribute("color").array as Float32Array;
+            expect(updatedColors).toHaveLength(initialColors.length);
+
+            let hasDifference = false;
+            for (let i = 0; i < updatedColors.length; i++) {
+                if (Math.abs(updatedColors[i] - initialColors[i]) > 0.01) {
+                    hasDifference = true;
+                    break;
+                }
+            }
+            expect(hasDifference).toBe(true);
         });
     });
 

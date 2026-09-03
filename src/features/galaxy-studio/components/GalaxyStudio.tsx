@@ -79,7 +79,7 @@ export function GalaxyStudio({
         toastMessage,
         currentPlanet,
         allWarnings,
-        isSavedRef,
+        markSaved,
         selectedId,
         resolvedSelection,
     } = useGalaxyStudioDraft(focusId);
@@ -454,7 +454,7 @@ export function GalaxyStudio({
                                 type="button"
                                 className="studio-btn studio-btn--secondary studio-btn--sm"
                                 onClick={() => {
-                                    isSavedRef.current = true;
+                                    markSaved();
                                     navigate("/");
                                 }}
                                 title="Exit to portfolio now. Your in-progress edits will remain safely saved in draft for when you return."

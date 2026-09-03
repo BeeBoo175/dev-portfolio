@@ -37,6 +37,23 @@ export function loadInitialDraft(savedState: GalaxyDraftState): GalaxyDraftState
     return savedState;
 }
 
+function getSpatialSignature(planets: OrbitConfig[], sun: SunConfig, belt: AsteroidBeltConfig): string {
+    let key = `s:${sun.radius}|b:${belt.innerRadius},${belt.outerRadius}|`;
+    for (let i = 0; i < planets.length; i++) {
+        const p = planets[i];
+        key += `p:${p.id},${p.radius},${p.orbitRadius ?? 0},${p.orbitInclination ?? 0},${p.orbitAscendingNode ?? 0},${p.orbitArgument ?? 0}|`;
+        if (p.children) {
+            for (let j = 0; j < p.children.length; j++) {
+                const c = p.children[j];
+                key += `c:${c.id},${c.radius},${c.orbitRadius ?? 0}|`;
+            }
+        }
+    }
+    return key;
+}
+
+const _collisionCache = new Map<string, ReturnType<typeof detectAllGalaxyCollisions>>();
+
 export function useGalaxyStudioDraft(targetId: string) {
     const initialSavedState: GalaxyDraftState = useMemo(() => ({
         planets: galaxyStore.getSnapshot(),
@@ -104,13 +121,16 @@ export function useGalaxyStudioDraft(targetId: string) {
         if (isExplicitDiscardRef.current) return;
 
         if (isDirty) {
-            try {
-                const serialized = JSON.stringify(currentDraft);
-                sessionStorage.setItem(DRAFT_STORAGE_KEY, serialized);
-                localStorage.setItem(DRAFT_STORAGE_KEY, serialized);
-            } catch (e) {
-                void e;
-            }
+            const timer = setTimeout(() => {
+                try {
+                    const serialized = JSON.stringify(currentDraft);
+                    sessionStorage.setItem(DRAFT_STORAGE_KEY, serialized);
+                    localStorage.setItem(DRAFT_STORAGE_KEY, serialized);
+                } catch (e) {
+                    void e;
+                }
+            }, 300);
+            return () => clearTimeout(timer);
         } else {
             try {
                 sessionStorage.removeItem(DRAFT_STORAGE_KEY);
@@ -182,6 +202,16 @@ export function useGalaxyStudioDraft(targetId: string) {
 
             if (JSON.stringify(current) !== JSON.stringify(latestCommitted)) {
                 pushHistory(current);
+            }
+
+            if (!isExplicitDiscardRef.current) {
+                try {
+                    const serialized = JSON.stringify(current);
+                    sessionStorage.setItem(DRAFT_STORAGE_KEY, serialized);
+                    localStorage.setItem(DRAFT_STORAGE_KEY, serialized);
+                } catch (e) {
+                    void e;
+                }
             }
         };
 
@@ -284,8 +314,17 @@ export function useGalaxyStudioDraft(targetId: string) {
     const selectedId = resolvedSelection.focusId || "home";
 
     const currentPlanet = draftPlanets.find((p) => p.id === selectedId);
-    const defaultPlanetConfig = ORBIT_LAYOUT.find((p) => p.id === selectedId);
-    const allWarnings = detectAllGalaxyCollisions(draftPlanets, draftBelt, draftSun);
+    const allWarnings = useMemo(() => {
+        const key = getSpatialSignature(draftPlanets, draftSun, draftBelt);
+        const cached = _collisionCache.get(key);
+        if (cached) return cached;
+        const fresh = detectAllGalaxyCollisions(draftPlanets, draftBelt, draftSun);
+        if (_collisionCache.size > 100) {
+            _collisionCache.clear();
+        }
+        _collisionCache.set(key, fresh);
+        return fresh;
+    }, [draftPlanets, draftBelt, draftSun]);
 
     useEffect(() => {
         const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -412,6 +451,7 @@ export function useGalaxyStudioDraft(targetId: string) {
     };
 
     const handleResetCurrentPlanet = (label?: string) => {
+        const defaultPlanetConfig = ORBIT_LAYOUT.find((p) => p.id === selectedId);
         if (!defaultPlanetConfig || !currentPlanet) return;
         const fresh = structuredClone(defaultPlanetConfig);
         updatePlanet(() => fresh);
@@ -439,6 +479,10 @@ export function useGalaxyStudioDraft(targetId: string) {
         }, true);
         showToast("Reset entire galaxy to original default configuration.");
     };
+
+    const markSaved = useCallback(() => {
+        isSavedRef.current = true;
+    }, []);
 
     return {
         draftPlanets,
@@ -469,7 +513,7 @@ export function useGalaxyStudioDraft(targetId: string) {
         showToast,
         currentPlanet,
         allWarnings,
-        isSavedRef,
+        markSaved,
         selectedId,
         resolvedSelection,
     };

@@ -162,10 +162,10 @@
 }
 
 .studio-collision-banner {
-    position: relative;
-    top: auto;
-    left: auto;
-    transform: none;
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 50%;
+    transform: translate(-50%, 0);
     display: inline-flex;
     align-items: center;
     gap: 10px;
@@ -182,6 +182,12 @@
     animation: studioBannerIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+:root[data-theme="light"] .studio-collision-banner,
+body.light-theme .studio-collision-banner {
+    border-color: rgba(217, 119, 6, 0.6);
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.16), 0 0 16px rgba(217, 119, 6, 0.15);
+}
+
 .studio-collision-banner__text {
     font-family: var(--font-sans);
     font-size: 11px;
@@ -189,6 +195,11 @@
     letter-spacing: 0.02em;
     color: #fbbf24;
     white-space: nowrap;
+}
+
+:root[data-theme="light"] .studio-collision-banner__text,
+body.light-theme .studio-collision-banner__text {
+    color: #b45309;
 }
 
 .studio-collision-banner__btn {
@@ -211,17 +222,36 @@
     -webkit-tap-highlight-color: transparent;
 }
 
+:root[data-theme="light"] .studio-collision-banner__btn,
+body.light-theme .studio-collision-banner__btn {
+    background: rgba(217, 119, 6, 0.12);
+    border-color: rgba(217, 119, 6, 0.5);
+    color: #b45309;
+}
+
 @media (hover: hover) and (pointer: fine) {
     .studio-collision-banner__btn:hover {
         background: rgba(245, 158, 11, 0.28);
         border-color: #fbbf24;
         box-shadow: 0 0 10px rgba(245, 158, 11, 0.35);
     }
+
+    :root[data-theme="light"] .studio-collision-banner__btn:hover,
+    body.light-theme .studio-collision-banner__btn:hover {
+        background: rgba(217, 119, 6, 0.22);
+        border-color: #d97706;
+        box-shadow: 0 0 10px rgba(217, 119, 6, 0.25);
+    }
 }
 
 .studio-collision-banner__btn:focus-visible {
     outline: 2px solid #fbbf24;
     outline-offset: 1px;
+}
+
+:root[data-theme="light"] .studio-collision-banner__btn:focus-visible,
+body.light-theme .studio-collision-banner__btn:focus-visible {
+    outline-color: #d97706;
 }
 
 .studio-collision-banner__btn:active {
@@ -269,7 +299,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 11px;
+    font-size: var(--text-sm);
     font-weight: 600;
     border-radius: var(--radius-xs);
     border: 1px solid var(--border-default);
@@ -313,7 +343,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 11px;
+    font-size: var(--text-sm);
     font-weight: 500;
     border-radius: var(--radius-xs);
     border: 1px solid var(--border-subtle);
@@ -350,7 +380,7 @@
     justify-content: center;
     gap: 6px;
     padding: 0 10px;
-    font-size: 11px;
+    font-size: var(--text-sm);
     font-weight: 500;
     border-radius: var(--radius-xs);
     border: 1px solid var(--border-subtle);
@@ -388,7 +418,7 @@
     align-items: center;
     justify-content: center;
     padding: 0 12px;
-    font-size: 11px;
+    font-size: var(--text-sm);
     font-weight: 600;
     border-radius: var(--radius-xs);
     border: 1px solid transparent;
@@ -439,7 +469,7 @@
 .studio-btn--sm {
     height: 28px;
     padding: 0 9px;
-    font-size: 11px;
+    font-size: var(--text-sm);
 }
 
 .studio-btn--primary {
@@ -827,8 +857,8 @@
     appearance: none;
     width: 100%;
     height: 6px;
-    background: rgba(255, 255, 255, 0.18);
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: var(--slider-track-bg);
+    border: 1px solid var(--slider-track-border);
     border-radius: var(--radius-xs);
     outline: none;
     cursor: pointer;
@@ -905,7 +935,7 @@
     border-radius: var(--radius-xs);
     box-shadow: var(--glass-shadow-subtle);
     color: var(--text-primary);
-    font-size: 11px;
+    font-size: var(--text-sm);
     font-weight: 600;
     cursor: pointer;
     font-family: inherit;
@@ -941,6 +971,11 @@
     border-radius: 50%;
     flex-shrink: 0;
     box-shadow: 0 0 6px currentColor;
+}
+
+:root[data-theme="light"] .studio-preset-chip__dot,
+body.light-theme .studio-preset-chip__dot {
+    box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.12);
 }
 
 .studio-palette-grid {
@@ -1441,12 +1476,12 @@
 @keyframes studioBannerIn {
     from {
         opacity: 0;
-        transform: translateY(-4px);
+        transform: translate(-50%, -6px);
     }
 
     to {
         opacity: 1;
-        transform: translateY(0);
+        transform: translate(-50%, 0);
     }
 }
 
@@ -1573,15 +1608,15 @@
     }
 
     .studio-collision-banner {
-        position: relative;
-        top: auto;
-        left: auto;
-        transform: none;
-        max-width: 100%;
+        position: absolute;
+        top: calc(100% + 6px);
+        left: 50%;
+        transform: translate(-50%, 0);
+        max-width: calc(100% - 24px);
         height: 34px;
         padding: 0 6px 0 10px;
         gap: 6px;
-        margin: 0 auto;
+        margin: 0;
     }
 
     .studio-collision-banner__btn {
@@ -1634,7 +1669,7 @@
         border: 1px solid var(--border-default);
         border-radius: var(--radius-xs);
         color: var(--text-secondary);
-        font-size: 11px;
+        font-size: var(--text-sm);
         font-weight: 600;
         cursor: pointer;
         transition: all var(--transition-fast);
@@ -1703,7 +1738,7 @@
         min-width: fit-content;
         height: 28px;
         padding: 0 8px;
-        font-size: 11px;
+        font-size: var(--text-sm);
         text-align: center;
     }
 

@@ -1,4 +1,4 @@
-import { forwardRef, useImperativeHandle, useRef, useState } from "react";
+import { forwardRef, memo, useImperativeHandle, useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import type { OrbitConfig, SunConfig } from "../types";
@@ -9,6 +9,7 @@ import OrbitalAxisLine from "./OrbitalAxisLine";
 import SunGlow from "./SunGlow";
 import SelectionGlow from "./SelectionGlow";
 import { useTheme } from "../../theme";
+import { resolveCelestialBodyColor } from "../utils/colorUtils";
 
 export interface CelestialBodyProps {
     body: OrbitConfig | SunConfig;
@@ -21,16 +22,16 @@ export interface CelestialBodyProps {
     onSelect?: (id: string) => void;
 }
 
-export const CelestialBody = forwardRef<THREE.Group, CelestialBodyProps>(
+export const CelestialBody = memo(forwardRef<THREE.Group, CelestialBodyProps>(
     ({ body, color, isSun, isMoon = false, isSelected = false, selectedMoonId, isEditorMode = false, onSelect }, ref) => {
 
         const orbitRef = useRef<THREE.Group>(null);
         const positionRef = useRef<THREE.Group>(null);
         const bodyRef = useRef<THREE.Mesh>(null);
+        const { isLight } = useTheme();
         const [isHovered, setIsHovered] = useState(false);
         const visuals = useGalaxyVisuals();
-        const { isLight } = useTheme();
-        const effectiveColor = color ?? body.color ?? "white";
+        const effectiveColor = resolveCelestialBodyColor(body, color, "white");
 
         useImperativeHandle(ref, () => {
             if (positionRef.current && bodyRef.current) {
@@ -162,7 +163,7 @@ export const CelestialBody = forwardRef<THREE.Group, CelestialBodyProps>(
                                 />
                             )}
 
-                            {isSun ? (
+                            {isSun && (
                                 <>
                                     <pointLight
                                         color={effectiveColor}
@@ -170,20 +171,14 @@ export const CelestialBody = forwardRef<THREE.Group, CelestialBodyProps>(
                                         distance={0}
                                         decay={0}
                                     />
-                                    <SunGlow
-                                        radius={body.radius}
-                                        color={effectiveColor}
-                                        glowIntensity={sunConfig.glowIntensity ?? 1.0}
-                                    />
+                                    {!isLight && (
+                                        <SunGlow
+                                            radius={body.radius}
+                                            color={effectiveColor}
+                                            glowIntensity={sunConfig.glowIntensity ?? 1.0}
+                                        />
+                                    )}
                                 </>
-                            ) : (
-                                isLight && (
-                                    <SunGlow
-                                        radius={body.radius}
-                                        color={effectiveColor}
-                                        glowIntensity={1.0}
-                                    />
-                                )
                             )}
                         </group>
 
@@ -203,7 +198,7 @@ export const CelestialBody = forwardRef<THREE.Group, CelestialBodyProps>(
             </group>
         );
     }
-);
+));
 
 CelestialBody.displayName = "CelestialBody";
 

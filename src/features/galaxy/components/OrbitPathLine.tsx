@@ -1,6 +1,7 @@
-import { useMemo, useEffect } from "react";
+import { useMemo, useEffect, useState, memo } from "react";
 import * as THREE from "three";
 import { useTheme } from "../../theme";
+import { getEffectiveAccentThreeColor } from "../utils/colorUtils";
 
 interface OrbitPathLineProps {
     radius: number;
@@ -9,7 +10,7 @@ interface OrbitPathLineProps {
     segments?: number;
 }
 
-export function OrbitPathLine({
+export const OrbitPathLine = memo(function OrbitPathLine({
     radius,
     color = "#38bdf8",
     opacity = 0.25,
@@ -18,42 +19,44 @@ export function OrbitPathLine({
     const { isLight } = useTheme();
 
     const effectiveColor = useMemo(() => {
-        if (isLight) {
-            return new THREE.Color(color).lerp(new THREE.Color("#0284c7"), 0.45);
-        }
-        return new THREE.Color(color);
+        return getEffectiveAccentThreeColor(color, isLight);
     }, [color, isLight]);
 
-    const effectiveOpacity = isLight ? Math.max(opacity * 1.5, 0.45) : opacity;
+    const effectiveOpacity = isLight ? Math.max(opacity * 2.2, 0.75) : opacity;
 
-    const lineLoopMesh = useMemo(() => {
+    const geometry = useMemo(() => {
         const points: THREE.Vector3[] = [];
         for (let i = 0; i <= segments; i++) {
             const theta = (i / segments) * Math.PI * 2;
             points.push(new THREE.Vector3(Math.cos(theta) * radius, 0, Math.sin(theta) * radius));
         }
-        const geometry = new THREE.BufferGeometry().setFromPoints(points);
-        const material = new THREE.LineBasicMaterial({
-            color: effectiveColor,
-            transparent: true,
-            opacity: effectiveOpacity,
-            depthWrite: false,
-        });
-        return new THREE.LineLoop(geometry, material);
-    }, [radius, effectiveColor, effectiveOpacity, segments]);
+        return new THREE.BufferGeometry().setFromPoints(points);
+    }, [radius, segments]);
+
+    const [material] = useState(() => new THREE.LineBasicMaterial({
+        color: effectiveColor,
+        transparent: true,
+        opacity: effectiveOpacity,
+        depthWrite: false,
+    }));
+
+    useEffect(() => {
+        material.color.copy(effectiveColor);
+        material.opacity = effectiveOpacity;
+    }, [material, effectiveColor, effectiveOpacity]);
 
     useEffect(() => {
         return () => {
-            lineLoopMesh.geometry.dispose();
-            if (Array.isArray(lineLoopMesh.material)) {
-                lineLoopMesh.material.forEach((m) => m.dispose());
-            } else {
-                lineLoopMesh.material.dispose();
-            }
+            geometry.dispose();
+            material.dispose();
         };
-    }, [lineLoopMesh]);
+    }, [geometry, material]);
 
-    return <primitive object={lineLoopMesh} />;
-}
+    return (
+        <lineLoop geometry={geometry} material={material} />
+    );
+});
+
+OrbitPathLine.displayName = "OrbitPathLine";
 
 export default OrbitPathLine;

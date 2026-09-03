@@ -2,6 +2,7 @@ import type { OrbitConfig } from "../../galaxy";
 import { DEFAULT_RING_CONFIG } from "../../galaxy";
 import { BIOME_PRESETS, generateRandomPlanet } from "../presets";
 import { Tooltip } from "../../../components/ui/Tooltip";
+import { StudioColorPicker } from "./StudioColorPicker";
 
 export interface AppearancePanelProps {
     planet: OrbitConfig;
@@ -145,22 +146,19 @@ export function AppearancePanel({
                             const currentColor =
                                 (palette as Record<string, string | undefined>)[layer.key] || layer.default;
                             return (
-                                <div key={layer.key} className="studio-color-picker studio-color-picker--compact">
-                                    <input
-                                        id={`palette-${layer.key}`}
-                                        type="color"
-                                        aria-label={layer.label}
-                                        value={currentColor}
-                                        onChange={(e) => {
-                                            const val = e.target.value;
-                                            onChange((prev) => ({
-                                                ...prev,
-                                                palette: { ...prev.palette, [layer.key]: val },
-                                            }));
-                                        }}
-                                    />
-                                    <label htmlFor={`palette-${layer.key}`} className="studio-color-picker__label">{layer.label}</label>
-                                </div>
+                                <StudioColorPicker
+                                    key={layer.key}
+                                    id={`palette-${layer.key}`}
+                                    label={layer.label}
+                                    value={currentColor}
+                                    compact
+                                    onChange={(val) => {
+                                        onChange((prev) => ({
+                                            ...prev,
+                                            palette: { ...prev.palette, [layer.key]: val },
+                                        }));
+                                    }}
+                                />
                             );
                         })}
                     </div>
@@ -362,22 +360,18 @@ export function AppearancePanel({
                                     <label htmlFor="ring-color">Ring Color</label>
                                     <Tooltip text="Diffuse tint color of the planetary dust particles." />
                                 </div>
-                                <div className="studio-color-picker">
-                                    <input
-                                        id="ring-color"
-                                        type="color"
-                                        aria-label="Ring Color"
-                                        value={ring.color || "#38bdf8"}
-                                        onChange={(e) => {
-                                            const val = e.target.value;
-                                            onChange((prev) => ({
-                                                ...prev,
-                                                ring: prev.ring ? { ...prev.ring, color: val } : undefined,
-                                            }));
-                                        }}
-                                    />
-                                    <span className="studio-color-picker__hex">{ring.color || "#38bdf8"}</span>
-                                </div>
+                                <StudioColorPicker
+                                    id="ring-color"
+                                    label="Ring Color"
+                                    value={ring.color || "#38bdf8"}
+                                    showHex
+                                    onChange={(val) => {
+                                        onChange((prev) => ({
+                                            ...prev,
+                                            ring: prev.ring ? { ...prev.ring, color: val } : undefined,
+                                        }));
+                                    }}
+                                />
                             </div>
                         </>
                     )}

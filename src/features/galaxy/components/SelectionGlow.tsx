@@ -3,6 +3,9 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { useGalaxyVisuals } from "../store";
 import { useTheme } from "../../theme";
+import { getEffectiveAccentThreeColor } from "../utils/colorUtils";
+
+const _whiteColor = new THREE.Color("#ffffff");
 
 export interface SelectionGlowProps {
     radius: number;
@@ -70,15 +73,12 @@ export function SelectionGlow({
     const labelSpriteRef = useRef<THREE.Sprite>(null);
     const reticleRotation = useRef(0);
 
-    const cornerSize = Math.max(0.06, Math.min(0.28, radius * 0.28));
+    const cornerSize = Math.max(0.1, Math.min(0.4, radius * 0.35));
     const bracketGeom = useMemo(() => createBracketsGeometry(radius, cornerSize), [radius, cornerSize]);
-    const dottedGeom = useMemo(() => createDottedRingGeometry(radius, 28), [radius]);
+    const dottedGeom = useMemo(() => createDottedRingGeometry(radius, 32), [radius]);
 
     const lineColor = useMemo(() => {
-        if (isLight) {
-            return new THREE.Color(color).lerp(new THREE.Color("#0284c7"), 0.35);
-        }
-        return new THREE.Color(color);
+        return getEffectiveAccentThreeColor(color, isLight);
     }, [color, isLight]);
     const idleTextColor = useMemo(() => new THREE.Color(isLight ? "#334155" : "#94a3b8"), [isLight]);
 
@@ -91,16 +91,13 @@ export function SelectionGlow({
         if (ctx) {
             ctx.clearRect(0, 0, 1024, 256);
 
-            ctx.font = "600 72px 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, monospace";
+            ctx.font = "600 64px 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
 
             if (isLight) {
-                ctx.fillStyle = "#0f172a";
-                ctx.strokeStyle = "rgba(255, 255, 255, 0.85)";
-                ctx.lineWidth = 6;
-                ctx.letterSpacing = "6px";
-                ctx.strokeText(label.toUpperCase(), 512, 128);
+                ctx.fillStyle = "#1e293b";
+                ctx.letterSpacing = "5px";
                 ctx.fillText(label.toUpperCase(), 512, 128);
             } else {
                 ctx.shadowColor = "rgba(0, 0, 0, 0.95)";
@@ -135,19 +132,19 @@ export function SelectionGlow({
         groupRef.current.lookAt(state.camera.position);
 
         const targetBracketOpacity = effectiveShowReticle
-            ? (isSelected ? 0.9 : isHovered ? 0.65 : 0)
+            ? (isSelected ? 1.0 : isHovered ? 0.8 : 0)
             : 0;
 
         if (bracketsRef.current) {
             const mat = bracketsRef.current.material as THREE.LineBasicMaterial;
-            mat.opacity = THREE.MathUtils.damp(mat.opacity, targetBracketOpacity, 6, delta);
+            mat.opacity = THREE.MathUtils.damp(mat.opacity, targetBracketOpacity, 8, delta);
             bracketsRef.current.visible = mat.opacity > 0.01;
 
             if (isSelected) {
-                const pulse = 1 + Math.sin(state.clock.getElapsedTime() * 4) * 0.03;
+                const pulse = 1 + Math.sin(state.clock.getElapsedTime() * 4) * 0.04;
                 bracketsRef.current.scale.set(pulse, pulse, 1);
             } else if (isHovered) {
-                bracketsRef.current.scale.set(1.02, 1.02, 1);
+                bracketsRef.current.scale.set(1.03, 1.03, 1);
             } else {
                 bracketsRef.current.scale.set(1.08, 1.08, 1);
             }
@@ -156,12 +153,12 @@ export function SelectionGlow({
         if (dotsRef.current) {
             const dotMat = dotsRef.current.material as THREE.PointsMaterial;
             const dotTargetOpacity = effectiveShowReticle
-                ? (isSelected ? 0.75 : isHovered ? 0.45 : 0)
+                ? (isSelected ? 0.95 : isHovered ? 0.65 : 0)
                 : 0;
-            dotMat.opacity = THREE.MathUtils.damp(dotMat.opacity, dotTargetOpacity, 6, delta);
+            dotMat.opacity = THREE.MathUtils.damp(dotMat.opacity, dotTargetOpacity, 8, delta);
             dotsRef.current.visible = dotMat.opacity > 0.01;
 
-            reticleRotation.current += (isSelected ? 0.6 : 0.2) * delta;
+            reticleRotation.current += (isSelected ? 0.75 : 0.25) * delta;
             dotsRef.current.rotation.z = reticleRotation.current;
         }
 
@@ -174,13 +171,14 @@ export function SelectionGlow({
 
             const closeFocusFade = isSelected ? THREE.MathUtils.clamp((dist - 10.5) / 12.0, 0, 1) : 1;
             const targetBaseOpacity = effectiveShowLabel
-                ? (isSelected ? 0.95 : isHovered ? 0.85 : 0.4)
+                ? (isSelected ? 1.0 : isHovered ? 0.95 : (isLight ? 0.8 : 0.6))
                 : 0;
             const labelTargetOpacity = targetBaseOpacity * closeFocusFade;
 
             labelMat.opacity = isSelected ? labelTargetOpacity : THREE.MathUtils.damp(labelMat.opacity, labelTargetOpacity, 10, delta);
             labelSpriteRef.current.visible = labelMat.opacity > 0.005;
-            labelMat.color.lerp(isSelected || isHovered ? lineColor : idleTextColor, 0.2);
+            const targetSpriteColor = isSelected || isHovered ? lineColor : (isLight ? _whiteColor : idleTextColor);
+            labelMat.color.lerp(targetSpriteColor, 0.2);
 
             const cameraDist = state.camera.position.length();
             const zoomInFactor = THREE.MathUtils.clamp((60 - cameraDist) / 38, 0, 1);
@@ -215,7 +213,7 @@ export function SelectionGlow({
             <points ref={dotsRef} geometry={dottedGeom} renderOrder={998}>
                 <pointsMaterial
                     color={lineColor}
-                    size={0.06}
+                    size={isLight ? 0.1 : 0.08}
                     transparent
                     opacity={0}
                     sizeAttenuation

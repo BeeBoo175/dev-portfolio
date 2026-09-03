@@ -2,13 +2,13 @@ import { useMemo, useRef, useEffect } from "react";
 import * as THREE from "three";
 import type { RingConfig } from "../types";
 import { useTheme } from "../../theme";
+import { getEffectiveAccentColor } from "../utils/colorUtils";
 
 interface PlanetaryRingProps {
     ring: RingConfig;
 }
 
 function createRingTexture(
-    baseColorHex: string,
     gapPosition = 0.615,
     gapWidth = 0.07,
     seed = 42,
@@ -19,14 +19,6 @@ function createRingTexture(
     canvas.height = 1;
     const ctx = canvas.getContext("2d");
     if (!ctx) return new THREE.CanvasTexture(canvas);
-
-    const baseCol = new THREE.Color(baseColorHex);
-    if (isLight) {
-        baseCol.lerp(new THREE.Color("#0284c7"), 0.35);
-    }
-    const r = Math.round(baseCol.r * 255);
-    const g = Math.round(baseCol.g * 255);
-    const b = Math.round(baseCol.b * 255);
 
     const imgData = ctx.createImageData(512, 1);
     const data = imgData.data;
@@ -64,11 +56,12 @@ function createRingTexture(
         }
 
         const brightnessFactor = THREE.MathUtils.clamp(1.0 + bandNoise, 0.5, 1.25);
+        const val = Math.min(255, Math.round(255 * brightnessFactor));
 
         const index = i * 4;
-        data[index] = Math.min(255, Math.round(r * brightnessFactor));
-        data[index + 1] = Math.min(255, Math.round(g * brightnessFactor));
-        data[index + 2] = Math.min(255, Math.round(b * brightnessFactor));
+        data[index] = val;
+        data[index + 1] = val;
+        data[index + 2] = val;
         data[index + 3] = Math.round(alpha * 255);
     }
 
@@ -93,9 +86,13 @@ export function PlanetaryRing({ ring }: PlanetaryRingProps) {
     const emissiveInt = ring.emissiveIntensity ?? 0.15;
     const seed = ring.seed ?? 42;
 
+    const effectiveColor = useMemo(() => {
+        return getEffectiveAccentColor(ring.color, isLight);
+    }, [ring.color, isLight]);
+
     const ringTexture = useMemo(() => {
-        return createRingTexture(ring.color, gapPos, gapW, seed, isLight);
-    }, [ring.color, gapPos, gapW, seed, isLight]);
+        return createRingTexture(gapPos, gapW, seed, isLight);
+    }, [gapPos, gapW, seed, isLight]);
 
     useEffect(() => {
         return () => {
@@ -146,8 +143,8 @@ export function PlanetaryRing({ ring }: PlanetaryRingProps) {
             <mesh ref={meshRef} geometry={geometry}>
                 <meshStandardMaterial
                     map={ringTexture}
-                    color={ring.color}
-                    emissive={ring.color}
+                    color={effectiveColor}
+                    emissive={effectiveColor}
                     emissiveIntensity={isLight ? 0.05 : emissiveInt}
                     side={THREE.DoubleSide}
                     transparent
