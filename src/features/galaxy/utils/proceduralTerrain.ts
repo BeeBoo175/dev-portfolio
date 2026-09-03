@@ -97,6 +97,107 @@ export interface LowPolyOptions {
     palette?: PaletteConfig;
     fallbackColor?: string;
     isSun?: boolean;
+    subdivisionDetail?: number;
+}
+
+export function samplePlanetPoint(
+    unit: THREE.Vector3,
+    radius: number,
+    terrain: PlanetTerrainConfig = {},
+    palette?: PaletteConfig,
+    fallbackColor = "#5da9ff",
+    isSun = false
+): { elevation: number; color: THREE.Color } {
+    const noiseScale = terrain.noiseScale ?? 1.2;
+    const roughness = terrain.roughness ?? 0.18;
+    const waterLevel = terrain.waterLevel ?? 0.0;
+    const seed = (terrain.seed ?? 42) * 17.13;
+
+    const cWater = new THREE.Color(palette?.water ?? fallbackColor);
+    const cCoast = new THREE.Color(palette?.coast ?? palette?.land ?? fallbackColor);
+    const cLand = new THREE.Color(palette?.land ?? fallbackColor);
+    const cMountain = new THREE.Color(palette?.mountain ?? palette?.land ?? fallbackColor);
+    const cPeak = new THREE.Color(palette?.peak ?? "#ffffff");
+
+    const nx = unit.x * noiseScale + seed;
+    const ny = unit.y * noiseScale + seed * 1.31;
+    const nz = unit.z * noiseScale + seed * 0.77;
+
+    const color = new THREE.Color();
+    let elevation = 0;
+
+    if (!isSun) {
+        const rawNoise = fbm3D(nx, ny, nz, 3, 2.1, 0.5);
+        const normalizedNoise = (rawNoise + 1) * 0.5;
+
+        elevation = normalizedNoise < waterLevel
+            ? 0
+            : Math.pow((normalizedNoise - waterLevel) / (1 - waterLevel), 1.3) * roughness * radius;
+
+        const heightRatio = elevation / (roughness * radius || 1);
+
+        if (normalizedNoise < waterLevel + 0.04) {
+            color.copy(cWater);
+        } else if (heightRatio < 0.15) {
+            color.copy(cCoast);
+        } else if (heightRatio < 0.55) {
+            color.lerpColors(cLand, cMountain, (heightRatio - 0.15) / 0.4);
+        } else {
+            color.lerpColors(cMountain, cPeak, (heightRatio - 0.55) / 0.45);
+        }
+    } else {
+        const sunNoise = fbm3D(nx * 0.8, ny * 0.8, nz * 0.8, 2, 2.0, 0.5);
+        color.lerpColors(cWater, cPeak, (sunNoise + 1) * 0.5);
+    }
+
+    return { elevation, color };
+}
+
+export function buildPlanetDisplacedGeometry(
+    radius: number,
+    detail: number,
+    terrain: PlanetTerrainConfig = {},
+    palette?: PaletteConfig,
+    fallbackColor = "#5da9ff",
+    isSun = false
+): THREE.BufferGeometry {
+    let baseGeom: THREE.BufferGeometry = new THREE.IcosahedronGeometry(radius, Math.max(0, detail));
+
+    if (baseGeom.index) {
+        baseGeom = baseGeom.toNonIndexed();
+    }
+
+    const posAttr = baseGeom.getAttribute("position");
+    const count = posAttr.count;
+    const colors = new Float32Array(count * 3);
+    const tempVec = new THREE.Vector3();
+
+    for (let i = 0; i < count; i++) {
+        tempVec.fromBufferAttribute(posAttr, i);
+        const unit = tempVec.clone().normalize();
+
+        const { elevation, color } = samplePlanetPoint(
+            unit,
+            radius,
+            terrain,
+            palette,
+            fallbackColor,
+            isSun
+        );
+
+        const newRadius = radius + elevation;
+        tempVec.copy(unit).multiplyScalar(newRadius);
+        posAttr.setXYZ(i, tempVec.x, tempVec.y, tempVec.z);
+
+        colors[i * 3] = color.r;
+        colors[i * 3 + 1] = color.g;
+        colors[i * 3 + 2] = color.b;
+    }
+
+    baseGeom.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+    baseGeom.computeVertexNormals();
+
+    return baseGeom;
 }
 
 export function createLowPolyPlanetGeometry(options: LowPolyOptions): THREE.BufferGeometry {
@@ -106,76 +207,41 @@ export function createLowPolyPlanetGeometry(options: LowPolyOptions): THREE.Buff
         palette,
         fallbackColor = "#5da9ff",
         isSun = false,
+        subdivisionDetail,
     } = options;
 
-    const detail = terrain.detail ?? (radius > 1.2 ? 3 : 2);
-    const noiseScale = terrain.noiseScale ?? 1.2;
-    const roughness = terrain.roughness ?? 0.18;
-    const waterLevel = terrain.waterLevel ?? 0.0;
-    const seed = (terrain.seed ?? 42) * 17.13;
+    const detail = subdivisionDetail ?? terrain.detail ?? (radius > 1.2 ? 3 : 2);
+    return buildPlanetDisplacedGeometry(radius, detail, terrain, palette, fallbackColor, isSun);
+}
 
-    let baseGeom: THREE.BufferGeometry = new THREE.IcosahedronGeometry(radius, detail);
-    if (baseGeom.index) {
-        baseGeom = baseGeom.toNonIndexed();
-    }
+export interface MultiLODPlanetGeometries {
+    high: THREE.BufferGeometry;
+    medium: THREE.BufferGeometry;
+    sparse: THREE.BufferGeometry;
+    simple: THREE.BufferGeometry;
+}
 
-    const posAttr = baseGeom.getAttribute("position");
-    const count = posAttr.count;
+export function createMultiLODPlanetGeometries(
+    options: LowPolyOptions,
+    isMoon = false
+): MultiLODPlanetGeometries {
+    const {
+        radius,
+        terrain = {},
+        palette,
+        fallbackColor = "#5da9ff",
+        isSun = false,
+    } = options;
 
-    const colors = new Float32Array(count * 3);
+    const highDetail = isMoon ? 1 : 2;
+    const mediumDetail = isMoon ? 1 : 1;
+    const sparseDetail = 0;
+    const simpleDetail = 0;
 
-    const cWater = new THREE.Color(palette?.water ?? fallbackColor);
-    const cCoast = new THREE.Color(palette?.coast ?? palette?.land ?? fallbackColor);
-    const cLand = new THREE.Color(palette?.land ?? fallbackColor);
-    const cMountain = new THREE.Color(palette?.mountain ?? palette?.land ?? fallbackColor);
-    const cPeak = new THREE.Color(palette?.peak ?? "#ffffff");
-
-    const tempVec = new THREE.Vector3();
-    const tempColor = new THREE.Color();
-
-    for (let i = 0; i < count; i++) {
-        tempVec.fromBufferAttribute(posAttr, i);
-        const unit = tempVec.clone().normalize();
-
-        const nx = unit.x * noiseScale + seed;
-        const ny = unit.y * noiseScale + seed * 1.31;
-        const nz = unit.z * noiseScale + seed * 0.77;
-
-        if (!isSun) {
-            const rawNoise = fbm3D(nx, ny, nz, 3, 2.1, 0.5);
-            const normalizedNoise = (rawNoise + 1) * 0.5;
-
-            const elevation = normalizedNoise < waterLevel
-                ? 0
-                : Math.pow((normalizedNoise - waterLevel) / (1 - waterLevel), 1.3) * roughness * radius;
-
-            const newRadius = radius + elevation;
-            tempVec.copy(unit).multiplyScalar(newRadius);
-            posAttr.setXYZ(i, tempVec.x, tempVec.y, tempVec.z);
-
-            const heightRatio = elevation / (roughness * radius || 1);
-
-            if (normalizedNoise < waterLevel + 0.04) {
-                tempColor.copy(cWater);
-            } else if (heightRatio < 0.15) {
-                tempColor.copy(cCoast);
-            } else if (heightRatio < 0.55) {
-                tempColor.lerpColors(cLand, cMountain, (heightRatio - 0.15) / 0.4);
-            } else {
-                tempColor.lerpColors(cMountain, cPeak, (heightRatio - 0.55) / 0.45);
-            }
-        } else {
-            const sunNoise = fbm3D(nx * 0.8, ny * 0.8, nz * 0.8, 2, 2.0, 0.5);
-            tempColor.lerpColors(cWater, cPeak, (sunNoise + 1) * 0.5);
-        }
-
-        colors[i * 3] = tempColor.r;
-        colors[i * 3 + 1] = tempColor.g;
-        colors[i * 3 + 2] = tempColor.b;
-    }
-
-    baseGeom.setAttribute("color", new THREE.BufferAttribute(colors, 3));
-    baseGeom.computeVertexNormals();
-
-    return baseGeom;
+    return {
+        high: buildPlanetDisplacedGeometry(radius, highDetail, terrain, palette, fallbackColor, isSun),
+        medium: buildPlanetDisplacedGeometry(radius, mediumDetail, terrain, palette, fallbackColor, isSun),
+        sparse: buildPlanetDisplacedGeometry(radius, sparseDetail, terrain, palette, fallbackColor, isSun),
+        simple: buildPlanetDisplacedGeometry(radius, simpleDetail, terrain, palette, fallbackColor, isSun),
+    };
 }

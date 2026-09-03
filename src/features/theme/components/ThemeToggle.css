@@ -2,32 +2,34 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    height: 36px;
-    padding: 0 14px;
-    background: var(--obsidian-bg);
-    border: 1px solid var(--obsidian-border);
+    gap: 6px;
+    height: 28px;
+    padding: 0 10px;
+    background: var(--bg-surface-subtle);
+    border: 1px solid var(--border-default);
     border-radius: var(--radius-xs);
     box-shadow: var(--glass-shadow-subtle);
     color: var(--text-primary);
-    font-family: inherit;
-    font-size: 12px;
+    font-family: var(--font-sans);
+    font-size: 11px;
     font-weight: 600;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
+    letter-spacing: 0.02em;
     cursor: pointer;
     white-space: nowrap;
     backdrop-filter: var(--glass-blur);
     -webkit-backdrop-filter: var(--glass-blur);
-    transition: all var(--transition-fast);
+    transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast), box-shadow var(--transition-fast);
     outline: none;
     -webkit-tap-highlight-color: transparent;
+    flex-shrink: 0;
 }
 
-.theme-toggle-btn:hover {
-    background: var(--obsidian-bg-hover);
-    border-color: var(--obsidian-border-highlight);
-    color: var(--text-primary);
+@media (hover: hover) and (pointer: fine) {
+    .theme-toggle-btn:hover {
+        background: var(--bg-surface-hover);
+        border-color: var(--border-hover);
+        color: var(--text-primary);
+    }
 }
 
 .theme-toggle-btn:focus-visible {
@@ -36,28 +38,47 @@
 }
 
 .theme-toggle-btn:active {
-    filter: brightness(0.9);
     transform: scale(0.97);
 }
 
-.theme-toggle-btn__indicator {
-    width: 8px;
-    height: 8px;
+.theme-toggle-btn__mode-icon {
+    width: 6px;
+    height: 6px;
     border-radius: 50%;
     background: var(--accent-cyan);
-    box-shadow: 0 0 8px var(--accent-cyan);
+    box-shadow: 0 0 6px var(--accent-cyan);
     flex-shrink: 0;
 }
 
-.theme-toggle-btn__text {
-    line-height: 1;
+.theme-toggle-btn--light .theme-toggle-btn__mode-icon {
+    background: var(--accent-primary);
+    box-shadow: 0 0 6px rgba(2, 132, 199, 0.7);
+}
+
+.docked-navigation__theme-btn {
+    height: 28px;
+    padding: 0 10px;
+    border-radius: var(--radius-xs);
+    border: 1px solid var(--obsidian-border-subtle);
+    background: var(--obsidian-bg-subtle);
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    box-shadow: none;
+    box-sizing: border-box;
+}
+
+.docked-navigation__theme-btn:hover {
+    background: var(--obsidian-bg-hover);
+    color: var(--text-primary);
+    border-color: var(--obsidian-border-highlight);
 }
 
 @media (max-width: 1280px) {
-    .theme-toggle-btn {
-        height: 32px;
-        padding: 0 10px;
-        font-size: 11px;
-        gap: 6px;
+    .theme-toggle-btn:not(.docked-navigation__theme-btn) {
+        padding: 0 8px;
+        font-size: 10.5px;
+        gap: 5px;
     }
 }

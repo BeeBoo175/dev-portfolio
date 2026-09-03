@@ -26,11 +26,12 @@ function generateStarfieldData(isLight = false) {
 
     const starPalettes = isLight
         ? [
-            new THREE.Color("#0369a1"),
-            new THREE.Color("#1e40af"),
             new THREE.Color("#0284c7"),
-            new THREE.Color("#0f766e"),
-            new THREE.Color("#475569"),
+            new THREE.Color("#0369a1"),
+            new THREE.Color("#1e293b"),
+            new THREE.Color("#0f172a"),
+            new THREE.Color("#047857"),
+            new THREE.Color("#4338ca"),
             new THREE.Color("#334155"),
         ]
         : [
@@ -61,7 +62,7 @@ function generateStarfieldData(isLight = false) {
         const paletteIndex = Math.floor(seededRandom(i * 4.91 + 40.4) * starPalettes.length);
         const baseColor = starPalettes[paletteIndex];
         const brightness = isLight
-            ? 0.75 + seededRandom(i * 5.33 + 50.5) * 0.25
+            ? 0.9 + seededRandom(i * 5.33 + 50.5) * 0.1
             : 0.55 + seededRandom(i * 5.33 + 50.5) * 0.45;
 
         colors[i * 3] = baseColor.r * brightness;
@@ -81,11 +82,11 @@ function generateBrightStarData(isLight = false) {
     const heroPalettes = isLight
         ? [
             new THREE.Color("#0284c7"),
-            new THREE.Color("#2563eb"),
-            new THREE.Color("#0d9488"),
             new THREE.Color("#0369a1"),
-            new THREE.Color("#4338ca"),
-            new THREE.Color("#1e293b"),
+            new THREE.Color("#0f172a"),
+            new THREE.Color("#1e3a8a"),
+            new THREE.Color("#047857"),
+            new THREE.Color("#b45309"),
         ]
         : [
             new THREE.Color("#38bdf8"),
@@ -414,7 +415,7 @@ export function CosmicBackground({ visible = true }: CosmicBackgroundProps) {
             brightStarsRef.current.rotation.y = time * 0.002;
             const brightMat = brightStarsRef.current.material as THREE.PointsMaterial;
             if (brightMat) {
-                brightMat.size = 5.5 + Math.sin(time * 2.0) * 0.8;
+                brightMat.size = (isLight ? 7.5 : 5.5) + Math.sin(time * 2.0) * 0.8;
             }
         }
 
@@ -503,10 +504,10 @@ export function CosmicBackground({ visible = true }: CosmicBackgroundProps) {
                 </bufferGeometry>
                 <pointsMaterial
                     map={circleTexture}
-                    size={isLight ? 3.5 : 3.0}
+                    size={isLight ? 5.2 : 3.0}
                     vertexColors
                     transparent
-                    opacity={isLight ? 0.75 : 0.88}
+                    opacity={isLight ? 0.95 : 0.88}
                     blending={isLight ? THREE.NormalBlending : THREE.AdditiveBlending}
                     depthWrite={false}
                     sizeAttenuation
@@ -526,10 +527,10 @@ export function CosmicBackground({ visible = true }: CosmicBackgroundProps) {
                 </bufferGeometry>
                 <pointsMaterial
                     map={circleTexture}
-                    size={isLight ? 6.0 : 5.5}
+                    size={isLight ? 8.0 : 5.5}
                     vertexColors
                     transparent
-                    opacity={isLight ? 0.85 : 0.95}
+                    opacity={isLight ? 1.0 : 0.95}
                     blending={isLight ? THREE.NormalBlending : THREE.AdditiveBlending}
                     depthWrite={false}
                     sizeAttenuation
@@ -543,7 +544,7 @@ export function CosmicBackground({ visible = true }: CosmicBackgroundProps) {
                         <meshBasicMaterial
                             map={item.texture}
                             transparent
-                            opacity={isLight ? 0.35 : 0.65}
+                            opacity={isLight ? 0.25 : 0.65}
                             blending={isLight ? THREE.NormalBlending : THREE.AdditiveBlending}
                             depthWrite={false}
                             side={THREE.DoubleSide}

@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { ThemeToggle } from "../../features/theme";
 import "./DockedNavigation.css";
 
 export interface DockedTargetItem {
@@ -17,6 +18,7 @@ export interface DockedNavigationProps {
     isSidebarOpen?: boolean;
     onToggleSidebar?: () => void;
     className?: string;
+    ref?: React.Ref<HTMLElement>;
 }
 
 export function DockedNavigation({
@@ -27,6 +29,7 @@ export function DockedNavigation({
     isSidebarOpen,
     onToggleSidebar,
     className = "",
+    ref,
 }: DockedNavigationProps) {
     const activeChipRef = useRef<HTMLButtonElement | null>(null);
 
@@ -58,6 +61,7 @@ export function DockedNavigation({
 
     return (
         <nav
+            ref={ref}
             className={`docked-navigation ${className}`}
             aria-label="Celestial Target Navigation"
         >
@@ -77,74 +81,80 @@ export function DockedNavigation({
                 </button>
             )}
             <div className="docked-navigation__track">
-                {targets.map((target) => {
-                    const isSelected = selectedId === target.id;
-                    const color = target.color || "#38bdf8";
-                    const isSpaceshipBase = Boolean(defaultPlanetId && target.id === defaultPlanetId);
+                <div className="docked-navigation__pills">
+                    {targets.map((target) => {
+                        const isSelected = selectedId === target.id;
+                        const color = target.color || "#38bdf8";
+                        const isSpaceshipBase = Boolean(defaultPlanetId && target.id === defaultPlanetId);
 
-                    return (
-                        <button
-                            key={target.id}
-                            ref={isSelected ? activeChipRef : null}
-                            type="button"
-                            className={`docked-navigation__chip ${
-                                isSelected ? "docked-navigation__chip--active" : ""
-                            }`}
-                            onClick={() => onSelectTarget(target.id)}
-                            aria-current={isSelected ? "true" : undefined}
-                            aria-label={`${target.label}${isSpaceshipBase ? " (Ship Base)" : ""}`}
-                            style={
-                                isSelected
-                                    ? {
-                                          borderColor: color,
-                                          boxShadow: `0 0 16px ${color}55`,
-                                      }
-                                    : undefined
-                            }
-                        >
-                            <span
-                                className="docked-navigation__dot"
-                                style={{ backgroundColor: color }}
-                                aria-hidden="true"
-                            />
-                            <span className="docked-navigation__label">{target.label}</span>
-                            {isSpaceshipBase && (
+                        return (
+                            <button
+                                key={target.id}
+                                ref={isSelected ? activeChipRef : null}
+                                type="button"
+                                className={`docked-navigation__chip ${
+                                    isSelected ? "docked-navigation__chip--active" : ""
+                                }`}
+                                onClick={() => onSelectTarget(target.id)}
+                                aria-current={isSelected ? "true" : undefined}
+                                aria-label={`${target.label}${isSpaceshipBase ? " (Ship Base)" : ""}`}
+                                style={
+                                    isSelected
+                                        ? {
+                                              borderColor: color,
+                                              boxShadow: `0 0 16px ${color}55`,
+                                          }
+                                        : undefined
+                                }
+                            >
                                 <span
-                                    className="docked-navigation__badge docked-navigation__badge--station"
-                                    title="Spaceship Default Station"
-                                    aria-label="Spaceship Default Station"
-                                >
-                                    Ship Base
-                                </span>
-                            )}
-                            {target.badge && (
-                                <span className="docked-navigation__badge">{target.badge}</span>
-                            )}
+                                    className="docked-navigation__dot"
+                                    style={{ backgroundColor: color }}
+                                    aria-hidden="true"
+                                />
+                                <span className="docked-navigation__label">{target.label}</span>
+                                {isSpaceshipBase && (
+                                    <span
+                                        className="docked-navigation__badge docked-navigation__badge--station"
+                                        title="Spaceship Default Station"
+                                        aria-label="Spaceship Default Station"
+                                    >
+                                        Ship Base
+                                    </span>
+                                )}
+                                {target.badge && (
+                                    <span className="docked-navigation__badge">{target.badge}</span>
+                                )}
+                            </button>
+                        );
+                    })}
+                </div>
+
+                <div className="docked-navigation__actions">
+                    <div className="docked-navigation__zoom-divider" />
+
+                    <ThemeToggle className="docked-navigation__theme-btn" />
+
+                    <div className="docked-navigation__zoom-controls" aria-label="Camera Zoom Controls">
+                        <button
+                            type="button"
+                            className="docked-navigation__zoom-btn"
+                            onClick={handleZoomIn}
+                            aria-label="Zoom in camera"
+                            title="Zoom In (-)"
+                        >
+                            +
                         </button>
-                    );
-                })}
-
-                <div className="docked-navigation__zoom-divider" />
-
-                <div className="docked-navigation__zoom-controls" aria-label="Camera Zoom Controls">
-                    <button
-                        type="button"
-                        className="docked-navigation__zoom-btn"
-                        onClick={handleZoomIn}
-                        aria-label="Zoom in camera"
-                        title="Zoom In (-)"
-                    >
-                        +
-                    </button>
-                    <button
-                        type="button"
-                        className="docked-navigation__zoom-btn"
-                        onClick={handleZoomOut}
-                        aria-label="Zoom out camera"
-                        title="Zoom Out (+)"
-                    >
-                        -
-                    </button>
+                        <button
+                            type="button"
+                            className="docked-navigation__zoom-btn"
+                            onClick={handleZoomOut}
+                            aria-label="Zoom out camera"
+                            title="Zoom Out (+)"
+                        >
+                            -
+                        </button>
+                    </div>
                 </div>
             </div>
         </nav>

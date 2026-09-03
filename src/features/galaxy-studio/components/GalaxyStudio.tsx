@@ -366,6 +366,52 @@ export function GalaxyStudio({
                 )}
             </div>
 
+            <div className="studio-workspace-area">
+                <aside className={`studio-sidebar ${isSidebarOpen ? "studio-sidebar--open" : "studio-sidebar--collapsed"}`}>
+                    <button
+                        type="button"
+                        className="studio-sidebar__toggle-btn"
+                        onClick={(e) => {
+                            handleToggleSidebar();
+                            e.currentTarget.blur();
+                        }}
+                        aria-expanded={isSidebarOpen}
+                        title={isSidebarOpen ? "Collapse Inspector" : "Expand Inspector"}
+                        aria-label="Toggle inspector panel"
+                    >
+                        <span className="studio-sidebar__toggle-icon studio-sidebar__toggle-icon--desktop">
+                            {isSidebarOpen ? "▸" : "◂"}
+                        </span>
+                        <span className="studio-sidebar__toggle-label studio-sidebar__toggle-label--mobile">
+                            {isSidebarOpen ? "▼ Inspector" : "▲ Inspector"}
+                        </span>
+                    </button>
+
+                    <div className="studio-sidebar__content">
+                        <div className="studio-sidebar__header">
+                            <div className="studio-sidebar__header-info">
+                                <span className="studio-sidebar__target-type">
+                                    {selectedId === "home" || selectedId === "sun"
+                                        ? "Star"
+                                        : selectedId === "asteroid-belt"
+                                            ? "Debris Belt"
+                                            : "Planet"}
+                                </span>
+                                <h2 className="studio-sidebar__target-name">
+                                    {targetLabel}
+                                </h2>
+                            </div>
+
+                            <div className="studio-sidebar__header-actions">
+                                {renderHeaderActions()}
+                            </div>
+                        </div>
+
+                        {renderInspectorContent()}
+                    </div>
+                </aside>
+            </div>
+
             <TargetSelector
                 targets={TARGET_LIST}
                 selectedId={selectedId}
@@ -377,50 +423,6 @@ export function GalaxyStudio({
                 isSidebarOpen={isSidebarOpen}
                 onToggleSidebar={handleToggleSidebar}
             />
-
-            <aside className={`studio-sidebar ${isSidebarOpen ? "studio-sidebar--open" : "studio-sidebar--collapsed"}`}>
-                <button
-                    type="button"
-                    className="studio-sidebar__toggle-btn"
-                    onClick={(e) => {
-                        handleToggleSidebar();
-                        e.currentTarget.blur();
-                    }}
-                    aria-expanded={isSidebarOpen}
-                    title={isSidebarOpen ? "Collapse Inspector" : "Expand Inspector"}
-                    aria-label="Toggle inspector panel"
-                >
-                    <span className="studio-sidebar__toggle-icon studio-sidebar__toggle-icon--desktop">
-                        {isSidebarOpen ? "▸" : "◂"}
-                    </span>
-                    <span className="studio-sidebar__toggle-label studio-sidebar__toggle-label--mobile">
-                        {isSidebarOpen ? "▼ Inspector" : "▲ Inspector"}
-                    </span>
-                </button>
-
-                <div className="studio-sidebar__content">
-                    <div className="studio-sidebar__header">
-                        <div className="studio-sidebar__header-info">
-                            <span className="studio-sidebar__target-type">
-                                {selectedId === "home" || selectedId === "sun"
-                                    ? "Star"
-                                    : selectedId === "asteroid-belt"
-                                        ? "Debris Belt"
-                                        : "Planet"}
-                            </span>
-                            <h2 className="studio-sidebar__target-name">
-                                {targetLabel}
-                            </h2>
-                        </div>
-
-                        <div className="studio-sidebar__header-actions">
-                            {renderHeaderActions()}
-                        </div>
-                    </div>
-
-                    {renderInspectorContent()}
-                </div>
-            </aside>
 
             {isConfirmExitOpen && (
                 <div

@@ -92,6 +92,7 @@ export const CelestialBody = forwardRef<THREE.Group, CelestialBodyProps>(
                                 }}
                                 body={body as OrbitConfig}
                                 isSun={isSun}
+                                isMoon={isMoon}
                                 color={effectiveColor}
                                 onClick={(e) => {
                                     if (isMoon && !isEditorMode) return;

@@ -44,7 +44,7 @@ export function GalaxyScene({
             camera={{ position: [0, 20, 42], fov: 50, near: 0.1, far: 2000 }}
             style={{ touchAction: isEditorMode ? "none" : "pan-y" }}
         >
-            <color attach="background" args={[isLight ? "#dbe4ee" : "#02040a"]} />
+            <color attach="background" args={[isLight ? "#cad2dc" : "#02040a"]} />
             <ambientLight intensity={isLight ? 0.85 : 0.15} />
             <CameraFillLight focusId={focusId} bodyRefs={bodyRefs} color={sun.color} />
 
