@@ -19,6 +19,7 @@ export interface TargetSelectorProps {
     defaultPlanetId?: string;
     isSidebarOpen?: boolean;
     onToggleSidebar?: () => void;
+    ref?: React.Ref<HTMLElement>;
 }
 
 export function TargetSelector({
@@ -31,6 +32,7 @@ export function TargetSelector({
     defaultPlanetId,
     isSidebarOpen,
     onToggleSidebar,
+    ref,
 }: TargetSelectorProps) {
     const getColor = (target: TargetItem) => {
         if (target.id === "home" || target.id === "sun") return sun.color;
@@ -46,6 +48,7 @@ export function TargetSelector({
 
     return (
         <DockedNavigation
+            ref={ref}
             targets={resolvedTargets}
             selectedId={selectedId}
             onSelectTarget={onSelectTarget}

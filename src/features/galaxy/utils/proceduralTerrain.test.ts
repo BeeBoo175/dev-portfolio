@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { perlin3D, fbm3D, createLowPolyPlanetGeometry } from "./proceduralTerrain";
+import { perlin3D, fbm3D, createLowPolyPlanetGeometry, createMultiLODPlanetGeometries } from "./proceduralTerrain";
 
 describe("proceduralTerrain utils", () => {
     describe("perlin3D", () => {
@@ -61,6 +61,32 @@ describe("proceduralTerrain utils", () => {
 
             expect(geom.getAttribute("position")).toBeDefined();
             expect(geom.getAttribute("color")).toBeDefined();
+        });
+    });
+
+    describe("createMultiLODPlanetGeometries", () => {
+        it("creates multi-resolution geometries with descending vertex counts", () => {
+            const lods = createMultiLODPlanetGeometries({
+                radius: 1.5,
+                terrain: {
+                    seed: 42,
+                    detail: 2,
+                },
+            }, false);
+
+            expect(lods.high).toBeDefined();
+            expect(lods.medium).toBeDefined();
+            expect(lods.sparse).toBeDefined();
+            expect(lods.simple).toBeDefined();
+
+            const countHigh = lods.high.getAttribute("position").count;
+            const countMedium = lods.medium.getAttribute("position").count;
+            const countSparse = lods.sparse.getAttribute("position").count;
+            const countSimple = lods.simple.getAttribute("position").count;
+
+            expect(countHigh).toBeGreaterThan(countMedium);
+            expect(countMedium).toBeGreaterThan(countSparse);
+            expect(countSimple).toBe(countSparse);
         });
     });
 });

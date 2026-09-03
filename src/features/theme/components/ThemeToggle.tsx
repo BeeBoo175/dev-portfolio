@@ -12,15 +12,14 @@ export function ThemeToggle({ className = "" }: ThemeToggleProps) {
     return (
         <button
             type="button"
-            className={`theme-toggle-btn ${className}`}
+            className={`theme-toggle-btn ${isLight ? "theme-toggle-btn--light" : "theme-toggle-btn--dark"} ${className}`}
             onClick={toggleTheme}
-            aria-label={isLight ? "Switch to Dark Mode" : "Switch to Blueprint Light Mode"}
-            title={isLight ? "Switch to Dark Mode" : "Switch to Blueprint Light Mode"}
+            aria-label={isLight ? "Switch to Galaxy Theme" : "Switch to Blueprint Theme"}
+            title={isLight ? "Theme: Blueprint (Click for Galaxy)" : "Theme: Galaxy (Click for Blueprint)"}
             aria-pressed={isLight}
         >
-            <span className="theme-toggle-btn__indicator" aria-hidden="true" />
             <span className="theme-toggle-btn__text">
-                {isLight ? "Blueprint" : "Cosmic"}
+                {isLight ? "Theme: Blueprint" : "Theme: Galaxy"}
             </span>
         </button>
     );
