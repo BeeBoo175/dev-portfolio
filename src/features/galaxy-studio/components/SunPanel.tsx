@@ -3,12 +3,17 @@ import { generateRandomSun } from "../presets";
 import { Tooltip } from "../../../components/ui/Tooltip";
 import { StudioColorPicker } from "./StudioColorPicker";
 
+const DEG_TO_RAD = Math.PI / 180;
+const RAD_TO_DEG = 180 / Math.PI;
+
 export interface SunPanelProps {
     sun: SunConfig;
     onChange: (updater: (prev: SunConfig) => SunConfig) => void;
 }
 
 export function SunPanel({ sun, onChange }: SunPanelProps) {
+    const axialTilt = (sun.axialTilt ?? 0) * RAD_TO_DEG;
+
     const handleRandomize = () => {
         const randomSun = generateRandomSun(sun);
         onChange(() => randomSun);
@@ -66,6 +71,26 @@ export function SunPanel({ sun, onChange }: SunPanelProps) {
                         onChange={(e) => {
                             const val = parseFloat(e.target.value);
                             onChange((prev) => ({ ...prev, rotationSpeed: val }));
+                        }}
+                    />
+                </div>
+
+                <div className="studio-field">
+                    <div className="studio-field__label-row">
+                        <label htmlFor="sun-axial-tilt">Axial Obliquity (Tilt)</label>
+                        <span className="studio-field__value">{axialTilt.toFixed(1)} deg</span>
+                        <Tooltip text="Angle between the sun's rotational axis and the ecliptic normal." />
+                    </div>
+                    <input
+                        id="sun-axial-tilt"
+                        type="range"
+                        min="-180"
+                        max="180"
+                        step="1"
+                        value={axialTilt}
+                        onChange={(e) => {
+                            const val = parseFloat(e.target.value) * DEG_TO_RAD;
+                            onChange((prev) => ({ ...prev, axialTilt: val }));
                         }}
                     />
                 </div>

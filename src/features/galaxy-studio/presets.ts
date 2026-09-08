@@ -213,6 +213,7 @@ export function generateRandomSun(baseSun?: SunConfig): SunConfig {
         id: baseSun?.id || "home",
         radius: Number((Math.random() * 1.5 + 2.8).toFixed(2)),
         rotationSpeed: Number((Math.random() * 0.2 + 0.08).toFixed(3)),
+        axialTilt: Number((Math.random() * 0.25).toFixed(3)),
         color: chosenColor,
         glowIntensity: Number((Math.random() * 0.6 + 0.8).toFixed(2)),
         lightIntensity: Number((Math.random() * 3.0 + 5.0).toFixed(1)),

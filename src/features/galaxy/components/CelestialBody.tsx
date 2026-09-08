@@ -59,7 +59,7 @@ export const CelestialBody = memo(forwardRef<THREE.Group, CelestialBodyProps>(
         const orbitInclination = orbitConfig.orbitInclination ?? 0;
         const orbitAscendingNode = orbitConfig.orbitAscendingNode ?? 0;
         const orbitArgument = orbitConfig.orbitArgument ?? 0;
-        const axialTilt = orbitConfig.axialTilt ?? 0;
+        const axialTilt = orbitConfig.axialTilt ?? sunConfig.axialTilt ?? 0;
 
         const labelText = isSun ? "SUN" : (body.id.charAt(0).toUpperCase() + body.id.slice(1));
 
@@ -155,7 +155,7 @@ export const CelestialBody = memo(forwardRef<THREE.Group, CelestialBodyProps>(
                             />
 
 
-                            {visuals.showOrbitalAxes && !isSun && (
+                            {visuals.showOrbitalAxes && (
                                 <OrbitalAxisLine
                                     radius={body.radius}
                                     color={effectiveColor}

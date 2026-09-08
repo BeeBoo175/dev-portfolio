@@ -31,6 +31,7 @@ export const DEFAULT_SUN: SunConfig = {
     id: "home",
     radius: 3.5,
     rotationSpeed: 0.15,
+    axialTilt: 0.125,
     color: "#ffe59e",
     glowIntensity: 1.3,
     lightIntensity: 6,
@@ -48,7 +49,7 @@ export const CENTRAL_BODY: OrbitConfig = {
     orbitInclination: 0,
     orbitAscendingNode: 0,
     orbitArgument: 0,
-    axialTilt: 0,
+    axialTilt: 0.125,
     color: "#ffe59e",
     palette: {
         water: "#ffe59e",

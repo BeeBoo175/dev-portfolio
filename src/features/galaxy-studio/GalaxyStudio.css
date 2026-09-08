@@ -323,7 +323,7 @@ body.light-theme .studio-collision-banner__btn:focus-visible {
 
 .studio-toolbar__action-btn--glow:focus-visible {
     background: var(--accent-subtle);
-    border-color: rgba(56, 189, 248, 0.4);
+    border-color: var(--accent-cyan);
     color: var(--accent-cyan);
     box-shadow: 0 0 10px var(--accent-glow);
 }
@@ -331,7 +331,7 @@ body.light-theme .studio-collision-banner__btn:focus-visible {
 @media (hover: hover) and (pointer: fine) {
     .studio-toolbar__action-btn--glow:hover {
         background: var(--accent-subtle);
-        border-color: rgba(56, 189, 248, 0.4);
+        border-color: var(--accent-cyan);
         color: var(--accent-cyan);
         box-shadow: 0 0 10px var(--accent-glow);
     }
@@ -369,7 +369,7 @@ body.light-theme .studio-collision-banner__btn:focus-visible {
 .studio-toolbar__toggle-btn--active {
     color: var(--accent-cyan);
     background: var(--accent-subtle);
-    border-color: rgba(56, 189, 248, 0.4);
+    border-color: var(--accent-border);
     font-weight: 600;
 }
 
@@ -462,8 +462,30 @@ body.light-theme .studio-collision-banner__btn:focus-visible {
 .studio-tab:active,
 .studio-preset-chip:active {
     transform: scale(0.97);
-    filter: brightness(0.85);
-    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.6);
+    filter: brightness(0.88);
+    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.5);
+}
+
+:root[data-theme="light"] .studio-btn:active:not(:disabled),
+:root[data-theme="light"] .studio-toolbar__action-btn:active:not(:disabled),
+:root[data-theme="light"] .studio-toolbar__toggle-btn:active:not(:disabled),
+:root[data-theme="light"] .studio-toolbar__icon-btn:active:not(:disabled),
+:root[data-theme="light"] .studio-toolbar__warning-btn:active,
+:root[data-theme="light"] .studio-toolbar__mobile-toggle-btn:active,
+:root[data-theme="light"] .studio-target-chip:active,
+:root[data-theme="light"] .studio-tab:active,
+:root[data-theme="light"] .studio-preset-chip:active,
+body.light-theme .studio-btn:active:not(:disabled),
+body.light-theme .studio-toolbar__action-btn:active:not(:disabled),
+body.light-theme .studio-toolbar__toggle-btn:active:not(:disabled),
+body.light-theme .studio-toolbar__icon-btn:active:not(:disabled),
+body.light-theme .studio-toolbar__warning-btn:active,
+body.light-theme .studio-toolbar__mobile-toggle-btn:active,
+body.light-theme .studio-target-chip:active,
+body.light-theme .studio-tab:active,
+body.light-theme .studio-preset-chip:active {
+    box-shadow: inset 0 1px 3px rgba(15, 23, 42, 0.16);
+    filter: brightness(0.94);
 }
 
 .studio-btn--sm {
@@ -527,13 +549,14 @@ body.light-theme .studio-collision-banner__btn:focus-visible {
 .studio-btn--station-active {
     background: var(--accent-subtle);
     color: var(--accent-cyan);
-    border-color: rgba(56, 189, 248, 0.4);
+    border-color: var(--accent-border);
     font-weight: 600;
 }
 
 @media (hover: hover) and (pointer: fine) {
     .studio-btn--station-active:hover {
-        background: rgba(56, 189, 248, 0.25);
+        background: var(--accent-glow);
+        border-color: var(--accent-cyan);
         box-shadow: 0 0 8px var(--accent-glow);
     }
 }
@@ -546,8 +569,10 @@ body.light-theme .studio-collision-banner__btn:focus-visible {
 
 @media (hover: hover) and (pointer: fine) {
     .studio-btn--danger:hover {
-        background: var(--destructive-hover-bg);
+        background: var(--destructive);
         color: #ffffff;
+        border-color: var(--destructive);
+        box-shadow: 0 0 12px var(--destructive-bg);
     }
 }
 
@@ -620,10 +645,15 @@ body.light-theme .studio-collision-banner__btn:focus-visible {
 }
 
 .studio-sidebar__toggle-btn:hover {
-    color: #ffffff;
+    color: var(--text-primary);
     background: var(--obsidian-bg-hover);
     border-color: var(--obsidian-border-highlight);
-    box-shadow: -6px 0 20px rgba(255, 255, 255, 0.2), inset 0 0 10px rgba(255, 255, 255, 0.1);
+    box-shadow: -6px 0 20px rgba(0, 0, 0, 0.4), inset 0 0 10px rgba(255, 255, 255, 0.1);
+}
+
+:root[data-theme="light"] .studio-sidebar__toggle-btn:hover,
+body.light-theme .studio-sidebar__toggle-btn:hover {
+    box-shadow: -6px 0 20px rgba(15, 23, 42, 0.12), inset 0 0 10px rgba(255, 255, 255, 0.8);
 }
 
 .studio-sidebar--collapsed .studio-sidebar__toggle-btn {
@@ -945,7 +975,7 @@ body.light-theme .studio-collision-banner__btn:focus-visible {
     gap: 8px;
     padding: 7px 10px;
     background: var(--obsidian-bg);
-    border: 1px solid var(--obsidian-border);
+    border: 1px solid var(--border-default);
     border-left-width: 3px;
     border-radius: var(--radius-xs);
     box-shadow: var(--glass-shadow-subtle);
@@ -967,11 +997,16 @@ body.light-theme .studio-collision-banner__btn:focus-visible {
 @media (hover: hover) and (pointer: fine) {
     .studio-preset-chip:hover {
         background: var(--obsidian-bg-hover);
-        color: #ffffff;
-        border-color: var(--obsidian-border-highlight);
+        color: var(--text-primary);
+        border-color: var(--border-hover);
         box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45), inset 0 0 8px rgba(255, 255, 255, 0.05);
         transform: translateY(-1px);
     }
+}
+
+:root[data-theme="light"] .studio-preset-chip:hover,
+body.light-theme .studio-preset-chip:hover {
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12), inset 0 0 8px rgba(255, 255, 255, 0.8);
 }
 
 .studio-preset-chip:active {
@@ -1372,11 +1407,21 @@ body.light-theme .studio-preset-chip__dot {
     padding: 4px 8px;
     border-radius: var(--radius-xs);
     transition: all var(--transition-fast);
+    outline: none;
 }
 
 .studio-modal__close:hover {
     color: var(--text-primary);
     background: var(--bg-surface-hover);
+}
+
+.studio-modal__close:active {
+    transform: scale(0.92);
+}
+
+.studio-modal__close:focus-visible {
+    outline: 2px solid var(--accent-cyan);
+    outline-offset: 1px;
 }
 
 .studio-modal__body {
@@ -1502,6 +1547,8 @@ body.light-theme .studio-textarea::placeholder {
     font-size: 11px;
     line-height: 1.4;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.85);
+    backdrop-filter: var(--glass-blur-sm);
+    -webkit-backdrop-filter: var(--glass-blur-sm);
     z-index: 9999;
     pointer-events: none;
     white-space: normal;
@@ -1949,11 +1996,16 @@ body.light-theme .studio-textarea::placeholder {
 
     @media (hover: hover) and (pointer: fine) {
         .studio-sidebar__toggle-btn:hover {
-            color: #ffffff;
+            color: var(--text-primary);
             background: var(--obsidian-bg-hover);
-            border-color: #ffffff;
-            box-shadow: 0 -8px 24px rgba(255, 255, 255, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            border-color: var(--obsidian-border-highlight);
+            box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
         }
+    }
+
+    :root[data-theme="light"] .studio-sidebar__toggle-btn:hover,
+    body.light-theme .studio-sidebar__toggle-btn:hover {
+        box-shadow: 0 -8px 24px rgba(15, 23, 42, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.8);
     }
 
     .studio-sidebar__toggle-icon--desktop {

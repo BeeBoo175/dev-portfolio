@@ -70,7 +70,7 @@
     height: 28px;
     padding: 0 12px;
     border-radius: var(--radius-xs);
-    border: 1px solid var(--obsidian-border-subtle);
+    border: 1px solid var(--border-subtle);
     background: var(--obsidian-bg-subtle);
     color: var(--text-secondary);
     font-size: 12px;
@@ -87,7 +87,7 @@
 .docked-navigation__chip:hover {
     background: var(--obsidian-bg-hover);
     color: var(--text-primary);
-    border-color: var(--obsidian-border-highlight);
+    border-color: var(--border-hover);
 }
 
 .docked-navigation__chip--active {
@@ -100,8 +100,21 @@
 
 :root[data-theme="light"] .docked-navigation__chip--active,
 body.light-theme .docked-navigation__chip--active {
-    background: rgba(15, 23, 42, 0.08);
+    background: var(--accent-subtle);
+    border-color: var(--accent-border);
     color: var(--text-primary);
+    box-shadow: 0 0 12px var(--accent-glow), inset 0 0 8px rgba(255, 255, 255, 0.6);
+}
+
+.docked-navigation__chip:active {
+    transform: scale(0.97);
+}
+
+.docked-navigation__chip:focus-visible,
+.docked-navigation__zoom-btn:focus-visible,
+.docked-navigation__theme-btn:focus-visible {
+    outline: 2px solid var(--accent-cyan);
+    outline-offset: 1px;
 }
 
 .docked-navigation__dot {
@@ -165,7 +178,7 @@ body.light-theme .docked-navigation__dot {
     justify-content: center;
     padding: 0;
     border-radius: var(--radius-xs);
-    border: 1px solid var(--obsidian-border-subtle);
+    border: 1px solid var(--border-subtle);
     background: var(--obsidian-bg-subtle);
     color: var(--text-secondary);
     font-size: 18px;
@@ -181,8 +194,13 @@ body.light-theme .docked-navigation__dot {
 .docked-navigation__zoom-btn:hover {
     background: var(--obsidian-bg-hover);
     color: var(--text-primary);
-    border-color: var(--obsidian-border-highlight);
+    border-color: var(--border-hover);
     box-shadow: 0 0 10px rgba(255, 255, 255, 0.15);
+}
+
+:root[data-theme="light"] .docked-navigation__zoom-btn:hover,
+body.light-theme .docked-navigation__zoom-btn:hover {
+    box-shadow: 0 0 10px rgba(15, 23, 42, 0.15);
 }
 
 .docked-navigation__zoom-btn:active {

@@ -34,6 +34,7 @@ export interface SunConfig {
     lightIntensity: number;
     cameraOrbitSpeed?: number;
     palette?: PaletteConfig;
+    axialTilt?: number;
 }
 
 export interface OrbitConfig {
