@@ -14,7 +14,7 @@
 }
 
 .sections-overlay__card {
-    --card-blur: blur(16px);
+    --card-blur: var(--glass-blur);
     --card-accent: rgba(255, 255, 255, 0.4);
     position: relative;
     width: 100%;
@@ -228,6 +228,15 @@ body.light-theme .sections-overlay__title {
 
 .scroll-to-top:hover .scroll-to-top__icon {
     transform: translateY(-1.5px);
+}
+
+.scroll-to-top:active {
+    transform: scale(0.92);
+}
+
+.scroll-to-top:focus-visible {
+    outline: 2px solid var(--accent-cyan);
+    outline-offset: 4px;
 }
 
 @keyframes solarCoronaPulse {
