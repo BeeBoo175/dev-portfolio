@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import type { PaletteConfig, PlanetTerrainConfig } from "../types";
+import type { OrbitConfig, PaletteConfig, PlanetTerrainConfig } from "../types";
 
 const PERM_TABLE = new Uint8Array(512);
 const P = [
@@ -295,7 +295,7 @@ export function createLowPolyPlanetGeometry(options: LowPolyOptions): THREE.Buff
         subdivisionDetail,
     } = options;
 
-    const detail = subdivisionDetail ?? terrain.detail ?? (radius > 1.2 ? 3 : 2);
+    const detail = subdivisionDetail ?? (radius > 1.2 ? 3 : 2);
     return buildPlanetDisplacedGeometry(radius, detail, terrain, palette, fallbackColor, isSun);
 }
 
@@ -319,14 +319,33 @@ export function createMultiLODPlanetGeometries(
     } = options;
 
     const highDetail = isMoon ? 1 : 2;
-    const mediumDetail = isMoon ? 1 : 1;
+    const mediumDetail = 1;
     const sparseDetail = 0;
-    const simpleDetail = 0;
+
+    const high = buildPlanetDisplacedGeometry(radius, highDetail, terrain, palette, fallbackColor, isSun);
+    const medium = isMoon ? high : buildPlanetDisplacedGeometry(radius, mediumDetail, terrain, palette, fallbackColor, isSun);
+    const sparse = buildPlanetDisplacedGeometry(radius, sparseDetail, terrain, palette, fallbackColor, isSun);
 
     return {
-        high: buildPlanetDisplacedGeometry(radius, highDetail, terrain, palette, fallbackColor, isSun),
-        medium: buildPlanetDisplacedGeometry(radius, mediumDetail, terrain, palette, fallbackColor, isSun),
-        sparse: buildPlanetDisplacedGeometry(radius, sparseDetail, terrain, palette, fallbackColor, isSun),
-        simple: buildPlanetDisplacedGeometry(radius, simpleDetail, terrain, palette, fallbackColor, isSun),
+        high,
+        medium,
+        sparse,
+        simple: sparse,
     };
 }
+
+export function stripDetailFromPlanets(planets: OrbitConfig[]): OrbitConfig[] {
+    return planets.map((p) => {
+        const next = { ...p };
+        if (next.terrain && "detail" in (next.terrain as Record<string, unknown>)) {
+            const cleanTerrain = { ...next.terrain } as PlanetTerrainConfig & { detail?: number };
+            delete cleanTerrain.detail;
+            next.terrain = cleanTerrain;
+        }
+        if (next.children) {
+            next.children = stripDetailFromPlanets(next.children);
+        }
+        return next;
+    });
+}
+

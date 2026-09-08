@@ -33,7 +33,6 @@ describe("proceduralTerrain utils", () => {
                     noiseScale: 1.5,
                     roughness: 0.2,
                     waterLevel: 0.3,
-                    detail: 2,
                 },
                 palette: {
                     water: "#0000ff",
@@ -99,7 +98,6 @@ describe("proceduralTerrain utils", () => {
                 radius: 1.5,
                 terrain: {
                     seed: 42,
-                    detail: 2,
                 },
             }, false);
 

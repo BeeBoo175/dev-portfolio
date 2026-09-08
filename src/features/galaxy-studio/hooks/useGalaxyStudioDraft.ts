@@ -8,6 +8,7 @@ import {
     DEFAULT_SUN,
     DEFAULT_ASTEROID_BELT,
     DEFAULT_SPACESHIP_PLANET_ID,
+    stripDetailFromPlanets,
 } from "../../galaxy";
 import { generateRandomGalaxy } from "../presets";
 import { resolveTargetSelection } from "../utils/studioTarget";
@@ -28,13 +29,17 @@ export function loadInitialDraft(savedState: GalaxyDraftState): GalaxyDraftState
         if (raw) {
             const parsed = JSON.parse(raw);
             if (parsed && Array.isArray(parsed.planets) && parsed.asteroidBelt && parsed.sun) {
+                parsed.planets = stripDetailFromPlanets(parsed.planets);
                 return parsed;
             }
         }
     } catch (e) {
         void e;
     }
-    return savedState;
+    return {
+        ...savedState,
+        planets: stripDetailFromPlanets(savedState.planets),
+    };
 }
 
 function getSpatialSignature(planets: OrbitConfig[], sun: SunConfig, belt: AsteroidBeltConfig): string {
@@ -383,7 +388,7 @@ export function useGalaxyStudioDraft(targetId: string) {
         } catch (e) {
             void e;
         }
-        setSavedSnapshot(JSON.stringify({ planets: draftPlanets, asteroidBelt: draftBelt, sun: draftSun, defaultPlanetId: draftDefaultPlanetId }));
+        setSavedSnapshot(JSON.stringify({ planets: stripDetailFromPlanets(draftPlanets), asteroidBelt: draftBelt, sun: draftSun, defaultPlanetId: draftDefaultPlanetId }));
         showToast("Galaxy changes saved successfully.");
     };
 

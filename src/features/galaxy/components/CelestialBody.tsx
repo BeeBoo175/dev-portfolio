@@ -171,13 +171,12 @@ export const CelestialBody = memo(forwardRef<THREE.Group, CelestialBodyProps>(
                                         distance={0}
                                         decay={0}
                                     />
-                                    {!isLight && (
-                                        <SunGlow
-                                            radius={body.radius}
-                                            color={effectiveColor}
-                                            glowIntensity={sunConfig.glowIntensity ?? 1.0}
-                                        />
-                                    )}
+                                    <SunGlow
+                                        radius={body.radius}
+                                        color={effectiveColor}
+                                        glowIntensity={sunConfig.glowIntensity ?? 1.0}
+                                        visible={!isLight}
+                                    />
                                 </>
                             )}
                         </group>

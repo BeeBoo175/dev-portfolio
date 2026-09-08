@@ -491,7 +491,6 @@ export function GalaxyStudio({
                 defaultPlanetId={draftDefaultPlanetId}
                 onClose={() => setIsDataModalOpen(false)}
                 onImport={handleImportData}
-                onResetDefaults={handleResetAllDefaults}
             />
         </div>
     );

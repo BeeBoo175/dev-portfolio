@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from "react";
 import type { AsteroidBeltConfig, GalaxyVisualSettings, OrbitConfig, SunConfig } from "./types";
 import { DEFAULT_ASTEROID_BELT, DEFAULT_SUN, DEFAULT_SPACESHIP_PLANET_ID, ORBIT_LAYOUT } from "./data";
+import { stripDetailFromPlanets } from "./utils/proceduralTerrain";
 
 const STORAGE_KEY = "portfolio_custom_planets_v1";
 const VISUALS_KEY = "portfolio_galaxy_visuals_v1";
@@ -28,7 +29,7 @@ function loadPersistedPlanets(): OrbitConfig[] {
         if (!Array.isArray(parsed)) return cloneDefaultPlanets();
 
         const defaults = cloneDefaultPlanets();
-        return defaults.map((def) => {
+        const merged = defaults.map((def) => {
             const override = parsed.find((p: OrbitConfig) => p.id === def.id);
             if (!override) return def;
             return {
@@ -38,6 +39,7 @@ function loadPersistedPlanets(): OrbitConfig[] {
                 children: override.children,
             };
         });
+        return stripDetailFromPlanets(merged);
     } catch {
         return cloneDefaultPlanets();
     }
@@ -75,10 +77,10 @@ function loadPersistedVisuals(): GalaxyVisualSettings {
         if (raw) {
             return {
                 showOrbitPaths: true,
-                showOrbitalAxes: false,
+                showOrbitalAxes: true,
                 showSelectionGlow: true,
                 showPlanetNames: true,
-                freezeCameraOrbit: false,
+                freezeCameraOrbit: true,
                 showBackgroundPhenomena: true,
                 ...JSON.parse(raw),
             };
@@ -88,10 +90,10 @@ function loadPersistedVisuals(): GalaxyVisualSettings {
     }
     return {
         showOrbitPaths: true,
-        showOrbitalAxes: false,
+        showOrbitalAxes: true,
         showSelectionGlow: true,
         showPlanetNames: true,
-        freezeCameraOrbit: false,
+        freezeCameraOrbit: true,
         showBackgroundPhenomena: true,
     };
 }
@@ -118,7 +120,14 @@ function initLocalStorageDefaultsIfEmpty() {
             localStorage.setItem(SUN_KEY, JSON.stringify(cloneDefaultSun()));
         }
         if (!localStorage.getItem(VISUALS_KEY)) {
-            localStorage.setItem(VISUALS_KEY, JSON.stringify({ showOrbitPaths: true, showOrbitalAxes: false, showSelectionGlow: true, showPlanetNames: true }));
+            localStorage.setItem(VISUALS_KEY, JSON.stringify({
+                showOrbitPaths: true,
+                showOrbitalAxes: true,
+                showSelectionGlow: true,
+                showPlanetNames: true,
+                freezeCameraOrbit: true,
+                showBackgroundPhenomena: true,
+            }));
         }
         if (!localStorage.getItem(DEFAULT_PLANET_KEY)) {
             localStorage.setItem(DEFAULT_PLANET_KEY, DEFAULT_SPACESHIP_PLANET_ID);
@@ -168,7 +177,7 @@ class GalaxyStore {
     private notify(persist = false) {
         if (persist) {
             try {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(this.planets));
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(stripDetailFromPlanets(this.planets)));
                 localStorage.setItem(ASTEROID_BELT_KEY, JSON.stringify(this.asteroidBelt));
                 localStorage.setItem(SUN_KEY, JSON.stringify(this.sun));
                 localStorage.setItem(VISUALS_KEY, JSON.stringify(this.visuals));
@@ -274,10 +283,10 @@ class GalaxyStore {
     resetVisualSettings() {
         this.visuals = {
             showOrbitPaths: true,
-            showOrbitalAxes: false,
+            showOrbitalAxes: true,
             showSelectionGlow: true,
             showPlanetNames: true,
-            freezeCameraOrbit: false,
+            freezeCameraOrbit: true,
             showBackgroundPhenomena: true,
         };
         try {
@@ -294,10 +303,10 @@ class GalaxyStore {
         this.sun = cloneDefaultSun();
         this.visuals = {
             showOrbitPaths: true,
-            showOrbitalAxes: false,
+            showOrbitalAxes: true,
             showSelectionGlow: true,
             showPlanetNames: true,
-            freezeCameraOrbit: false,
+            freezeCameraOrbit: true,
             showBackgroundPhenomena: true,
         };
         this.defaultPlanetId = DEFAULT_SPACESHIP_PLANET_ID;
@@ -354,7 +363,7 @@ class GalaxyStore {
     exportJSON(): string {
         return JSON.stringify(
             {
-                planets: this.planets,
+                planets: stripDetailFromPlanets(this.planets),
                 asteroidBelt: this.asteroidBelt,
                 sun: this.sun,
                 defaultPlanetId: this.defaultPlanetId,
@@ -368,12 +377,12 @@ class GalaxyStore {
         try {
             const parsed = JSON.parse(jsonString);
             if (Array.isArray(parsed)) {
-                this.planets = parsed;
+                this.planets = stripDetailFromPlanets(parsed);
                 this.notify();
                 return true;
             }
             if (parsed && typeof parsed === "object" && Array.isArray(parsed.planets)) {
-                this.planets = parsed.planets;
+                this.planets = stripDetailFromPlanets(parsed.planets);
                 if (parsed.asteroidBelt && typeof parsed.asteroidBelt === "object") {
                     this.asteroidBelt = { ...cloneDefaultAsteroidBelt(), ...parsed.asteroidBelt };
                 }

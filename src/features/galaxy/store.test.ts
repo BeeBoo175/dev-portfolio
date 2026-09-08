@@ -27,6 +27,16 @@ describe("galaxyStore", () => {
         expect(updated?.color).toBe("#123456");
     });
 
+    it("defaults all visual settings to true with no prior data", () => {
+        const visuals = galaxyStore.getVisualsSnapshot();
+        expect(visuals.showOrbitPaths).toBe(true);
+        expect(visuals.showOrbitalAxes).toBe(true);
+        expect(visuals.showSelectionGlow).toBe(true);
+        expect(visuals.showPlanetNames).toBe(true);
+        expect(visuals.freezeCameraOrbit).toBe(true);
+        expect(visuals.showBackgroundPhenomena).toBe(true);
+    });
+
     it("updates visuals settings", () => {
         galaxyStore.setVisualSettings({ showOrbitPaths: false, showOrbitalAxes: true, freezeCameraOrbit: true, showSelectionGlow: false, showPlanetNames: false, showBackgroundPhenomena: false });
         let visuals = galaxyStore.getVisualsSnapshot();

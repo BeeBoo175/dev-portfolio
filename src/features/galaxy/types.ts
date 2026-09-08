@@ -11,7 +11,6 @@ export interface PlanetTerrainConfig {
     noiseScale?: number;
     roughness?: number;
     waterLevel?: number;
-    detail?: number;
 }
 
 export interface RingConfig {

@@ -17,6 +17,47 @@ export interface SelectionGlowProps {
     showLabel?: boolean;
 }
 
+const _labelTextureCache = new Map<string, THREE.CanvasTexture>();
+
+function getLabelTexture(label: string, isLight: boolean): THREE.CanvasTexture {
+    const key = `${label}_${isLight ? "light" : "dark"}`;
+    const cached = _labelTextureCache.get(key);
+    if (cached) return cached;
+
+    const width = 512;
+    const height = 128;
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d");
+    if (ctx) {
+        ctx.clearRect(0, 0, width, height);
+        ctx.font = "600 36px 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+
+        if (isLight) {
+            ctx.fillStyle = "#1e293b";
+            ctx.letterSpacing = "3px";
+            ctx.fillText(label.toUpperCase(), width / 2, height / 2);
+        } else {
+            ctx.shadowColor = "rgba(0, 0, 0, 0.95)";
+            ctx.shadowBlur = 8;
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 1;
+
+            ctx.fillStyle = "#ffffff";
+            ctx.letterSpacing = "4px";
+            ctx.fillText(label.toUpperCase(), width / 2, height / 2);
+        }
+    }
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.minFilter = THREE.LinearFilter;
+    tex.magFilter = THREE.LinearFilter;
+    _labelTextureCache.set(key, tex);
+    return tex;
+}
+
 function createBracketsGeometry(radius: number, cornerSize: number) {
     const r = radius * 1.35;
     const s = cornerSize;
@@ -73,7 +114,7 @@ export function SelectionGlow({
     const labelSpriteRef = useRef<THREE.Sprite>(null);
     const reticleRotation = useRef(0);
 
-    const cornerSize = Math.max(0.1, Math.min(0.4, radius * 0.35));
+    const cornerSize = radius * 0.35;
     const bracketGeom = useMemo(() => createBracketsGeometry(radius, cornerSize), [radius, cornerSize]);
     const dottedGeom = useMemo(() => createDottedRingGeometry(radius, 32), [radius]);
 
@@ -84,45 +125,15 @@ export function SelectionGlow({
 
     const labelTexture = useMemo(() => {
         if (!label) return null;
-        const canvas = document.createElement("canvas");
-        canvas.width = 1024;
-        canvas.height = 256;
-        const ctx = canvas.getContext("2d");
-        if (ctx) {
-            ctx.clearRect(0, 0, 1024, 256);
-
-            ctx.font = "600 64px 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
-
-            if (isLight) {
-                ctx.fillStyle = "#1e293b";
-                ctx.letterSpacing = "5px";
-                ctx.fillText(label.toUpperCase(), 512, 128);
-            } else {
-                ctx.shadowColor = "rgba(0, 0, 0, 0.95)";
-                ctx.shadowBlur = 12;
-                ctx.shadowOffsetX = 0;
-                ctx.shadowOffsetY = 2;
-
-                ctx.fillStyle = "#ffffff";
-                ctx.letterSpacing = "6px";
-                ctx.fillText(label.toUpperCase(), 512, 128);
-            }
-        }
-        const tex = new THREE.CanvasTexture(canvas);
-        tex.minFilter = THREE.LinearFilter;
-        tex.magFilter = THREE.LinearFilter;
-        return tex;
+        return getLabelTexture(label, isLight);
     }, [label, isLight]);
 
     useEffect(() => {
         return () => {
             bracketGeom.dispose();
             dottedGeom.dispose();
-            labelTexture?.dispose();
         };
-    }, [bracketGeom, dottedGeom, labelTexture]);
+    }, [bracketGeom, dottedGeom]);
 
     const worldPos = useRef(new THREE.Vector3());
 
