@@ -157,8 +157,8 @@ body.light-theme .docked-navigation__dot {
 
 .docked-navigation__zoom-divider {
     width: 1px;
-    height: 20px;
-    background: var(--obsidian-border);
+    height: 18px;
+    background: var(--border-subtle);
     margin: 0 2px;
     flex-shrink: 0;
 }
