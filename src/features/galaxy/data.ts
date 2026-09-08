@@ -72,7 +72,6 @@ export const ORBIT_LAYOUT: OrbitConfig[] = [
             noiseScale: 1.7,
             roughness: 0.26,
             waterLevel: 0.38,
-            detail: 3,
         },
         palette: {
             water: "#c2410c",
@@ -97,7 +96,6 @@ export const ORBIT_LAYOUT: OrbitConfig[] = [
             noiseScale: 2.25,
             roughness: 0.31,
             waterLevel: 0.36,
-            detail: 3,
         },
         palette: {
             water: "#0284c7",
@@ -121,7 +119,6 @@ export const ORBIT_LAYOUT: OrbitConfig[] = [
                     noiseScale: 2.2,
                     roughness: 0.22,
                     waterLevel: 0,
-                    detail: 2,
                 },
                 palette: {
                     land: "#94a3b8",
@@ -146,7 +143,6 @@ export const ORBIT_LAYOUT: OrbitConfig[] = [
             noiseScale: 1.3,
             roughness: 0.25,
             waterLevel: 0.42,
-            detail: 3,
         },
         palette: {
             water: "#059669",
@@ -184,7 +180,6 @@ export const ORBIT_LAYOUT: OrbitConfig[] = [
                     noiseScale: 2,
                     roughness: 0.2,
                     waterLevel: 0,
-                    detail: 2,
                 },
                 palette: {
                     land: "#64748b",
@@ -206,7 +201,6 @@ export const ORBIT_LAYOUT: OrbitConfig[] = [
                     noiseScale: 2.4,
                     roughness: 0.18,
                     waterLevel: 0,
-                    detail: 2,
                 },
                 palette: {
                     land: "#475569",
@@ -231,7 +225,6 @@ export const ORBIT_LAYOUT: OrbitConfig[] = [
             noiseScale: 1.8,
             roughness: 0.24,
             waterLevel: 0.36,
-            detail: 3,
         },
         palette: {
             water: "#be185d",
@@ -255,7 +248,6 @@ export const ORBIT_LAYOUT: OrbitConfig[] = [
                     noiseScale: 2,
                     roughness: 0.2,
                     waterLevel: 0,
-                    detail: 2,
                 },
                 palette: {
                     land: "#94a3b8",
@@ -266,3 +258,5 @@ export const ORBIT_LAYOUT: OrbitConfig[] = [
         ],
     },
 ];
+
+export const DEFAULT_PLANETS = ORBIT_LAYOUT;

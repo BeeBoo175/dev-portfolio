@@ -58,18 +58,15 @@ function buildBasePlanetGeometry(
     radius: number,
     terrain: OrbitConfig["terrain"],
     isSun: boolean,
-    isMoon: boolean,
-    isLight: boolean
+    isMoon: boolean
 ): THREE.BufferGeometry {
-    const detail = !isLight
-        ? (radius > 1.2 ? 3 : 2)
-        : (isMoon ? 1 : 2);
+    const detail = radius > 1.2 ? 3 : 2;
 
     return createLowPolyPlanetGeometry({
         radius,
         terrain,
         isSun,
-        subdivisionDetail: detail,
+        subdivisionDetail: isMoon ? 1 : detail,
     });
 }
 
@@ -77,10 +74,8 @@ function buildBaseMultiLODGeometries(
     radius: number,
     terrain: OrbitConfig["terrain"],
     isSun: boolean,
-    isMoon: boolean,
-    isLight: boolean
-): ReturnType<typeof createMultiLODPlanetGeometries> | null {
-    if (!isLight) return null;
+    isMoon: boolean
+): ReturnType<typeof createMultiLODPlanetGeometries> {
     return createMultiLODPlanetGeometries(
         {
             radius,
@@ -116,67 +111,98 @@ export const LowPolyPlanet = memo(forwardRef<THREE.Mesh, LowPolyPlanetProps>(
         useImperativeHandle(ref, () => meshInternalRef.current as THREE.Mesh);
 
         const singleGeometry = useMemo(() => {
-            if (isLight) return null;
-            return buildBasePlanetGeometry(body.radius, body.terrain, isSun, isMoon, false);
-        }, [isLight, body.radius, body.terrain, isSun, isMoon]);
+            return buildBasePlanetGeometry(body.radius, body.terrain, isSun, isMoon);
+        }, [body.radius, body.terrain, isSun, isMoon]);
 
         const multiLODGeometries = useMemo(() => {
-            return buildBaseMultiLODGeometries(body.radius, body.terrain, isSun, isMoon, isLight);
-        }, [body.radius, body.terrain, isSun, isMoon, isLight]);
+            return buildBaseMultiLODGeometries(body.radius, body.terrain, isSun, isMoon);
+        }, [body.radius, body.terrain, isSun, isMoon]);
 
         useEffect(() => {
             return () => {
-                singleGeometry?.dispose();
-                if (multiLODGeometries) {
-                    multiLODGeometries.high.dispose();
-                    multiLODGeometries.medium.dispose();
-                    multiLODGeometries.sparse.dispose();
-                    multiLODGeometries.simple.dispose();
-                }
+                singleGeometry.dispose();
+                const toDispose = new Set<THREE.BufferGeometry>([
+                    multiLODGeometries.high,
+                    multiLODGeometries.medium,
+                    multiLODGeometries.sparse,
+                    multiLODGeometries.simple,
+                ]);
+                toDispose.forEach((g) => g.dispose());
             };
         }, [singleGeometry, multiLODGeometries]);
 
         useEffect(() => {
-            if (multiLODGeometries) {
-                updatePlanetGeometryColors(multiLODGeometries.high, body.palette, effectiveColor, isSun);
-                updatePlanetGeometryColors(multiLODGeometries.medium, body.palette, effectiveColor, isSun);
-                updatePlanetGeometryColors(multiLODGeometries.sparse, body.palette, effectiveColor, isSun);
-                updatePlanetGeometryColors(multiLODGeometries.simple, body.palette, effectiveColor, isSun);
-            } else if (singleGeometry) {
-                updatePlanetGeometryColors(singleGeometry, body.palette, effectiveColor, isSun);
-            }
+            const toUpdate = new Set<THREE.BufferGeometry>([
+                multiLODGeometries.high,
+                multiLODGeometries.medium,
+                multiLODGeometries.sparse,
+                multiLODGeometries.simple,
+                singleGeometry,
+            ]);
+            toUpdate.forEach((g) => updatePlanetGeometryColors(g, body.palette, effectiveColor, isSun));
         }, [singleGeometry, multiLODGeometries, body.palette, effectiveColor, isSun]);
 
         const outerBorderColor = isSun ? (body.palette?.peak ?? "#fffbeb") : effectiveColor;
 
         const billboardGeometries = useMemo(() => {
-            if (!isLight) return null;
             return {
                 mask: new THREE.CircleGeometry(body.radius * 0.995, 48),
                 glow: new THREE.CircleGeometry(body.radius * 1.02, 48),
                 ring: new THREE.RingGeometry(body.radius * 1.015, body.radius * 1.025, 64),
             };
-        }, [isLight, body.radius]);
+        }, [body.radius]);
 
         useEffect(() => {
             return () => {
-                if (billboardGeometries) {
-                    billboardGeometries.mask.dispose();
-                    billboardGeometries.glow.dispose();
-                    billboardGeometries.ring.dispose();
-                }
+                billboardGeometries.mask.dispose();
+                billboardGeometries.glow.dispose();
+                billboardGeometries.ring.dispose();
             };
         }, [billboardGeometries]);
+
+        const solidMaterial = useMemo(() => {
+            if (isSun) {
+                return new THREE.MeshBasicMaterial({ vertexColors: true });
+            }
+            return new THREE.MeshStandardMaterial({
+                vertexColors: true,
+                flatShading: true,
+                roughness: 0.7,
+                metalness: 0.1,
+            });
+        }, [isSun]);
+
+        const wireframeMaterial = useMemo(() => {
+            return new THREE.MeshBasicMaterial({ vertexColors: true, wireframe: true });
+        }, []);
+
+        useEffect(() => {
+            return () => {
+                solidMaterial.dispose();
+                wireframeMaterial.dispose();
+            };
+        }, [solidMaterial, wireframeMaterial]);
 
         useEffect(() => {
             if (!isLight) {
                 currentLodRef.current = -1;
                 prevGeometriesRef.current = null;
+                if (meshInternalRef.current) {
+                    meshInternalRef.current.geometry = singleGeometry;
+                    meshInternalRef.current.material = solidMaterial;
+                    meshInternalRef.current.visible = true;
+                }
+            } else {
+                currentLodRef.current = -1;
+                prevGeometriesRef.current = null;
+                if (meshInternalRef.current) {
+                    meshInternalRef.current.material = wireframeMaterial;
+                }
             }
-        }, [isLight]);
+        }, [isLight, singleGeometry, solidMaterial, wireframeMaterial]);
 
         useFrame((state) => {
-            if (isLight && groupRef.current && multiLODGeometries && meshInternalRef.current) {
+            if (isLight && groupRef.current && meshInternalRef.current) {
                 const geomSetChanged = prevGeometriesRef.current !== multiLODGeometries;
                 if (geomSetChanged) {
                     prevGeometriesRef.current = multiLODGeometries;
@@ -236,7 +262,7 @@ export const LowPolyPlanet = memo(forwardRef<THREE.Mesh, LowPolyPlanetProps>(
 
         const radialTexture = isLight ? getBlueprintRadialTexture() : null;
 
-        const initialGeometry = isLight ? undefined : (singleGeometry ?? undefined);
+        const initialGeometry = isLight ? multiLODGeometries.high : singleGeometry;
 
         return (
             <group ref={groupRef}>
@@ -291,28 +317,12 @@ export const LowPolyPlanet = memo(forwardRef<THREE.Mesh, LowPolyPlanetProps>(
                 <mesh
                     ref={meshInternalRef}
                     geometry={initialGeometry}
+                    material={isLight ? wireframeMaterial : solidMaterial}
                     renderOrder={2}
                     onClick={onClick}
                     onPointerOver={onPointerOver}
                     onPointerOut={onPointerOut}
-                >
-                    {isSun ? (
-                        isLight ? (
-                            <meshBasicMaterial vertexColors wireframe />
-                        ) : (
-                            <meshBasicMaterial vertexColors />
-                        )
-                    ) : isLight ? (
-                        <meshBasicMaterial vertexColors wireframe />
-                    ) : (
-                        <meshStandardMaterial
-                            vertexColors
-                            flatShading
-                            roughness={0.7}
-                            metalness={0.1}
-                        />
-                    )}
-                </mesh>
+                />
 
                 {body.ring && <PlanetaryRing ring={body.ring} />}
             </group>

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { AsteroidBeltConfig, OrbitConfig, SunConfig } from "../../galaxy";
+import { stripDetailFromPlanets } from "../../galaxy";
 
 export interface GalaxyDataDialogProps {
     isOpen: boolean;
@@ -14,7 +15,7 @@ export interface GalaxyDataDialogProps {
         sun?: SunConfig;
         defaultPlanetId?: string;
     }) => void;
-    onResetDefaults: () => void;
+    onResetDefaults?: () => void;
 }
 
 export function GalaxyDataDialog({
@@ -25,7 +26,6 @@ export function GalaxyDataDialog({
     defaultPlanetId,
     onClose,
     onImport,
-    onResetDefaults,
 }: GalaxyDataDialogProps) {
     const [importText, setImportText] = useState("");
     const [copySuccess, setCopySuccess] = useState(false);
@@ -33,7 +33,7 @@ export function GalaxyDataDialog({
 
     if (!isOpen) return null;
 
-    const exportedJson = JSON.stringify({ planets, asteroidBelt, sun, defaultPlanetId }, null, 2);
+    const exportedJson = JSON.stringify({ planets: stripDetailFromPlanets(planets), asteroidBelt, sun, defaultPlanetId }, null, 2);
 
     const handleCopy = async () => {
         try {
@@ -49,13 +49,13 @@ export function GalaxyDataDialog({
         try {
             const parsed = JSON.parse(importText);
             if (Array.isArray(parsed)) {
-                onImport({ planets: parsed });
+                onImport({ planets: stripDetailFromPlanets(parsed) });
                 onClose();
                 return;
             }
             if (typeof parsed === "object" && parsed !== null) {
                 onImport({
-                    planets: Array.isArray(parsed.planets) ? parsed.planets : undefined,
+                    planets: Array.isArray(parsed.planets) ? stripDetailFromPlanets(parsed.planets) : undefined,
                     asteroidBelt: parsed.asteroidBelt,
                     sun: parsed.sun,
                     defaultPlanetId: typeof parsed.defaultPlanetId === "string" ? parsed.defaultPlanetId : undefined,
@@ -134,34 +134,19 @@ export function GalaxyDataDialog({
                 <div className="studio-modal__footer">
                     <button
                         type="button"
-                        className="studio-btn studio-btn--danger studio-btn--sm"
-                        onClick={() => {
-                            if (window.confirm("Reset all planets, sun, and asteroid belt to defaults?")) {
-                                onResetDefaults();
-                                onClose();
-                            }
-                        }}
+                        className="studio-btn studio-btn--ghost studio-btn--sm"
+                        onClick={onClose}
                     >
-                        Reset All to Defaults
+                        Cancel
                     </button>
-
-                    <div style={{ display: "flex", gap: "0.5rem" }}>
-                        <button
-                            type="button"
-                            className="studio-btn studio-btn--ghost studio-btn--sm"
-                            onClick={onClose}
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            type="button"
-                            className="studio-btn studio-btn--primary studio-btn--sm"
-                            onClick={handleApplyImport}
-                            disabled={!importText.trim()}
-                        >
-                            Apply Import
-                        </button>
-                    </div>
+                    <button
+                        type="button"
+                        className="studio-btn studio-btn--primary studio-btn--sm"
+                        onClick={handleApplyImport}
+                        disabled={!importText.trim()}
+                    >
+                        Apply Import
+                    </button>
                 </div>
             </div>
         </div>

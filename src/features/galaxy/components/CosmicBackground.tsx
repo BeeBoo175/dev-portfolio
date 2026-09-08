@@ -19,29 +19,41 @@ function seededRandom(seed: number) {
     return x - Math.floor(x);
 }
 
-function generateStarfieldData(isLight = false) {
+interface StarfieldStaticData {
+    positions: Float32Array;
+    phases: Float32Array;
+    darkColors: Float32Array;
+    lightColors: Float32Array;
+}
+
+let _cachedStarfieldData: StarfieldStaticData | null = null;
+
+function getStarfieldStaticData(): StarfieldStaticData {
+    if (_cachedStarfieldData) return _cachedStarfieldData;
+
     const positions = new Float32Array(STAR_COUNT * 3);
-    const colors = new Float32Array(STAR_COUNT * 3);
+    const darkColors = new Float32Array(STAR_COUNT * 3);
+    const lightColors = new Float32Array(STAR_COUNT * 3);
     const phases = new Float32Array(STAR_COUNT);
 
-    const starPalettes = isLight
-        ? [
-            new THREE.Color("#0284c7"),
-            new THREE.Color("#0369a1"),
-            new THREE.Color("#1e293b"),
-            new THREE.Color("#0f172a"),
-            new THREE.Color("#047857"),
-            new THREE.Color("#4338ca"),
-            new THREE.Color("#334155"),
-        ]
-        : [
-            new THREE.Color("#ffffff"),
-            new THREE.Color("#e0f2fe"),
-            new THREE.Color("#bae6fd"),
-            new THREE.Color("#fef08a"),
-            new THREE.Color("#fbcfe8"),
-            new THREE.Color("#c7d2fe"),
-        ];
+    const darkPalettes = [
+        new THREE.Color("#ffffff"),
+        new THREE.Color("#e0f2fe"),
+        new THREE.Color("#bae6fd"),
+        new THREE.Color("#fef08a"),
+        new THREE.Color("#fbcfe8"),
+        new THREE.Color("#c7d2fe"),
+    ];
+
+    const lightPalettes = [
+        new THREE.Color("#0284c7"),
+        new THREE.Color("#0369a1"),
+        new THREE.Color("#1e293b"),
+        new THREE.Color("#0f172a"),
+        new THREE.Color("#047857"),
+        new THREE.Color("#4338ca"),
+        new THREE.Color("#334155"),
+    ];
 
     for (let i = 0; i < STAR_COUNT; i++) {
         const u = seededRandom(i * 1.37 + 10.1);
@@ -59,43 +71,59 @@ function generateStarfieldData(isLight = false) {
         positions[i * 3 + 1] = y;
         positions[i * 3 + 2] = z;
 
-        const paletteIndex = Math.floor(seededRandom(i * 4.91 + 40.4) * starPalettes.length);
-        const baseColor = starPalettes[paletteIndex];
-        const brightness = isLight
-            ? 0.9 + seededRandom(i * 5.33 + 50.5) * 0.1
-            : 0.55 + seededRandom(i * 5.33 + 50.5) * 0.45;
+        const darkIdx = Math.floor(seededRandom(i * 4.91 + 40.4) * darkPalettes.length);
+        const darkBase = darkPalettes[darkIdx];
+        const darkBrightness = 0.55 + seededRandom(i * 5.33 + 50.5) * 0.45;
+        darkColors[i * 3] = darkBase.r * darkBrightness;
+        darkColors[i * 3 + 1] = darkBase.g * darkBrightness;
+        darkColors[i * 3 + 2] = darkBase.b * darkBrightness;
 
-        colors[i * 3] = baseColor.r * brightness;
-        colors[i * 3 + 1] = baseColor.g * brightness;
-        colors[i * 3 + 2] = baseColor.b * brightness;
+        const lightIdx = Math.floor(seededRandom(i * 4.91 + 40.4) * lightPalettes.length);
+        const lightBase = lightPalettes[lightIdx];
+        const lightBrightness = 0.9 + seededRandom(i * 5.33 + 50.5) * 0.1;
+        lightColors[i * 3] = lightBase.r * lightBrightness;
+        lightColors[i * 3 + 1] = lightBase.g * lightBrightness;
+        lightColors[i * 3 + 2] = lightBase.b * lightBrightness;
 
         phases[i] = seededRandom(i * 6.77 + 60.6) * Math.PI * 2;
     }
 
-    return { starPositions: positions, starColors: colors, starPhases: phases };
+    _cachedStarfieldData = { positions, phases, darkColors, lightColors };
+    return _cachedStarfieldData;
 }
 
-function generateBrightStarData(isLight = false) {
-    const positions = new Float32Array(BRIGHT_STAR_COUNT * 3);
-    const colors = new Float32Array(BRIGHT_STAR_COUNT * 3);
+interface BrightStarStaticData {
+    positions: Float32Array;
+    darkColors: Float32Array;
+    lightColors: Float32Array;
+}
 
-    const heroPalettes = isLight
-        ? [
-            new THREE.Color("#0284c7"),
-            new THREE.Color("#0369a1"),
-            new THREE.Color("#0f172a"),
-            new THREE.Color("#1e3a8a"),
-            new THREE.Color("#047857"),
-            new THREE.Color("#b45309"),
-        ]
-        : [
-            new THREE.Color("#38bdf8"),
-            new THREE.Color("#fbbf24"),
-            new THREE.Color("#818cf8"),
-            new THREE.Color("#34d399"),
-            new THREE.Color("#f472b6"),
-            new THREE.Color("#ffffff"),
-        ];
+let _cachedBrightStarData: BrightStarStaticData | null = null;
+
+function getBrightStarStaticData(): BrightStarStaticData {
+    if (_cachedBrightStarData) return _cachedBrightStarData;
+
+    const positions = new Float32Array(BRIGHT_STAR_COUNT * 3);
+    const darkColors = new Float32Array(BRIGHT_STAR_COUNT * 3);
+    const lightColors = new Float32Array(BRIGHT_STAR_COUNT * 3);
+
+    const darkHero = [
+        new THREE.Color("#38bdf8"),
+        new THREE.Color("#fbbf24"),
+        new THREE.Color("#818cf8"),
+        new THREE.Color("#34d399"),
+        new THREE.Color("#f472b6"),
+        new THREE.Color("#ffffff"),
+    ];
+
+    const lightHero = [
+        new THREE.Color("#0284c7"),
+        new THREE.Color("#0369a1"),
+        new THREE.Color("#0f172a"),
+        new THREE.Color("#1e3a8a"),
+        new THREE.Color("#047857"),
+        new THREE.Color("#b45309"),
+    ];
 
     for (let i = 0; i < BRIGHT_STAR_COUNT; i++) {
         const u = seededRandom(i * 7.13 + 100.1);
@@ -109,18 +137,27 @@ function generateBrightStarData(isLight = false) {
         positions[i * 3 + 1] = radius * Math.cos(phi);
         positions[i * 3 + 2] = radius * sinPhi * Math.sin(theta);
 
-        const c = heroPalettes[i % heroPalettes.length];
-        colors[i * 3] = c.r;
-        colors[i * 3 + 1] = c.g;
-        colors[i * 3 + 2] = c.b;
+        const cd = darkHero[i % darkHero.length];
+        darkColors[i * 3] = cd.r;
+        darkColors[i * 3 + 1] = cd.g;
+        darkColors[i * 3 + 2] = cd.b;
+
+        const cl = lightHero[i % lightHero.length];
+        lightColors[i * 3] = cl.r;
+        lightColors[i * 3 + 1] = cl.g;
+        lightColors[i * 3 + 2] = cl.b;
     }
 
-    return { brightPositions: positions, brightColors: colors };
+    _cachedBrightStarData = { positions, darkColors, lightColors };
+    return _cachedBrightStarData;
 }
 
-function createLightModeSkyDomeTexture(): THREE.CanvasTexture {
-    const width = 1024;
-    const height = 512;
+let _cachedSkyDomeTexture: THREE.CanvasTexture | null = null;
+
+function getLightModeSkyDomeTexture(): THREE.CanvasTexture {
+    if (_cachedSkyDomeTexture) return _cachedSkyDomeTexture;
+    const width = 256;
+    const height = 128;
     const canvas = document.createElement("canvas");
     canvas.width = width;
     canvas.height = height;
@@ -199,10 +236,16 @@ function createLightModeSkyDomeTexture(): THREE.CanvasTexture {
     const texture = new THREE.CanvasTexture(canvas);
     texture.wrapS = THREE.RepeatWrapping;
     texture.wrapT = THREE.ClampToEdgeWrapping;
+    texture.minFilter = THREE.LinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+    _cachedSkyDomeTexture = texture;
     return texture;
 }
 
-function createCircleTexture(): THREE.CanvasTexture {
+let _cachedCircleTexture: THREE.CanvasTexture | null = null;
+
+function getCircleTexture(): THREE.CanvasTexture {
+    if (_cachedCircleTexture) return _cachedCircleTexture;
     const canvas = document.createElement("canvas");
     canvas.width = 64;
     canvas.height = 64;
@@ -220,14 +263,14 @@ function createCircleTexture(): THREE.CanvasTexture {
     const texture = new THREE.CanvasTexture(canvas);
     texture.wrapS = THREE.ClampToEdgeWrapping;
     texture.wrapT = THREE.ClampToEdgeWrapping;
+    _cachedCircleTexture = texture;
     return texture;
 }
 
 function createOrganicNebulaTexture(
     primaryColor: { r: number; g: number; b: number },
     highlightColor: { r: number; g: number; b: number },
-    seed: number,
-    isLight = false
+    seed: number
 ): THREE.CanvasTexture {
     const size = 512;
     const canvas = document.createElement("canvas");
@@ -243,7 +286,7 @@ function createOrganicNebulaTexture(
             return x - Math.floor(x);
         }
 
-        const numFilaments = isLight ? 28 : 20;
+        const numFilaments = 24;
         const center = size / 2;
         const maxAllowedRadius = 230;
 
@@ -268,7 +311,7 @@ function createOrganicNebulaTexture(
                 const col = isCore ? highlightColor : primaryColor;
                 const centerDist = Math.hypot(px - center, py - center);
                 const distanceFactor = Math.max(0, 1.0 - centerDist / maxAllowedRadius);
-                const maxAlpha = (isLight ? (isCore ? 0.45 : 0.32) : (isCore ? 0.24 : 0.16)) * distanceFactor;
+                const maxAlpha = (isCore ? 0.35 : 0.22) * distanceFactor;
 
                 grad.addColorStop(0, `rgba(${col.r}, ${col.g}, ${col.b}, ${maxAlpha})`);
                 grad.addColorStop(0.35, `rgba(${col.r}, ${col.g}, ${col.b}, ${maxAlpha * 0.65})`);
@@ -292,7 +335,7 @@ function createOrganicNebulaTexture(
             const whispyRadius = 45 + r3 * 65;
 
             const wGrad = ctx.createRadialGradient(sx, sy, 0, sx, sy, whispyRadius);
-            const baseAlpha = isLight ? 0.35 : 0.18;
+            const baseAlpha = 0.25;
             wGrad.addColorStop(0, `rgba(${highlightColor.r}, ${highlightColor.g}, ${highlightColor.b}, ${baseAlpha})`);
             wGrad.addColorStop(0.5, `rgba(${primaryColor.r}, ${primaryColor.g}, ${primaryColor.b}, ${baseAlpha * 0.35})`);
             wGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
@@ -338,46 +381,48 @@ export const CosmicBackground = memo(function CosmicBackground({ visible = true 
     const nebulaeGroupRef = useRef<THREE.Group>(null);
     const meteorsGroupRef = useRef<THREE.Group>(null);
 
-    const circleTexture = useMemo(() => createCircleTexture(), []);
-    const skyDomeTexture = useMemo(() => (isLight ? createLightModeSkyDomeTexture() : null), [isLight]);
+    const circleTexture = useMemo(() => getCircleTexture(), []);
+    const skyDomeTexture = useMemo(() => (isLight ? getLightModeSkyDomeTexture() : null), [isLight]);
 
-    const nebulaTextures = useMemo(() => {
-        if (isLight) {
-            return [
-                createOrganicNebulaTexture({ r: 56, g: 189, b: 248 }, { r: 186, g: 230, b: 253 }, 101, true),
-                createOrganicNebulaTexture({ r: 129, g: 140, b: 248 }, { r: 224, g: 231, b: 255 }, 202, true),
-                createOrganicNebulaTexture({ r: 244, g: 114, b: 182 }, { r: 251, g: 207, b: 232 }, 303, true),
-                createOrganicNebulaTexture({ r: 251, g: 146, b: 60 }, { r: 254, g: 243, b: 199 }, 404, true),
-                createOrganicNebulaTexture({ r: 45, g: 212, b: 191 }, { r: 204, g: 251, b: 241 }, 505, true),
-                createOrganicNebulaTexture({ r: 192, g: 132, b: 252 }, { r: 243, g: 232, b: 255 }, 606, true),
-            ];
-        }
-        return [
-            createOrganicNebulaTexture({ r: 56, g: 189, b: 248 }, { r: 186, g: 230, b: 253 }, 101, false),
-            createOrganicNebulaTexture({ r: 129, g: 140, b: 248 }, { r: 224, g: 231, b: 255 }, 202, false),
-            createOrganicNebulaTexture({ r: 236, g: 72, b: 153 }, { r: 251, g: 207, b: 232 }, 303, false),
-            createOrganicNebulaTexture({ r: 251, g: 191, b: 36 }, { r: 254, g: 243, b: 199 }, 404, false),
-            createOrganicNebulaTexture({ r: 45, g: 212, b: 191 }, { r: 204, g: 251, b: 241 }, 505, false),
-            createOrganicNebulaTexture({ r: 168, g: 85, b: 247 }, { r: 243, g: 232, b: 255 }, 606, false),
-        ];
-    }, [isLight]);
+    const nebulaTextures = useMemo(() => [
+        createOrganicNebulaTexture({ r: 56, g: 189, b: 248 }, { r: 186, g: 230, b: 253 }, 101),
+        createOrganicNebulaTexture({ r: 129, g: 140, b: 248 }, { r: 224, g: 231, b: 255 }, 202),
+        createOrganicNebulaTexture({ r: 240, g: 90, b: 165 }, { r: 251, g: 207, b: 232 }, 303),
+        createOrganicNebulaTexture({ r: 251, g: 160, b: 50 }, { r: 254, g: 243, b: 199 }, 404),
+        createOrganicNebulaTexture({ r: 45, g: 212, b: 191 }, { r: 204, g: 251, b: 241 }, 505),
+        createOrganicNebulaTexture({ r: 180, g: 105, b: 250 }, { r: 243, g: 232, b: 255 }, 606),
+    ], []);
 
     useEffect(() => {
         return () => {
-            circleTexture.dispose();
-            skyDomeTexture?.dispose();
             nebulaTextures.forEach((tex) => tex.dispose());
         };
-    }, [circleTexture, skyDomeTexture, nebulaTextures]);
+    }, [nebulaTextures]);
 
-    const { starPositions, starColors, starPhases } = useMemo(
-        () => generateStarfieldData(isLight),
-        [isLight]
-    );
-    const { brightPositions, brightColors } = useMemo(
-        () => generateBrightStarData(isLight),
-        [isLight]
-    );
+    const starData = useMemo(() => getStarfieldStaticData(), []);
+    const brightData = useMemo(() => getBrightStarStaticData(), []);
+
+    const initialStarColors = useMemo(() => new Float32Array(isLight ? starData.lightColors : starData.darkColors), [starData, isLight]);
+    const initialBrightColors = useMemo(() => new Float32Array(isLight ? brightData.lightColors : brightData.darkColors), [brightData, isLight]);
+
+    useEffect(() => {
+        if (starsRef.current) {
+            const attr = starsRef.current.geometry.getAttribute("color") as THREE.BufferAttribute | undefined;
+            if (attr) {
+                const target = isLight ? starData.lightColors : starData.darkColors;
+                (attr.array as Float32Array).set(target);
+                attr.needsUpdate = true;
+            }
+        }
+        if (brightStarsRef.current) {
+            const attr = brightStarsRef.current.geometry.getAttribute("color") as THREE.BufferAttribute | undefined;
+            if (attr) {
+                const target = isLight ? brightData.lightColors : brightData.darkColors;
+                (attr.array as Float32Array).set(target);
+                attr.needsUpdate = true;
+            }
+        }
+    }, [isLight, starData, brightData]);
 
     const nebulae = useMemo(() => {
         const items = [];
@@ -447,21 +492,31 @@ export const CosmicBackground = memo(function CosmicBackground({ visible = true 
     ]);
 
     const meteorLines = useMemo(() => {
-        const palette = isLight ? BLUEPRINT_METEOR_COLORS : METEOR_COLORS;
         return Array.from({ length: METEOR_COUNT }, (_, idx) => {
             const geom = new THREE.BufferGeometry();
             const pos = new Float32Array(6);
             geom.setAttribute("position", new THREE.BufferAttribute(pos, 3));
             const mat = new THREE.LineBasicMaterial({
-                color: palette[idx % palette.length],
+                color: METEOR_COLORS[idx % METEOR_COLORS.length],
                 transparent: true,
-                opacity: isLight ? 0.75 : 0.85,
-                blending: isLight ? THREE.NormalBlending : THREE.AdditiveBlending,
+                opacity: 0.85,
+                blending: THREE.AdditiveBlending,
                 depthWrite: false,
             });
             return new THREE.Line(geom, mat);
         });
-    }, [isLight]);
+    }, []);
+
+    useEffect(() => {
+        const palette = isLight ? BLUEPRINT_METEOR_COLORS : METEOR_COLORS;
+        meteorLines.forEach((line, idx) => {
+            const mat = line.material as THREE.LineBasicMaterial;
+            mat.color.set(palette[idx % palette.length]);
+            mat.opacity = isLight ? 0.75 : 0.85;
+            mat.blending = isLight ? THREE.NormalBlending : THREE.AdditiveBlending;
+            mat.needsUpdate = true;
+        });
+    }, [isLight, meteorLines]);
 
     useEffect(() => {
         return () => {
@@ -488,12 +543,13 @@ export const CosmicBackground = memo(function CosmicBackground({ visible = true 
             const colorAttr = geom.getAttribute("color");
             if (colorAttr) {
                 const colorsArr = colorAttr.array as Float32Array;
+                const baseColors = isLight ? starData.lightColors : starData.darkColors;
                 for (let i = 0; i < STAR_COUNT; i += 7) {
-                    const phase = starPhases[i];
+                    const phase = starData.phases[i];
                     const twinkle = 0.65 + 0.35 * Math.sin(time * 2.8 + phase);
-                    colorsArr[i * 3] = starColors[i * 3] * twinkle;
-                    colorsArr[i * 3 + 1] = starColors[i * 3 + 1] * twinkle;
-                    colorsArr[i * 3 + 2] = starColors[i * 3 + 2] * twinkle;
+                    colorsArr[i * 3] = baseColors[i * 3] * twinkle;
+                    colorsArr[i * 3 + 1] = baseColors[i * 3 + 1] * twinkle;
+                    colorsArr[i * 3 + 2] = baseColors[i * 3 + 2] * twinkle;
                 }
                 colorAttr.needsUpdate = true;
             }
@@ -590,15 +646,15 @@ export const CosmicBackground = memo(function CosmicBackground({ visible = true 
                     />
                 </mesh>
             )}
-            <points ref={starsRef} key={`stars-${isLight ? "light" : "dark"}`}>
+            <points ref={starsRef}>
                 <bufferGeometry>
                     <bufferAttribute
                         attach="attributes-position"
-                        args={[starPositions, 3]}
+                        args={[starData.positions, 3]}
                     />
                     <bufferAttribute
                         attach="attributes-color"
-                        args={[starColors, 3]}
+                        args={[initialStarColors, 3]}
                     />
                 </bufferGeometry>
                 <pointsMaterial
@@ -613,15 +669,15 @@ export const CosmicBackground = memo(function CosmicBackground({ visible = true 
                 />
             </points>
 
-            <points ref={brightStarsRef} key={`bright-stars-${isLight ? "light" : "dark"}`}>
+            <points ref={brightStarsRef}>
                 <bufferGeometry>
                     <bufferAttribute
                         attach="attributes-position"
-                        args={[brightPositions, 3]}
+                        args={[brightData.positions, 3]}
                     />
                     <bufferAttribute
                         attach="attributes-color"
-                        args={[brightColors, 3]}
+                        args={[initialBrightColors, 3]}
                     />
                 </bufferGeometry>
                 <pointsMaterial

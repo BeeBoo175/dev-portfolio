@@ -27,7 +27,6 @@ export const BIOME_PRESETS: BiomePreset[] = [
             noiseScale: 1.4,
             roughness: 0.22,
             waterLevel: 0.45,
-            detail: 3,
         },
         palette: {
             water: "#0284c7",
@@ -47,7 +46,6 @@ export const BIOME_PRESETS: BiomePreset[] = [
             noiseScale: 1.8,
             roughness: 0.32,
             waterLevel: 0.38,
-            detail: 3,
         },
         palette: {
             water: "#dc2626",
@@ -67,7 +65,6 @@ export const BIOME_PRESETS: BiomePreset[] = [
             noiseScale: 1.6,
             roughness: 0.28,
             waterLevel: 0.35,
-            detail: 3,
         },
         palette: {
             water: "#a855f7",
@@ -87,7 +84,6 @@ export const BIOME_PRESETS: BiomePreset[] = [
             noiseScale: 1.3,
             roughness: 0.26,
             waterLevel: 0.42,
-            detail: 3,
         },
         palette: {
             water: "#059669",
@@ -107,7 +103,6 @@ export const BIOME_PRESETS: BiomePreset[] = [
             noiseScale: 1.5,
             roughness: 0.2,
             waterLevel: 0.5,
-            detail: 3,
         },
         palette: {
             water: "#0891b2",
@@ -127,7 +122,6 @@ export const BIOME_PRESETS: BiomePreset[] = [
             noiseScale: 2.1,
             roughness: 0.35,
             waterLevel: 0.15,
-            detail: 3,
         },
         palette: {
             water: "#b45309",
@@ -147,7 +141,6 @@ export const BIOME_PRESETS: BiomePreset[] = [
             noiseScale: 1.7,
             roughness: 0.24,
             waterLevel: 0.62,
-            detail: 3,
         },
         palette: {
             water: "#312e81",
@@ -210,7 +203,6 @@ export function generateRandomTerrain(): PlanetTerrainConfig {
         noiseScale: Number((Math.random() * 1.0 + 1.0).toFixed(2)),
         roughness: Number((Math.random() * 0.25 + 0.15).toFixed(2)),
         waterLevel: Number((Math.random() * 0.45 + 0.15).toFixed(2)),
-        detail: 3,
     };
 }
 
@@ -251,7 +243,6 @@ export function generateRandomMoon(planetId: string, index: number): OrbitConfig
             noiseScale: Number((Math.random() * 1.2 + 1.6).toFixed(2)),
             roughness: Number((Math.random() * 0.25 + 0.18).toFixed(2)),
             waterLevel: 0,
-            detail: 2,
         },
         palette: {
             land: palette.land ?? "#94a3b8",

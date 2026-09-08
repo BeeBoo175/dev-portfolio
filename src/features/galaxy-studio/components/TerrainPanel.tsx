@@ -13,7 +13,6 @@ export function TerrainPanel({ planet, onChange }: TerrainPanelProps) {
         noiseScale: 1.5,
         roughness: 0.25,
         waterLevel: 0.4,
-        detail: 3,
     };
 
     const handleRandomSeed = () => {
@@ -141,29 +140,6 @@ export function TerrainPanel({ planet, onChange }: TerrainPanelProps) {
                             onChange((prev) => ({
                                 ...prev,
                                 terrain: { ...prev.terrain, waterLevel: val },
-                            }));
-                        }}
-                    />
-                </div>
-
-                <div className="studio-field">
-                    <div className="studio-field__label-row">
-                        <label htmlFor="terrain-detail">Mesh Polygon Detail</label>
-                        <span className="studio-field__value">{terrain.detail ?? 3} (Ico Subdivs)</span>
-                        <Tooltip text="Geometric polygon density for the low-poly icosahedron sphere." />
-                    </div>
-                    <input
-                        id="terrain-detail"
-                        type="range"
-                        min="1"
-                        max="4"
-                        step="1"
-                        value={terrain.detail ?? 3}
-                        onChange={(e) => {
-                            const val = parseInt(e.target.value, 10);
-                            onChange((prev) => ({
-                                ...prev,
-                                terrain: { ...prev.terrain, detail: val },
                             }));
                         }}
                     />

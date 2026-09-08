@@ -26,10 +26,10 @@ export interface GalaxyToolbarProps {
 export function GalaxyToolbar({
     visuals = {
         showOrbitPaths: true,
-        showOrbitalAxes: false,
+        showOrbitalAxes: true,
         showSelectionGlow: true,
         showPlanetNames: true,
-        freezeCameraOrbit: false,
+        freezeCameraOrbit: true,
         showBackgroundPhenomena: true,
     },
     isDirty,

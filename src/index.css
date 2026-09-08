@@ -166,6 +166,11 @@ body,
     scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
 }
 
+body.light-theme,
+body.light-theme * {
+    scrollbar-color: rgba(15, 23, 42, 0.25) transparent;
+}
+
 html {
     scrollbar-gutter: stable;
 }
@@ -190,10 +195,20 @@ body::-webkit-scrollbar-thumb {
     border-radius: 9999px;
 }
 
+body.light-theme *::-webkit-scrollbar-thumb,
+body.light-theme::-webkit-scrollbar-thumb {
+    background: rgba(15, 23, 42, 0.25);
+}
+
 *::-webkit-scrollbar-thumb:hover,
 html::-webkit-scrollbar-thumb:hover,
 body::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.45);
+}
+
+body.light-theme *::-webkit-scrollbar-thumb:hover,
+body.light-theme::-webkit-scrollbar-thumb:hover {
+    background: rgba(15, 23, 42, 0.45);
 }
 
 body {
