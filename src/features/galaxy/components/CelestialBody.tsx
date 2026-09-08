@@ -10,12 +10,14 @@ import SunGlow from "./SunGlow";
 import SelectionGlow from "./SelectionGlow";
 import { useTheme } from "../../theme";
 import { resolveCelestialBodyColor } from "../utils/colorUtils";
+import { useRadarTransition } from "../../transition";
 
 export interface CelestialBodyProps {
     body: OrbitConfig | SunConfig;
     color?: string;
     isSun?: boolean;
     isMoon?: boolean;
+    parentOrbitRadius?: number;
     isSelected?: boolean;
     selectedMoonId?: string;
     isEditorMode?: boolean;
@@ -23,11 +25,15 @@ export interface CelestialBodyProps {
 }
 
 export const CelestialBody = memo(forwardRef<THREE.Group, CelestialBodyProps>(
-    ({ body, color, isSun, isMoon = false, isSelected = false, selectedMoonId, isEditorMode = false, onSelect }, ref) => {
+    ({ body, color, isSun, isMoon = false, parentOrbitRadius, isSelected = false, selectedMoonId, isEditorMode = false, onSelect }, ref) => {
 
         const orbitRef = useRef<THREE.Group>(null);
         const positionRef = useRef<THREE.Group>(null);
         const bodyRef = useRef<THREE.Mesh>(null);
+        const bodyScaleGroupRef = useRef<THREE.Group>(null);
+        const orbitPathGroupRef = useRef<THREE.Group>(null);
+        const isRevealedRef = useRef(false);
+        const { radarStateRef } = useRadarTransition();
         const { isLight } = useTheme();
         const [isHovered, setIsHovered] = useState(false);
         const visuals = useGalaxyVisuals();
@@ -53,6 +59,45 @@ export const CelestialBody = memo(forwardRef<THREE.Group, CelestialBodyProps>(
             if (bodyRef.current) {
                 bodyRef.current.rotation.y += body.rotationSpeed * delta;
             }
+
+            const radarState = radarStateRef.current;
+            if (radarState) {
+                if (radarState.isComplete) {
+                    if (!isRevealedRef.current) {
+                        if (bodyScaleGroupRef.current) {
+                            bodyScaleGroupRef.current.scale.set(1, 1, 1);
+                            bodyScaleGroupRef.current.visible = true;
+                        }
+                        if (orbitPathGroupRef.current) {
+                            orbitPathGroupRef.current.visible = true;
+                        }
+                        isRevealedRef.current = true;
+                    }
+                } else {
+                    const dist = isSun
+                        ? 0
+                        : isMoon
+                            ? (parentOrbitRadius ?? 0) + 0.8
+                            : (orbitConfig.orbitRadius ?? 0);
+                    const deltaR = radarState.currentRadius - dist;
+                    if (orbitPathGroupRef.current) {
+                        orbitPathGroupRef.current.visible = deltaR >= 0;
+                    }
+                    if (bodyScaleGroupRef.current) {
+                        if (deltaR < 0) {
+                            bodyScaleGroupRef.current.visible = false;
+                            bodyScaleGroupRef.current.scale.set(0.001, 0.001, 0.001);
+                        } else {
+                            bodyScaleGroupRef.current.visible = true;
+                            const progress = Math.min(1, deltaR / 3.0);
+                            const p = progress - 1;
+                            const scale = 1 + 2.70158 * Math.pow(p, 3) + 1.70158 * Math.pow(p, 2);
+                            const clampedScale = Math.max(0.001, Math.min(1.15, scale));
+                            bodyScaleGroupRef.current.scale.set(clampedScale, clampedScale, clampedScale);
+                        }
+                    }
+                }
+            }
         });
 
         const hasOrbit = (orbitConfig.orbitRadius ?? 0) > 0;
@@ -66,11 +111,13 @@ export const CelestialBody = memo(forwardRef<THREE.Group, CelestialBodyProps>(
         return (
             <group rotation={[orbitInclination, orbitAscendingNode, orbitArgument]}>
                 {visuals.showOrbitPaths && hasOrbit && (
-                    <OrbitPathLine
-                        radius={orbitConfig.orbitRadius!}
-                        color={effectiveColor}
-                        opacity={0.25}
-                    />
+                    <group ref={orbitPathGroupRef}>
+                        <OrbitPathLine
+                            radius={orbitConfig.orbitRadius!}
+                            color={effectiveColor}
+                            opacity={0.25}
+                        />
+                    </group>
                 )}
 
                 <group ref={orbitRef} rotation={[0, orbitConfig.initialAngle ?? 0, 0]}>
@@ -83,7 +130,7 @@ export const CelestialBody = memo(forwardRef<THREE.Group, CelestialBodyProps>(
                         }}
                         position={[orbitConfig.orbitRadius ?? 0, 0, 0]}
                     >
-                        <group rotation={[axialTilt, 0, 0]}>
+                        <group ref={bodyScaleGroupRef} rotation={[axialTilt, 0, 0]}>
                             <LowPolyPlanet
                                 ref={(meshInstance) => {
                                     bodyRef.current = meshInstance;
@@ -186,6 +233,7 @@ export const CelestialBody = memo(forwardRef<THREE.Group, CelestialBodyProps>(
                                 key={child.id}
                                 body={child}
                                 isMoon={true}
+                                parentOrbitRadius={orbitConfig.orbitRadius ?? 0}
                                 isEditorMode={isEditorMode}
                                 isSelected={selectedMoonId === child.id}
                                 onSelect={onSelect}

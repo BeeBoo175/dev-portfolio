@@ -2,8 +2,9 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { GalaxyScene, useGalaxyPlanets } from "../features/galaxy";
 import { GalaxyStudio, resolveTargetSelection, type PlanetTab } from "../features/galaxy-studio";
+import { RadarTransitionProvider } from "../features/transition";
 
-export function StudioPage() {
+function StudioPageContent() {
     const [searchParams, setSearchParams] = useSearchParams();
     const planets = useGalaxyPlanets();
     const targetParam = searchParams.get("target") || "home";
@@ -62,7 +63,6 @@ export function StudioPage() {
                 />
             </div>
 
-
             <GalaxyStudio
                 focusId={focusId}
                 onFocusChange={handleFocusChange}
@@ -74,6 +74,14 @@ export function StudioPage() {
                 onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
             />
         </div>
+    );
+}
+
+export function StudioPage() {
+    return (
+        <RadarTransitionProvider duration={0.8} maxRadius={44.0}>
+            <StudioPageContent />
+        </RadarTransitionProvider>
     );
 }
 

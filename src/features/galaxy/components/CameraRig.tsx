@@ -327,20 +327,28 @@ export function CameraRig({
             .add(currentTargetPos.current);
 
         if (focusId !== lastFocusId.current) {
+            const isInitial = lastFocusId.current === null;
             lastFocusId.current = focusId;
-            isTransitioning.current = true;
-            transitionElapsed.current = 0;
-            transitionStartLookTarget.current.copy(currentLookTarget.current);
-
-            scratchOffset.current.subVectors(camera.position, currentTargetPos.current);
-            transitionStartSpherical.current.setFromVector3(scratchOffset.current).makeSafe();
-
             targetThetaOffsetRef.current = 0;
             targetPhiOffsetRef.current = 0;
             userThetaOffsetRef.current = 0;
             userPhiOffsetRef.current = 0;
             targetZoomOffsetRef.current = 0;
             userZoomOffsetRef.current = 0;
+
+            if (isInitial) {
+                camera.position.copy(desiredPos.current);
+                currentLookTarget.current.copy(currentTargetPos.current);
+                camera.lookAt(currentLookTarget.current);
+                isTransitioning.current = false;
+            } else {
+                isTransitioning.current = true;
+                transitionElapsed.current = 0;
+                transitionStartLookTarget.current.copy(currentLookTarget.current);
+
+                scratchOffset.current.subVectors(camera.position, currentTargetPos.current);
+                transitionStartSpherical.current.setFromVector3(scratchOffset.current).makeSafe();
+            }
         }
 
         if (isTransitioning.current) {

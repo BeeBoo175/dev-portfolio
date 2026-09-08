@@ -9,6 +9,7 @@ import AsteroidBelt from "./components/AsteroidBelt";
 import CameraFillLight from "./components/CameraFillLight";
 import { useGalaxyAsteroidBelt, useGalaxyPlanets, useGalaxySun, useGalaxyVisuals } from "./store";
 import { useTheme } from "../theme";
+import { RadarSweepVisual } from "../transition";
 
 export interface GalaxySceneProps {
     focusId: string;
@@ -49,6 +50,7 @@ export function GalaxyScene({
             <CameraFillLight focusId={focusId} bodyRefs={bodyRefs} color={sun.color} />
 
             <CosmicBackground visible={visuals.showBackgroundPhenomena !== false} />
+            <RadarSweepVisual />
 
             <CelestialBody
                 ref={(instance) => {
