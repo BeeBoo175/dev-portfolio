@@ -4,24 +4,28 @@
     justify-content: center;
     gap: 6px;
     height: 28px;
-    padding: 0 10px;
+    width: 74px;
+    min-width: 74px;
+    max-width: 74px;
+    padding: 0 8px;
     background: var(--bg-surface-subtle);
     border: 1px solid var(--border-default);
     border-radius: var(--radius-xs);
     box-shadow: var(--glass-shadow-subtle);
-    color: var(--text-primary);
-    font-family: var(--font-sans);
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.02em;
+    color: var(--text-secondary);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
     cursor: pointer;
     white-space: nowrap;
     backdrop-filter: var(--glass-blur);
     -webkit-backdrop-filter: var(--glass-blur);
-    transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast), box-shadow var(--transition-fast);
+    transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
     outline: none;
     -webkit-tap-highlight-color: transparent;
     flex-shrink: 0;
+    box-sizing: border-box;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -29,6 +33,21 @@
         background: var(--bg-surface-hover);
         border-color: var(--border-hover);
         color: var(--text-primary);
+    }
+
+    .theme-toggle-btn--dark:hover .theme-toggle-btn__celestial-body {
+        transform: rotate(15deg) scale(1.1);
+        box-shadow: inset -3.5px 2px 0 0 #ffffff;
+        filter: drop-shadow(0 0 5px rgba(241, 245, 249, 0.75));
+    }
+
+    .theme-toggle-btn--light:hover .theme-toggle-btn__celestial-body {
+        transform: rotate(270deg) scale(0.78);
+        filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.75));
+    }
+
+    .theme-toggle-btn--light:hover .theme-toggle-btn__celestial-rays {
+        transform: scale(1.12) rotate(180deg);
     }
 }
 
@@ -41,29 +60,88 @@
     transform: scale(0.97);
 }
 
-.theme-toggle-btn__mode-icon {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--accent-cyan);
-    box-shadow: 0 0 6px var(--accent-cyan);
+.theme-toggle-btn__celestial {
+    position: relative;
+    width: 14px;
+    height: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     flex-shrink: 0;
 }
 
-.theme-toggle-btn--light .theme-toggle-btn__mode-icon {
-    background: var(--accent-primary);
-    box-shadow: 0 0 6px rgba(2, 132, 199, 0.7);
+.theme-toggle-btn__celestial-body {
+    position: relative;
+    z-index: 1;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: transparent;
+    box-shadow: inset -3.5px 2px 0 0 #f1f5f9;
+    filter: drop-shadow(0 0 3px rgba(241, 245, 249, 0.45));
+    transform: rotate(-15deg) scale(1);
+    transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.35s ease, background-color 0.35s ease, filter 0.35s ease;
+}
+
+.theme-toggle-btn__celestial-rays {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: 2px;
+    height: 2px;
+    border-radius: 50%;
+    pointer-events: none;
+    opacity: 0;
+    transform: scale(0.2) rotate(0deg);
+    box-shadow:
+        0 -6px 0 0.5px #f59e0b,
+        0 6px 0 0.5px #f59e0b,
+        -6px 0 0 0.5px #f59e0b,
+        6px 0 0 0.5px #f59e0b,
+        -4.2px -4.2px 0 0.4px #f59e0b,
+        4.2px -4.2px 0 0.4px #f59e0b,
+        -4.2px 4.2px 0 0.4px #f59e0b,
+        4.2px 4.2px 0 0.4px #f59e0b;
+    transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.35s ease;
+}
+
+.theme-toggle-btn--light .theme-toggle-btn__celestial-body {
+    background: #f59e0b;
+    box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.3), inset 0 0 0 0 transparent;
+    filter: drop-shadow(0 0 3px rgba(245, 158, 11, 0.5));
+    transform: rotate(180deg) scale(0.72);
+}
+
+.theme-toggle-btn--light .theme-toggle-btn__celestial-rays {
+    opacity: 1;
+    transform: scale(1) rotate(90deg);
+}
+
+.theme-toggle-btn__text {
+    width: 30px;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    font-family: inherit;
+    line-height: 1;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .docked-navigation__theme-btn {
     height: 28px;
-    padding: 0 10px;
+    width: 74px;
+    min-width: 74px;
+    max-width: 74px;
+    padding: 0 8px;
     border-radius: var(--radius-xs);
     border: 1px solid var(--border-subtle);
     background: var(--obsidian-bg-subtle);
     color: var(--text-secondary);
     font-size: 12px;
     font-weight: 500;
+    font-family: inherit;
     letter-spacing: 0.01em;
     box-shadow: none;
     box-sizing: border-box;
@@ -77,8 +155,11 @@
 
 @media (max-width: 1280px) {
     .theme-toggle-btn:not(.docked-navigation__theme-btn) {
-        padding: 0 8px;
-        font-size: 10.5px;
+        width: 70px;
+        min-width: 70px;
+        max-width: 70px;
+        padding: 0 6px;
+        font-size: 11px;
         gap: 5px;
     }
 }
