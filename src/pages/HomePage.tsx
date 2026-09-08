@@ -3,8 +3,9 @@ import { Link } from "react-router-dom";
 import { GalaxyScene, galaxyStore, useGalaxyPlanets } from "../features/galaxy";
 import { HomeOverlay, PLANET_SECTIONS, type SectionId } from "../features/sections";
 import { DockedNavigation, type DockedTargetItem } from "../components/navigation";
+import { RadarTransitionProvider } from "../features/transition";
 
-export function HomePage() {
+function HomePageContent() {
     const [focusId, setFocusId] = useState<SectionId>("home");
     const triggerRef = useRef<(id: SectionId) => void>(() => { });
     const dynamicPlanets = useGalaxyPlanets();
@@ -20,8 +21,6 @@ export function HomePage() {
     const handleSelect = useCallback((id: string) => {
         triggerRef.current(id as SectionId);
     }, []);
-
-
 
     const navTargets: DockedTargetItem[] = useMemo(() => {
         return PLANET_SECTIONS.map((section) => {
@@ -62,6 +61,14 @@ export function HomePage() {
                 </Link>
             </div>
         </div>
+    );
+}
+
+export function HomePage() {
+    return (
+        <RadarTransitionProvider duration={0.8} maxRadius={44.0}>
+            <HomePageContent />
+        </RadarTransitionProvider>
     );
 }
 

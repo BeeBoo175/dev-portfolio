@@ -4,6 +4,7 @@ import * as THREE from "three";
 import type { AsteroidBeltConfig } from "../types";
 import { useTheme } from "../../theme";
 import { getEffectiveAccentColor } from "../utils/colorUtils";
+import { useRadarTransition } from "../../transition";
 
 export interface AsteroidBeltProps {
     config: AsteroidBeltConfig;
@@ -19,6 +20,8 @@ function pseudoRandom(seed: number) {
 
 export const AsteroidBelt = memo(function AsteroidBelt({ config, isEditorMode = false, isSelected = false, onSelect }: AsteroidBeltProps) {
     const { isLight } = useTheme();
+    const { radarStateRef } = useRadarTransition();
+    const isRevealedRef = useRef(false);
     const groupRef = useRef<THREE.Group>(null);
     const meshRef = useRef<THREE.InstancedMesh>(null);
     const highlightMeshRef = useRef<THREE.Mesh>(null);
@@ -162,6 +165,28 @@ export const AsteroidBelt = memo(function AsteroidBelt({ config, isEditorMode = 
     useFrame((state, delta) => {
         if (groupRef.current) {
             groupRef.current.rotation.y += orbitSpeed * delta;
+
+            const radarState = radarStateRef.current;
+            if (radarState) {
+                if (radarState.isComplete) {
+                    if (!isRevealedRef.current) {
+                        groupRef.current.scale.set(1, 1, 1);
+                        groupRef.current.visible = true;
+                        isRevealedRef.current = true;
+                    }
+                } else {
+                    const deltaR = radarState.currentRadius - innerRadius;
+                    if (deltaR < 0) {
+                        groupRef.current.visible = false;
+                        groupRef.current.scale.set(0.001, 0.001, 0.001);
+                    } else {
+                        groupRef.current.visible = true;
+                        const progress = Math.min(1, deltaR / (outerRadius - innerRadius + 1.2));
+                        const scale = THREE.MathUtils.lerp(0.01, 1, progress);
+                        groupRef.current.scale.set(scale, scale, scale);
+                    }
+                }
+            }
         }
 
         if (highlightMeshRef.current && isEditorMode) {
