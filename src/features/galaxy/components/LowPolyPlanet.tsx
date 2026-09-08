@@ -91,6 +91,17 @@ function buildBaseMultiLODGeometries(
     );
 }
 
+function getTargetLODGeometry(
+    geometries: ReturnType<typeof createMultiLODPlanetGeometries> | null,
+    lodLevel: number
+): THREE.BufferGeometry | null {
+    if (!geometries || lodLevel === LOD_LEVEL_POINT) return null;
+    if (lodLevel === LOD_LEVEL_HIGH) return geometries.high;
+    if (lodLevel === LOD_LEVEL_MEDIUM) return geometries.medium;
+    if (lodLevel === LOD_LEVEL_SPARSE) return geometries.sparse;
+    return geometries.simple;
+}
+
 export const LowPolyPlanet = memo(forwardRef<THREE.Mesh, LowPolyPlanetProps>(
     ({ body, isSun = false, isMoon = false, color, onClick, onPointerOver, onPointerOut }, ref) => {
         const { isLight } = useTheme();
@@ -98,8 +109,9 @@ export const LowPolyPlanet = memo(forwardRef<THREE.Mesh, LowPolyPlanetProps>(
         const meshInternalRef = useRef<THREE.Mesh>(null);
         const groupRef = useRef<THREE.Group>(null);
         const billboardGroupRef = useRef<THREE.Group>(null);
-        const currentLodRef = useRef<number>(LOD_LEVEL_HIGH);
+        const currentLodRef = useRef<number>(-1);
         const frameCounterRef = useRef<number>(0);
+        const prevGeometriesRef = useRef<ReturnType<typeof createMultiLODPlanetGeometries> | null>(null);
 
         useImperativeHandle(ref, () => meshInternalRef.current as THREE.Mesh);
 
@@ -156,10 +168,23 @@ export const LowPolyPlanet = memo(forwardRef<THREE.Mesh, LowPolyPlanetProps>(
             };
         }, [billboardGeometries]);
 
+        useEffect(() => {
+            if (!isLight) {
+                currentLodRef.current = -1;
+                prevGeometriesRef.current = null;
+            }
+        }, [isLight]);
+
         useFrame((state) => {
-            if (isLight && groupRef.current && multiLODGeometries) {
+            if (isLight && groupRef.current && multiLODGeometries && meshInternalRef.current) {
+                const geomSetChanged = prevGeometriesRef.current !== multiLODGeometries;
+                if (geomSetChanged) {
+                    prevGeometriesRef.current = multiLODGeometries;
+                }
+
                 frameCounterRef.current += 1;
-                if (frameCounterRef.current % 3 === 0) {
+                const isUninitialized = currentLodRef.current === -1;
+                if (isUninitialized || geomSetChanged || frameCounterRef.current % 3 === 0) {
                     groupRef.current.getWorldPosition(_scratchWorldPos);
                     const screenHeight = state.size.height || 1080;
                     const diameterPx = calculateProjectedDiameter(
@@ -170,17 +195,16 @@ export const LowPolyPlanet = memo(forwardRef<THREE.Mesh, LowPolyPlanetProps>(
                     );
 
                     const nextLod = resolveLODLevel(diameterPx, currentLodRef.current, isMoon);
-                    if (nextLod !== currentLodRef.current) {
+                    const targetGeom = getTargetLODGeometry(multiLODGeometries, nextLod);
+                    const geomMismatch = targetGeom !== null && meshInternalRef.current.geometry !== targetGeom;
+
+                    if (isUninitialized || nextLod !== currentLodRef.current || geomMismatch) {
                         currentLodRef.current = nextLod;
-                        if (meshInternalRef.current) {
-                            if (nextLod === LOD_LEVEL_POINT) {
-                                meshInternalRef.current.visible = false;
-                            } else {
-                                meshInternalRef.current.visible = true;
-                                let targetGeom = multiLODGeometries.simple;
-                                if (nextLod === LOD_LEVEL_HIGH) targetGeom = multiLODGeometries.high;
-                                else if (nextLod === LOD_LEVEL_MEDIUM) targetGeom = multiLODGeometries.medium;
-                                else if (nextLod === LOD_LEVEL_SPARSE) targetGeom = multiLODGeometries.sparse;
+                        if (nextLod === LOD_LEVEL_POINT) {
+                            meshInternalRef.current.visible = false;
+                        } else {
+                            meshInternalRef.current.visible = true;
+                            if (targetGeom && meshInternalRef.current.geometry !== targetGeom) {
                                 meshInternalRef.current.geometry = targetGeom;
                             }
                         }
@@ -212,7 +236,7 @@ export const LowPolyPlanet = memo(forwardRef<THREE.Mesh, LowPolyPlanetProps>(
 
         const radialTexture = isLight ? getBlueprintRadialTexture() : null;
 
-        const initialGeometry = multiLODGeometries ? multiLODGeometries.high : (singleGeometry ?? undefined);
+        const initialGeometry = isLight ? undefined : (singleGeometry ?? undefined);
 
         return (
             <group ref={groupRef}>

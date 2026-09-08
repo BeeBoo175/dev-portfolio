@@ -504,17 +504,20 @@ export const Spaceship = memo(function Spaceship({ focusId, bodyRefs }: Spaceshi
                 position={[0, 0, 0]}
                 rotation={[Math.PI / 2, 0, 0]}
             >
-                <cylinderGeometry args={[0.13, 0.13, 0.32, 24]} />
-                <meshStandardMaterial
-                    color="#b45309"
-                    roughness={0.75}
-                    metalness={0.15}
-                    wireframe={isLight}
-                />
+                <cylinderGeometry args={isLight ? [0.13, 0.13, 0.32, 8] : [0.13, 0.13, 0.32, 16]} />
+                {isLight ? (
+                    <meshBasicMaterial color="#b45309" wireframe />
+                ) : (
+                    <meshStandardMaterial
+                        color="#b45309"
+                        roughness={0.75}
+                        metalness={0.15}
+                    />
+                )}
             </mesh>
 
             <mesh position={[0, 0, 0.16]} rotation={[Math.PI / 2, 0, 0]}>
-                <sphereGeometry args={[0.13, 20, 16, 0, Math.PI * 2, 0, Math.PI / 2]} />
+                <sphereGeometry args={isLight ? [0.13, 8, 4, 0, Math.PI * 2, 0, Math.PI / 2] : [0.13, 16, 12, 0, Math.PI * 2, 0, Math.PI / 2]} />
                 {isLight ? (
                     <meshBasicMaterial
                         color="#0284c7"
@@ -534,177 +537,229 @@ export const Spaceship = memo(function Spaceship({ focusId, bodyRefs }: Spaceshi
                 )}
             </mesh>
 
-            <mesh position={[0, 0, 0.16]}>
-                <torusGeometry args={[0.13, 0.007, 8, 24]} />
-                <meshStandardMaterial
-                    color="#334155"
-                    roughness={0.4}
-                    metalness={0.85}
-                    wireframe={isLight}
-                />
-            </mesh>
+            {!isLight && (
+                <mesh position={[0, 0, 0.16]}>
+                    <torusGeometry args={[0.13, 0.007, 8, 20]} />
+                    <meshStandardMaterial
+                        color="#334155"
+                        roughness={0.4}
+                        metalness={0.85}
+                    />
+                </mesh>
+            )}
 
             <group position={[-0.08, -0.11, 0.07]}>
                 <mesh position={[-0.03, -0.04, 0.02]} rotation={[-0.35, 0, -0.55]}>
-                    <cylinderGeometry args={[0.007, 0.007, 0.11, 6]} />
-                    <meshStandardMaterial color="#475569" roughness={0.4} metalness={0.8} wireframe={isLight} />
+                    <cylinderGeometry args={[0.007, 0.007, 0.11, 4]} />
+                    {isLight ? (
+                        <meshBasicMaterial color="#475569" wireframe />
+                    ) : (
+                        <meshStandardMaterial color="#475569" roughness={0.4} metalness={0.8} />
+                    )}
                 </mesh>
-                <mesh position={[-0.055, -0.08, 0.035]}>
-                    <boxGeometry args={[0.045, 0.008, 0.045]} />
-                    <meshStandardMaterial color="#1e293b" roughness={0.6} metalness={0.9} wireframe={isLight} />
-                </mesh>
+                {!isLight && (
+                    <mesh position={[-0.055, -0.08, 0.035]}>
+                        <boxGeometry args={[0.045, 0.008, 0.045]} />
+                        <meshStandardMaterial color="#1e293b" roughness={0.6} metalness={0.9} />
+                    </mesh>
+                )}
             </group>
 
             <group position={[0.08, -0.11, 0.07]}>
                 <mesh position={[0.03, -0.04, 0.02]} rotation={[-0.35, 0, 0.55]}>
-                    <cylinderGeometry args={[0.007, 0.007, 0.11, 6]} />
-                    <meshStandardMaterial color="#475569" roughness={0.4} metalness={0.8} wireframe={isLight} />
+                    <cylinderGeometry args={[0.007, 0.007, 0.11, 4]} />
+                    {isLight ? (
+                        <meshBasicMaterial color="#475569" wireframe />
+                    ) : (
+                        <meshStandardMaterial color="#475569" roughness={0.4} metalness={0.8} />
+                    )}
                 </mesh>
-                <mesh position={[0.055, -0.08, 0.035]}>
-                    <boxGeometry args={[0.045, 0.008, 0.045]} />
-                    <meshStandardMaterial color="#1e293b" roughness={0.6} metalness={0.9} wireframe={isLight} />
-                </mesh>
+                {!isLight && (
+                    <mesh position={[0.055, -0.08, 0.035]}>
+                        <boxGeometry args={[0.045, 0.008, 0.045]} />
+                        <meshStandardMaterial color="#1e293b" roughness={0.6} metalness={0.9} />
+                    </mesh>
+                )}
             </group>
 
             <group position={[0, -0.11, -0.08]}>
                 <mesh position={[0, -0.04, -0.03]} rotation={[0.6, 0, 0]}>
-                    <cylinderGeometry args={[0.007, 0.007, 0.11, 6]} />
-                    <meshStandardMaterial color="#475569" roughness={0.4} metalness={0.8} wireframe={isLight} />
+                    <cylinderGeometry args={[0.007, 0.007, 0.11, 4]} />
+                    {isLight ? (
+                        <meshBasicMaterial color="#475569" wireframe />
+                    ) : (
+                        <meshStandardMaterial color="#475569" roughness={0.4} metalness={0.8} />
+                    )}
                 </mesh>
-                <mesh position={[0, -0.08, -0.055]}>
-                    <boxGeometry args={[0.045, 0.008, 0.045]} />
-                    <meshStandardMaterial color="#1e293b" roughness={0.6} metalness={0.9} wireframe={isLight} />
-                </mesh>
+                {!isLight && (
+                    <mesh position={[0, -0.08, -0.055]}>
+                        <boxGeometry args={[0.045, 0.008, 0.045]} />
+                        <meshStandardMaterial color="#1e293b" roughness={0.6} metalness={0.9} />
+                    </mesh>
+                )}
             </group>
 
             <group position={[0, 0.13, -0.02]}>
                 <mesh position={[0, 0.02, 0]}>
-                    <cylinderGeometry args={[0.02, 0.03, 0.04, 8]} />
-                    <meshStandardMaterial color="#475569" roughness={0.5} metalness={0.8} wireframe={isLight} />
+                    <cylinderGeometry args={[0.02, 0.025, 0.03, 6]} />
+                    {isLight ? (
+                        <meshBasicMaterial color="#475569" wireframe />
+                    ) : (
+                        <meshStandardMaterial color="#475569" roughness={0.5} metalness={0.8} />
+                    )}
                 </mesh>
                 <mesh position={[0, 0.07, 0]} rotation={[0.4, 0, 0]}>
-                    <cylinderGeometry args={[0.08, 0.015, 0.03, 12, 1, true]} />
-                    <meshStandardMaterial color="#94a3b8" roughness={0.3} metalness={0.9} side={THREE.DoubleSide} wireframe={isLight} />
+                    <cylinderGeometry args={isLight ? [0.065, 0.015, 0.025, 6, 1, true] : [0.08, 0.015, 0.03, 10, 1, true]} />
+                    {isLight ? (
+                        <meshBasicMaterial color="#0284c7" wireframe side={THREE.DoubleSide} />
+                    ) : (
+                        <meshStandardMaterial color="#94a3b8" roughness={0.3} metalness={0.9} side={THREE.DoubleSide} />
+                    )}
                 </mesh>
-                <mesh position={[0, 0.07, 0]} rotation={[0.4, 0, 0]}>
-                    <sphereGeometry args={[0.02, 8, 8]} />
-                    <meshStandardMaterial color="#e2e8f0" roughness={0.4} metalness={0.7} wireframe={isLight} />
-                </mesh>
-                <mesh position={[0, 0.09, 0.01]} rotation={[0.4, 0, 0]}>
-                    <cylinderGeometry args={[0.004, 0.004, 0.05, 4]} />
-                    <meshStandardMaterial color="#f59e0b" roughness={0.3} metalness={0.9} wireframe={isLight} />
-                </mesh>
+                {!isLight && (
+                    <>
+                        <mesh position={[0, 0.07, 0]} rotation={[0.4, 0, 0]}>
+                            <sphereGeometry args={[0.02, 8, 8]} />
+                            <meshStandardMaterial color="#e2e8f0" roughness={0.4} metalness={0.7} />
+                        </mesh>
+                        <mesh position={[0, 0.09, 0.01]} rotation={[0.4, 0, 0]}>
+                            <cylinderGeometry args={[0.004, 0.004, 0.05, 4]} />
+                            <meshStandardMaterial color="#f59e0b" roughness={0.3} metalness={0.9} />
+                        </mesh>
+                    </>
+                )}
 
                 <mesh ref={beaconMeshRef} position={[0, 0.12, 0.02]}>
-                    <sphereGeometry args={[0.007, 8, 8]} />
+                    <sphereGeometry args={isLight ? [0.01, 6, 5] : [0.007, 8, 8]} />
                     <meshBasicMaterial color="#ff4d4d" wireframe={isLight} />
                 </mesh>
-                <mesh ref={beaconHaloRef} position={[0, 0.12, 0.02]}>
-                    <sphereGeometry args={[0.015, 12, 12]} />
-                    <meshBasicMaterial
-                        color="#ff3333"
-                        transparent
-                        opacity={0.35}
-                        depthWrite={false}
-                        wireframe={isLight}
-                    />
-                </mesh>
+                {!isLight && (
+                    <mesh ref={beaconHaloRef} position={[0, 0.12, 0.02]}>
+                        <sphereGeometry args={[0.015, 12, 12]} />
+                        <meshBasicMaterial
+                            color="#ff3333"
+                            transparent
+                            opacity={0.35}
+                            depthWrite={false}
+                        />
+                    </mesh>
+                )}
             </group>
 
             <mesh position={[0, 0, 0]}>
-                <boxGeometry args={[0.52, 0.028, 0.09]} />
-                <meshStandardMaterial
-                    color="#1e293b"
-                    roughness={0.6}
-                    metalness={0.85}
-                    wireframe={isLight}
-                />
+                <boxGeometry args={[0.52, 0.024, 0.08]} />
+                {isLight ? (
+                    <meshBasicMaterial color="#334155" wireframe />
+                ) : (
+                    <meshStandardMaterial
+                        color="#1e293b"
+                        roughness={0.6}
+                        metalness={0.85}
+                    />
+                )}
             </mesh>
 
             <group ref={vtolLeftRef} position={[-0.26, 0, 0]}>
                 <mesh>
-                    <cylinderGeometry args={[0.055, 0.075, 0.18, 16]} />
-                    <meshStandardMaterial
-                        color="#475569"
-                        roughness={0.5}
-                        metalness={0.8}
-                        wireframe={isLight}
-                    />
+                    <cylinderGeometry args={isLight ? [0.055, 0.075, 0.16, 6] : [0.055, 0.075, 0.18, 14]} />
+                    {isLight ? (
+                        <meshBasicMaterial color="#334155" wireframe />
+                    ) : (
+                        <meshStandardMaterial
+                            color="#475569"
+                            roughness={0.5}
+                            metalness={0.8}
+                        />
+                    )}
                 </mesh>
-                <mesh position={[0, 0, 0]}>
-                    <torusGeometry args={[0.06, 0.01, 6, 16]} />
-                    <meshStandardMaterial
-                        color="#f59e0b"
-                        roughness={0.4}
-                        metalness={0.7}
-                        wireframe={isLight}
-                    />
-                </mesh>
+                {!isLight && (
+                    <mesh position={[0, 0, 0]}>
+                        <torusGeometry args={[0.06, 0.01, 6, 14]} />
+                        <meshStandardMaterial
+                            color="#f59e0b"
+                            roughness={0.4}
+                            metalness={0.7}
+                        />
+                    </mesh>
+                )}
                 <mesh position={[0, -0.09, 0]}>
-                    <sphereGeometry args={[0.038, 10, 10]} />
-                    <meshBasicMaterial color="#38bdf8" wireframe={isLight} />
+                    <sphereGeometry args={isLight ? [0.035, 6, 5] : [0.038, 10, 10]} />
+                    <meshBasicMaterial color={isLight ? "#0284c7" : "#38bdf8"} wireframe={isLight} />
                 </mesh>
-                <pointLight
-                    position={[0, -0.12, 0]}
-                    color="#38bdf8"
-                    intensity={0.4}
-                    distance={0.8}
-                    decay={2}
-                />
+                {!isLight && (
+                    <pointLight
+                        position={[0, -0.12, 0]}
+                        color="#38bdf8"
+                        intensity={0.4}
+                        distance={0.8}
+                        decay={2}
+                    />
+                )}
             </group>
 
             <group ref={vtolRightRef} position={[0.26, 0, 0]}>
                 <mesh>
-                    <cylinderGeometry args={[0.055, 0.075, 0.18, 16]} />
-                    <meshStandardMaterial
-                        color="#475569"
-                        roughness={0.5}
-                        metalness={0.8}
-                        wireframe={isLight}
-                    />
+                    <cylinderGeometry args={isLight ? [0.055, 0.075, 0.16, 6] : [0.055, 0.075, 0.18, 14]} />
+                    {isLight ? (
+                        <meshBasicMaterial color="#334155" wireframe />
+                    ) : (
+                        <meshStandardMaterial
+                            color="#475569"
+                            roughness={0.5}
+                            metalness={0.8}
+                        />
+                    )}
                 </mesh>
-                <mesh position={[0, 0, 0]}>
-                    <torusGeometry args={[0.06, 0.01, 6, 16]} />
-                    <meshStandardMaterial
-                        color="#f59e0b"
-                        roughness={0.4}
-                        metalness={0.7}
-                        wireframe={isLight}
-                    />
-                </mesh>
+                {!isLight && (
+                    <mesh position={[0, 0, 0]}>
+                        <torusGeometry args={[0.06, 0.01, 6, 14]} />
+                        <meshStandardMaterial
+                            color="#f59e0b"
+                            roughness={0.4}
+                            metalness={0.7}
+                        />
+                    </mesh>
+                )}
                 <mesh position={[0, -0.09, 0]}>
-                    <sphereGeometry args={[0.038, 10, 10]} />
-                    <meshBasicMaterial color="#38bdf8" wireframe={isLight} />
+                    <sphereGeometry args={isLight ? [0.035, 6, 5] : [0.038, 10, 10]} />
+                    <meshBasicMaterial color={isLight ? "#0284c7" : "#38bdf8"} wireframe={isLight} />
                 </mesh>
-                <pointLight
-                    position={[0, -0.12, 0]}
-                    color="#38bdf8"
-                    intensity={0.4}
-                    distance={0.8}
-                    decay={2}
-                />
+                {!isLight && (
+                    <pointLight
+                        position={[0, -0.12, 0]}
+                        color="#38bdf8"
+                        intensity={0.4}
+                        distance={0.8}
+                        decay={2}
+                    />
+                )}
             </group>
 
             <mesh position={[0, 0, -0.17]} rotation={[Math.PI / 2, 0, 0]}>
-                <cylinderGeometry args={[0.065, 0.08, 0.08, 12]} />
-                <meshStandardMaterial
-                    color="#334155"
-                    roughness={0.5}
-                    metalness={0.9}
-                    wireframe={isLight}
-                />
+                <cylinderGeometry args={isLight ? [0.065, 0.08, 0.08, 6] : [0.065, 0.08, 0.08, 12]} />
+                {isLight ? (
+                    <meshBasicMaterial color="#334155" wireframe />
+                ) : (
+                    <meshStandardMaterial
+                        color="#334155"
+                        roughness={0.5}
+                        metalness={0.9}
+                    />
+                )}
             </mesh>
             <mesh position={[0, 0, -0.22]}>
-                <sphereGeometry args={[0.045, 10, 10]} />
-                <meshBasicMaterial color="#38bdf8" wireframe={isLight} />
+                <sphereGeometry args={isLight ? [0.04, 6, 5] : [0.045, 10, 10]} />
+                <meshBasicMaterial color={isLight ? "#0284c7" : "#38bdf8"} wireframe={isLight} />
             </mesh>
-            <pointLight
-                position={[0, 0, -0.26]}
-                color="#38bdf8"
-                intensity={0.5}
-                distance={0.9}
-                decay={2}
-            />
+            {!isLight && (
+                <pointLight
+                    position={[0, 0, -0.26]}
+                    color="#38bdf8"
+                    intensity={0.5}
+                    distance={0.9}
+                    decay={2}
+                />
+            )}
         </group>
     );
 });
