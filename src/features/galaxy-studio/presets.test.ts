@@ -3,6 +3,7 @@ import {
     BIOME_PRESETS,
     generateRandomPlanet,
     generateRandomMoon,
+    generateRandomMoonConfig,
     generateRandomSun,
     generateRandomAsteroidBelt,
     generateRandomGalaxy,
@@ -42,6 +43,25 @@ describe("galaxy-studio presets & randomizers", () => {
         expect(moon.radius).toBeGreaterThan(0.1);
         expect(moon.orbitRadius).toBeGreaterThan(1.0);
         expect(moon.orbitSpeed).toBeGreaterThan(0);
+    });
+
+    it("randomizes an existing moon config", () => {
+        const initialMoon = generateRandomMoon("about", 0);
+        const randomizedMoon = generateRandomMoonConfig(initialMoon);
+        expect(randomizedMoon.id).toBe(initialMoon.id);
+        expect(randomizedMoon.orbitRadius).toBe(initialMoon.orbitRadius);
+        expect(randomizedMoon.orbitSpeed).toBe(initialMoon.orbitSpeed);
+        expect(randomizedMoon.radius).toBeGreaterThanOrEqual(0.1);
+        expect(randomizedMoon.radius).toBeLessThanOrEqual(0.9);
+        expect(randomizedMoon.ring).toBeUndefined();
+        expect(randomizedMoon.terrain?.waterLevel).toBe(0);
+    });
+
+    it("supports overloaded generateRandomMoon with OrbitConfig", () => {
+        const initialMoon = generateRandomMoon("about", 1);
+        const randomizedMoon = generateRandomMoon(initialMoon);
+        expect(randomizedMoon.id).toBe("about-moon-2");
+        expect(randomizedMoon.ring).toBeUndefined();
     });
 
     it("generates a random asteroid belt", () => {

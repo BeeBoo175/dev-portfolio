@@ -225,7 +225,49 @@ export function generateRandomSun(baseSun?: SunConfig): SunConfig {
     };
 }
 
-export function generateRandomMoon(planetId: string, index: number): OrbitConfig {
+export function generateRandomMoonConfig(moon: OrbitConfig): OrbitConfig {
+    const allPalettes = [
+        ...BIOME_PRESETS.map((b) => ({ palette: b.palette, color: b.color })),
+        ...RANDOM_PALETTES.map((p) => ({ palette: p, color: p.coast ?? p.land ?? "#cbd5e1" })),
+    ];
+    const paletteObj = allPalettes[Math.floor(Math.random() * allPalettes.length)];
+
+    return {
+        ...moon,
+        radius: Number((Math.random() * 0.15 + 0.22).toFixed(2)),
+        rotationSpeed: Number((Math.random() * 0.5 + 0.3).toFixed(2)),
+        axialTilt: Number((Math.random() * 0.35).toFixed(3)),
+        orbitInclination: Number(((Math.random() - 0.5) * 0.3).toFixed(3)),
+        orbitAscendingNode: Number(((Math.random() - 0.5) * 0.4).toFixed(3)),
+        orbitArgument: Number(((Math.random() - 0.5) * 0.4).toFixed(3)),
+        color: paletteObj.color,
+        terrain: {
+            seed: Math.floor(Math.random() * 999) + 1,
+            noiseScale: Number((Math.random() * 1.2 + 1.6).toFixed(2)),
+            roughness: Number((Math.random() * 0.25 + 0.18).toFixed(2)),
+            waterLevel: 0,
+        },
+        palette: {
+            land: paletteObj.palette.land ?? "#94a3b8",
+            mountain: paletteObj.palette.mountain ?? "#64748b",
+            peak: paletteObj.palette.peak ?? "#e2e8f0",
+            ...(paletteObj.palette.water ? { water: paletteObj.palette.water } : {}),
+            ...(paletteObj.palette.coast ? { coast: paletteObj.palette.coast } : {}),
+        },
+        ring: undefined,
+    };
+}
+
+export function generateRandomMoon(planetId: string, index: number): OrbitConfig;
+export function generateRandomMoon(baseMoon: OrbitConfig): OrbitConfig;
+export function generateRandomMoon(
+    planetIdOrMoon: string | OrbitConfig,
+    index = 0
+): OrbitConfig {
+    if (typeof planetIdOrMoon !== "string") {
+        return generateRandomMoonConfig(planetIdOrMoon);
+    }
+    const planetId = planetIdOrMoon;
     const palette = RANDOM_PALETTES[Math.floor(Math.random() * RANDOM_PALETTES.length)];
     return {
         id: `${planetId}-moon-${index + 1}`,

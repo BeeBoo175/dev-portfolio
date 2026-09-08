@@ -1,6 +1,6 @@
 import type { OrbitConfig } from "../../galaxy";
 import { DEFAULT_RING_CONFIG } from "../../galaxy";
-import { BIOME_PRESETS, generateRandomPlanet } from "../presets";
+import { BIOME_PRESETS, generateRandomPlanet, generateRandomMoonConfig } from "../presets";
 import { Tooltip } from "../../../components/ui/Tooltip";
 import { StudioColorPicker } from "./StudioColorPicker";
 
@@ -33,8 +33,8 @@ export function AppearancePanel({
         }));
     };
 
-    const handleRandomizePlanet = () => {
-        const randomized = generateRandomPlanet(planet);
+    const handleRandomize = () => {
+        const randomized = isMoon ? generateRandomMoonConfig(planet) : generateRandomPlanet(planet);
         onChange(() => randomized);
     };
 
@@ -67,7 +67,7 @@ export function AppearancePanel({
                         <button
                             type="button"
                             className="studio-btn studio-btn--secondary studio-btn--sm"
-                            onClick={handleRandomizePlanet}
+                            onClick={handleRandomize}
                         >
                             {isMoon ? "Randomize Moon" : "Randomize Planet"}
                         </button>
