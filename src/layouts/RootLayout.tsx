@@ -74,7 +74,7 @@ export function RootLayout() {
     );
 
     return (
-        <RadarTransitionProvider duration={0.38} maxRadius={38.0}>
+        <RadarTransitionProvider duration={0.40} maxRadius={46.0}>
             <GalaxyViewportProvider initialFocusId={initialFocusId}>
                 <RootLayoutContent />
             </GalaxyViewportProvider>

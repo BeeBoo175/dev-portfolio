@@ -136,7 +136,7 @@ describe("RadarTransition", () => {
                 </RadarTransitionProvider>
             );
         });
-        expect(readDuration).toBe(0.38);
+        expect(readDuration).toBe(0.40);
         await act(async () => {
             root.unmount();
         });
