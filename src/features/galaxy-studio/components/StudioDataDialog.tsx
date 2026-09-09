@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { AsteroidBeltConfig, OrbitConfig, SunConfig } from "../../galaxy";
 import { stripDetailFromPlanets } from "../../galaxy";
 
-export interface GalaxyDataDialogProps {
+export interface StudioDataDialogProps {
     isOpen: boolean;
     planets: OrbitConfig[];
     asteroidBelt: AsteroidBeltConfig;
@@ -18,7 +18,9 @@ export interface GalaxyDataDialogProps {
     onResetDefaults?: () => void;
 }
 
-export function GalaxyDataDialog({
+export type GalaxyDataDialogProps = StudioDataDialogProps;
+
+export function StudioDataDialog({
     isOpen,
     planets,
     asteroidBelt,
@@ -153,4 +155,5 @@ export function GalaxyDataDialog({
     );
 }
 
-export default GalaxyDataDialog;
+export const GalaxyDataDialog = StudioDataDialog;
+export default StudioDataDialog;

@@ -1,11 +1,5 @@
 import type { OrbitConfig } from "../../galaxy";
-
-export interface ResolvedSelection {
-    focusId: string;
-    tab?: "appearance" | "orbit" | "terrain" | "moons";
-    moonIndex?: number;
-    isMoon: boolean;
-}
+import type { ResolvedSelection } from "../types";
 
 export function resolveTargetSelection(
     targetId: string,

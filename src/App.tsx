@@ -1,5 +1,5 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom";
-import { GalaxyLayout } from "./pages/GalaxyLayout";
+import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
+import { RootLayout } from "./layouts/RootLayout";
 import { HomePage } from "./pages/HomePage";
 import { StudioPage } from "./pages/StudioPage";
 import { PLANET_SECTIONS } from "./features/sections";
@@ -9,11 +9,11 @@ function App() {
     return (
         <BrowserRouter>
             <Routes>
-                <Route element={<GalaxyLayout />}>
+                <Route element={<RootLayout />}>
                     <Route path="/" element={<HomePage />} />
                     <Route path="/studio" element={<StudioPage />} />
-                    <Route path="/galaxy-studio" element={<StudioPage />} />
-                    <Route path="/editor" element={<StudioPage />} />
+                    <Route path="/galaxy-studio" element={<Navigate to="/studio" replace />} />
+                    <Route path="/editor" element={<Navigate to="/studio" replace />} />
                     {PLANET_SECTIONS.map((section) => (
                         <Route
                             key={section.id}

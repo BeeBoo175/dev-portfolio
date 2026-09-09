@@ -3,7 +3,7 @@ import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { MemoryRouter } from "react-router-dom";
 import { GalaxyStudio } from "./components/GalaxyStudio";
-import { GalaxyToolbar } from "./components/GalaxyToolbar";
+import { StudioToolbar as GalaxyToolbar } from "./components/StudioToolbar";
 import { galaxyStore } from "../galaxy/store";
 
 const DRAFT_STORAGE_KEY = "portfolio_galaxy_studio_draft_v1";

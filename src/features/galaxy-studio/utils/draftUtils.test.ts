@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { hasSavedWorkingDraft, DRAFT_STORAGE_KEY } from "./studioDraftUtils";
+import { hasSavedWorkingDraft, DRAFT_STORAGE_KEY } from "./draftUtils";
 import { galaxyStore } from "../../galaxy";
 
 function createMockStorage(): Storage {
@@ -22,7 +22,7 @@ function createMockStorage(): Storage {
     };
 }
 
-describe("studioDraftUtils", () => {
+describe("draftUtils", () => {
     let mockStorage: Storage;
 
     beforeEach(() => {

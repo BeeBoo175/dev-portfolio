@@ -4,16 +4,15 @@ import {
     galaxyStore,
     useGalaxyVisuals,
 } from "../../galaxy";
-import GalaxyToolbar from "./GalaxyToolbar";
+import StudioToolbar from "./StudioToolbar";
 import TargetSelector, { type TargetItem } from "./TargetSelector";
 import SunPanel from "./SunPanel";
-import AppearancePanel from "./AppearancePanel";
-import Orbit3DPanel from "./Orbit3DPanel";
-import TerrainPanel from "./TerrainPanel";
-import MoonsPanel from "./MoonsPanel";
 import AsteroidBeltPanel from "./AsteroidBeltPanel";
-import GalaxyDataDialog from "./GalaxyDataDialog";
-import { useGalaxyStudioDraft } from "../hooks/useGalaxyStudioDraft";
+import PlanetInspector from "./PlanetInspector";
+import StudioSidebarHeader from "./StudioSidebarHeader";
+import StudioDataDialog from "./StudioDataDialog";
+import StudioConfirmExitDialog from "./StudioConfirmExitDialog";
+import { useStudioDraft } from "../hooks/useStudioDraft";
 import "../GalaxyStudio.css";
 
 const TARGET_LIST: TargetItem[] = [
@@ -82,7 +81,7 @@ export function GalaxyStudio({
         markSaved,
         selectedId,
         resolvedSelection,
-    } = useGalaxyStudioDraft(focusId);
+    } = useStudioDraft(focusId);
 
     const [internalActiveTab, setInternalActiveTab] = useState<PlanetTab>(() => {
         if (resolvedSelection.isMoon && resolvedSelection.tab) {
@@ -165,66 +164,7 @@ export function GalaxyStudio({
 
     const targetLabel = TARGET_LIST.find((t) => t.id === selectedId)?.label || selectedId;
 
-    const renderHeaderActions = () => {
-        if (selectedId === "home" || selectedId === "sun") {
-            return (
-                <button
-                    type="button"
-                    className="studio-btn studio-btn--ghost studio-btn--sm"
-                    onClick={handleResetSun}
-                    title="Reset star to original default configuration"
-                >
-                    Reset
-                </button>
-            );
-        }
 
-        if (selectedId === "asteroid-belt") {
-            return (
-                <button
-                    type="button"
-                    className="studio-btn studio-btn--ghost studio-btn--sm"
-                    onClick={handleResetBelt}
-                    title="Reset asteroid belt to original default configuration"
-                >
-                    Reset
-                </button>
-            );
-        }
-
-        if (currentPlanet) {
-            return (
-                <>
-                    <button
-                        type="button"
-                        className={`studio-btn studio-btn--sm ${draftDefaultPlanetId === currentPlanet.id
-                                ? "studio-btn--station-active"
-                                : "studio-btn--ghost"
-                            }`}
-                        onClick={() => handleSetDefaultPlanetId(currentPlanet.id, targetLabel)}
-                        title={
-                            draftDefaultPlanetId === currentPlanet.id
-                                ? "Current default starting base for spaceship"
-                                : "Set this planet as spaceship default starting base"
-                        }
-                        aria-pressed={draftDefaultPlanetId === currentPlanet.id}
-                    >
-                        {draftDefaultPlanetId === currentPlanet.id ? "Ship Base" : "Set Ship Base"}
-                    </button>
-                    <button
-                        type="button"
-                        className="studio-btn studio-btn--ghost studio-btn--sm"
-                        onClick={() => handleResetCurrentPlanet(targetLabel)}
-                        title="Reset this planet to original default configuration"
-                    >
-                        Reset
-                    </button>
-                </>
-            );
-        }
-
-        return null;
-    };
 
     const renderInspectorContent = () => {
         if (selectedId === "home" || selectedId === "sun") {
@@ -251,69 +191,14 @@ export function GalaxyStudio({
 
         if (currentPlanet) {
             return (
-                <>
-                    <div className="studio-tabs" role="tablist" aria-label="Planet categories">
-                        {[
-                            { id: "appearance", label: "Appearance" },
-                            { id: "orbit", label: "Orbit 3D" },
-                            { id: "terrain", label: "Terrain" },
-                            {
-                                id: "moons",
-                                label: `Moons (${currentPlanet.children?.length || 0})`,
-                            },
-                        ].map((tab) => (
-                            <button
-                                key={tab.id}
-                                type="button"
-                                role="tab"
-                                id={`planet-tab-${tab.id}`}
-                                aria-selected={activeTab === tab.id}
-                                aria-controls={`planet-panel-${tab.id}`}
-                                className={`studio-tab ${activeTab === tab.id ? "studio-tab--active" : ""}`}
-                                onClick={() => handleSetActiveTab(tab.id as PlanetTab)}
-                            >
-                                {tab.label}
-                            </button>
-                        ))}
-                    </div>
-
-                    <div
-                        className="studio-tab-body"
-                        role="tabpanel"
-                        id={`planet-panel-${activeTab}`}
-                        aria-labelledby={`planet-tab-${activeTab}`}
-                    >
-                        {activeTab === "appearance" && (
-                            <AppearancePanel
-                                planet={currentPlanet}
-                                onChange={updatePlanet}
-                            />
-                        )}
-
-                        {activeTab === "orbit" && (
-                            <Orbit3DPanel
-                                planet={currentPlanet}
-                                onChange={updatePlanet}
-                            />
-                        )}
-
-                        {activeTab === "terrain" && (
-                            <TerrainPanel
-                                planet={currentPlanet}
-                                onChange={updatePlanet}
-                            />
-                        )}
-
-                        {activeTab === "moons" && (
-                            <MoonsPanel
-                                planet={currentPlanet}
-                                activeMoonIndex={activeMoonIndex}
-                                onSelectMoon={handleSelectMoon}
-                                onChange={updatePlanet}
-                            />
-                        )}
-                    </div>
-                </>
+                <PlanetInspector
+                    currentPlanet={currentPlanet}
+                    activeTab={activeTab}
+                    onTabChange={handleSetActiveTab}
+                    activeMoonIndex={activeMoonIndex}
+                    onSelectMoon={handleSelectMoon}
+                    onUpdatePlanet={updatePlanet}
+                />
             );
         }
 
@@ -323,7 +208,7 @@ export function GalaxyStudio({
     return (
         <div className={`galaxy-studio-container ${isInteracting ? "galaxy-studio-container--zen" : ""}`}>
             <div className="studio-header-area">
-                <GalaxyToolbar
+                <StudioToolbar
                     visuals={visuals}
                     isDirty={isDirty}
                     canUndo={canUndo}
@@ -388,24 +273,16 @@ export function GalaxyStudio({
                     </button>
 
                     <div className="studio-sidebar__content">
-                        <div className="studio-sidebar__header">
-                            <div className="studio-sidebar__header-info">
-                                <span className="studio-sidebar__target-type">
-                                    {selectedId === "home" || selectedId === "sun"
-                                        ? "Star"
-                                        : selectedId === "asteroid-belt"
-                                            ? "Debris Belt"
-                                            : "Planet"}
-                                </span>
-                                <h2 className="studio-sidebar__target-name">
-                                    {targetLabel}
-                                </h2>
-                            </div>
-
-                            <div className="studio-sidebar__header-actions">
-                                {renderHeaderActions()}
-                            </div>
-                        </div>
+                        <StudioSidebarHeader
+                            selectedId={selectedId}
+                            targetLabel={targetLabel}
+                            currentPlanet={currentPlanet}
+                            draftDefaultPlanetId={draftDefaultPlanetId}
+                            onResetSun={handleResetSun}
+                            onResetBelt={handleResetBelt}
+                            onResetCurrentPlanet={handleResetCurrentPlanet}
+                            onSetDefaultPlanetId={handleSetDefaultPlanetId}
+                        />
 
                         {renderInspectorContent()}
                     </div>
@@ -424,58 +301,18 @@ export function GalaxyStudio({
                 onToggleSidebar={handleToggleSidebar}
             />
 
-            {isConfirmExitOpen && (
-                <div
-                    className="studio-modal-backdrop"
-                    onClick={() => setIsConfirmExitOpen(false)}
-                >
-                    <div
-                        className="studio-confirm-dialog"
-                        onClick={(e) => e.stopPropagation()}
-                        role="dialog"
-                        aria-modal="true"
-                        aria-labelledby="studio-confirm-title"
-                    >
-                        <div className="studio-confirm-title" id="studio-confirm-title">
-                            Unapplied Changes
-                        </div>
-                        <div className="studio-confirm-text">
-                            You have working modifications in Galaxy Studio. Would you like to keep your draft saved locally for your next session or discard it?
-                        </div>
-                        <div className="studio-confirm-actions">
-                            <button
-                                type="button"
-                                className="studio-btn studio-btn--ghost studio-btn--sm"
-                                onClick={() => setIsConfirmExitOpen(false)}
-                            >
-                                Keep Editing
-                            </button>
-                            <button
-                                type="button"
-                                className="studio-btn studio-btn--secondary studio-btn--sm"
-                                onClick={() => {
-                                    markSaved();
-                                    navigate("/");
-                                }}
-                                title="Exit to portfolio now. Your in-progress edits will remain safely saved in draft for when you return."
-                            >
-                                Keep Draft & Exit
-                            </button>
-                            <button
-                                type="button"
-                                className="studio-btn studio-btn--danger studio-btn--sm"
-                                onClick={() => {
-                                    handleConfirmDiscardAndExit();
-                                    navigate("/");
-                                }}
-                                title="Permanently discard all unapplied draft changes and revert to your published galaxy"
-                            >
-                                Discard & Exit
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <StudioConfirmExitDialog
+                isOpen={isConfirmExitOpen}
+                onClose={() => setIsConfirmExitOpen(false)}
+                onKeepDraftAndExit={() => {
+                    markSaved();
+                    navigate("/");
+                }}
+                onDiscardAndExit={() => {
+                    handleConfirmDiscardAndExit();
+                    navigate("/");
+                }}
+            />
 
             {toastMessage && (
                 <div className="studio-toast" role="status">
@@ -483,7 +320,7 @@ export function GalaxyStudio({
                 </div>
             )}
 
-            <GalaxyDataDialog
+            <StudioDataDialog
                 isOpen={isDataModalOpen}
                 planets={draftPlanets}
                 asteroidBelt={draftBelt}
