@@ -1,12 +1,20 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { GalaxyScene, useGalaxyPlanets } from "../features/galaxy";
-import { GalaxyStudio, resolveTargetSelection, type PlanetTab } from "../features/galaxy-studio";
-import { RadarTransitionProvider } from "../features/transition";
+import { useGalaxyPlanets, useGalaxyViewport } from "../features/galaxy";
+import {
+    GalaxyStudio,
+    resolveTargetSelection,
+    hasSavedWorkingDraft,
+    type PlanetTab,
+} from "../features/galaxy-studio";
+import { useRadarTransition } from "../features/transition";
 
-function StudioPageContent() {
+export function StudioPage() {
     const [searchParams, setSearchParams] = useSearchParams();
     const planets = useGalaxyPlanets();
+    const { setFocusId, setSelectedMoonId, registerSelectHandler } = useGalaxyViewport();
+    const { triggerSweep } = useRadarTransition();
+
     const targetParam = searchParams.get("target") || "home";
     const initialResolved = resolveTargetSelection(targetParam, planets);
     const focusId = initialResolved.focusId;
@@ -24,6 +32,16 @@ function StudioPageContent() {
     useEffect(() => {
         planetsRef.current = planets;
     }, [planets]);
+
+    useEffect(() => {
+        setFocusId(focusId);
+    }, [focusId, setFocusId]);
+
+    useEffect(() => {
+        if (hasSavedWorkingDraft()) {
+            triggerSweep();
+        }
+    }, [triggerSweep]);
 
     const handleFocusChange = useCallback((rawTarget: string) => {
         const resolved = resolveTargetSelection(rawTarget, planetsRef.current);
@@ -44,44 +62,35 @@ function StudioPageContent() {
         if (resolved.isMoon && resolved.moonIndex !== undefined) {
             setActiveMoonIndex(resolved.moonIndex);
         }
-
     }, [setSearchParams]);
+
+    useEffect(() => {
+        return registerSelectHandler(handleFocusChange);
+    }, [registerSelectHandler, handleFocusChange]);
 
     const currentFocusedPlanet = planets.find((p) => p.id === focusId);
     const selectedMoonId = activeTab === "moons" && currentFocusedPlanet?.children
         ? currentFocusedPlanet.children[activeMoonIndex]?.id
         : undefined;
 
-    return (
-        <div className="app-shell" style={{ overflow: "hidden" }}>
-            <div className="app-shell__canvas" style={{ pointerEvents: "auto" }}>
-                <GalaxyScene
-                    focusId={focusId}
-                    isEditorMode={true}
-                    selectedMoonId={selectedMoonId}
-                    onSelect={handleFocusChange}
-                />
-            </div>
+    useEffect(() => {
+        setSelectedMoonId(selectedMoonId);
+        return () => {
+            setSelectedMoonId(undefined);
+        };
+    }, [selectedMoonId, setSelectedMoonId]);
 
-            <GalaxyStudio
-                focusId={focusId}
-                onFocusChange={handleFocusChange}
-                activeTab={activeTab}
-                onTabChange={setActiveTab}
-                activeMoonIndex={activeMoonIndex}
-                onSelectMoon={setActiveMoonIndex}
-                isSidebarOpen={isSidebarOpen}
-                onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
-            />
-        </div>
-    );
-}
-
-export function StudioPage() {
     return (
-        <RadarTransitionProvider duration={0.8} maxRadius={44.0}>
-            <StudioPageContent />
-        </RadarTransitionProvider>
+        <GalaxyStudio
+            focusId={focusId}
+            onFocusChange={handleFocusChange}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            activeMoonIndex={activeMoonIndex}
+            onSelectMoon={setActiveMoonIndex}
+            isSidebarOpen={isSidebarOpen}
+            onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
+        />
     );
 }
 
