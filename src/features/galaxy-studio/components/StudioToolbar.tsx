@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { GalaxyVisualSettings } from "../../galaxy";
 
-export interface GalaxyToolbarProps {
+export interface StudioToolbarProps {
     visuals: GalaxyVisualSettings;
     isDirty: boolean;
     canUndo?: boolean;
@@ -23,7 +23,9 @@ export interface GalaxyToolbarProps {
     onExit: () => void;
 }
 
-export function GalaxyToolbar({
+export type GalaxyToolbarProps = StudioToolbarProps;
+
+export function StudioToolbar({
     visuals = {
         showOrbitPaths: true,
         showOrbitalAxes: true,
@@ -261,4 +263,5 @@ export function GalaxyToolbar({
     );
 }
 
-export default GalaxyToolbar;
+export const GalaxyToolbar = StudioToolbar;
+export default StudioToolbar;

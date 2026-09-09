@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import { GalaxyViewportContext, type GalaxyViewportContextValue } from "../context/viewportContextDef";
+import { GalaxyViewportContext, type GalaxyViewportContextValue } from "../context/viewportContext";
 
 export function useGalaxyViewport(): GalaxyViewportContextValue {
     const ctx = useContext(GalaxyViewportContext);

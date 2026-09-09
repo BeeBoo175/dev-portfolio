@@ -1,5 +1,5 @@
 import { useContext, useRef } from "react";
-import { RadarTransitionContext } from "../context/transitionContextDef";
+import { RadarTransitionContext } from "../context/transitionContext";
 import type { RadarStateRefValue, RadarTransitionContextValue } from "../types";
 
 const DEFAULT_RADAR_STATE: RadarStateRefValue = {

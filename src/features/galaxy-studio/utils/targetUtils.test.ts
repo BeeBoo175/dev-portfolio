@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { resolveTargetSelection } from "./studioTarget";
+import { resolveTargetSelection } from "./targetUtils";
 import type { OrbitConfig } from "../../galaxy";
 
 const mockPlanets: OrbitConfig[] = [

@@ -9,7 +9,6 @@ import AsteroidBelt from "./components/AsteroidBelt";
 import CameraFillLight from "./components/CameraFillLight";
 import { useGalaxyAsteroidBelt, useGalaxyPlanets, useGalaxySun, useGalaxyVisuals } from "./store";
 import { useTheme } from "../theme";
-import { RadarSweepVisual } from "../transition";
 
 export interface GalaxySceneProps {
     focusId: string;
@@ -18,6 +17,7 @@ export interface GalaxySceneProps {
     allowManualOrbit?: boolean;
     selectedMoonId?: string;
     onSelect?: (id: string) => void;
+    children?: React.ReactNode;
 }
 
 export function GalaxyScene({
@@ -27,6 +27,7 @@ export function GalaxyScene({
     allowManualOrbit = true,
     selectedMoonId,
     onSelect,
+    children,
 }: GalaxySceneProps) {
     const bodyRefs = useRef<Record<string, THREE.Group | null>>({});
     const sun = useGalaxySun();
@@ -50,7 +51,7 @@ export function GalaxyScene({
             <CameraFillLight focusId={focusId} bodyRefs={bodyRefs} color={sun.color} />
 
             <CosmicBackground visible={visuals.showBackgroundPhenomena !== false} />
-            <RadarSweepVisual />
+            {children}
 
             <CelestialBody
                 ref={(instance) => {

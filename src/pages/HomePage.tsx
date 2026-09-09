@@ -3,37 +3,15 @@ import { Link } from "react-router-dom";
 import { galaxyStore, useGalaxyPlanets, useGalaxyViewport } from "../features/galaxy";
 import { HomeOverlay, PLANET_SECTIONS, type SectionId } from "../features/sections";
 import { DockedNavigation, type DockedTargetItem } from "../components/navigation";
-import { useRadarTransition } from "../features/transition";
-import { hasSavedWorkingDraft } from "../features/galaxy-studio";
 
 export function HomePage() {
     const { focusId, setFocusId, registerSelectHandler } = useGalaxyViewport();
-    const { triggerSweep } = useRadarTransition();
     const triggerRef = useRef<(id: SectionId) => void>(() => { });
     const dynamicPlanets = useGalaxyPlanets();
 
     useEffect(() => {
-        const hadWorkingDraft = hasSavedWorkingDraft();
-        const beforeSignature = JSON.stringify({
-            p: galaxyStore.getSnapshot(),
-            b: galaxyStore.getAsteroidBeltSnapshot(),
-            s: galaxyStore.getSunSnapshot(),
-        });
-
         galaxyStore.revertToPersisted();
-
-        const afterSignature = JSON.stringify({
-            p: galaxyStore.getSnapshot(),
-            b: galaxyStore.getAsteroidBeltSnapshot(),
-            s: galaxyStore.getSunSnapshot(),
-        });
-
-        const hasGalaxyChanged = beforeSignature !== afterSignature;
-
-        if (hadWorkingDraft || hasGalaxyChanged) {
-            triggerSweep();
-        }
-    }, [triggerSweep]);
+    }, []);
 
     const registerTrigger = useCallback((fn: (id: SectionId) => void) => {
         triggerRef.current = fn;

@@ -1,6 +1,6 @@
 import type { OrbitConfig } from "../../galaxy";
 import { Tooltip } from "../../../components/ui/Tooltip";
-import { RAD_TO_DEG, DEG_TO_RAD } from "../utils/studioMath";
+import { RAD_TO_DEG, DEG_TO_RAD } from "../utils/mathUtils";
 
 export interface Orbit3DPanelProps {
     planet: OrbitConfig;

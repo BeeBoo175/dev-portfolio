@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { radToDeg, degToRad, clamp, generateRandomSeed } from "./studioMath";
+import { radToDeg, degToRad, clamp, generateRandomSeed } from "./mathUtils";
 
-describe("studioMath", () => {
+describe("mathUtils", () => {
     it("converts radians to degrees accurately", () => {
         expect(radToDeg(0)).toBe(0);
         expect(radToDeg(Math.PI)).toBeCloseTo(180);

@@ -1,7 +1,7 @@
 import type { AsteroidBeltConfig } from "../../galaxy";
 import { generateRandomAsteroidBelt } from "../presets";
 import { Tooltip } from "../../../components/ui/Tooltip";
-import { RAD_TO_DEG, DEG_TO_RAD, generateRandomSeed } from "../utils/studioMath";
+import { RAD_TO_DEG, DEG_TO_RAD, generateRandomSeed } from "../utils/mathUtils";
 
 export interface AsteroidBeltPanelProps {
     config: AsteroidBeltConfig;

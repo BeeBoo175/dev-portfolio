@@ -1,6 +1,6 @@
 .docked-navigation {
     position: fixed;
-    bottom: max(16px, var(--sab));
+    bottom: max(12px, var(--sab));
     left: 50%;
     transform: translateX(-50%);
     z-index: 60;

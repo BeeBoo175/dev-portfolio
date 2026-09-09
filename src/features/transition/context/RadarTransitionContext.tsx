@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from "react";
-import { RadarTransitionContext } from "./transitionContextDef";
+import { RadarTransitionContext } from "./transitionContext";
 import type { RadarStateRefValue, RadarTransitionContextValue } from "../types";
 
 export interface RadarTransitionProviderProps {

@@ -16,6 +16,6 @@ export * from "./types";
 export * from "./data";
 export * from "./cameraConfig";
 export * from "./store";
-export * from "./context/viewportContextDef";
+export * from "./context/viewportContext";
 export * from "./context/GalaxyViewportProvider";
 export * from "./hooks/useGalaxyViewport";

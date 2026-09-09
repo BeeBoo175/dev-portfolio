@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, type ReactNode } from "react";
-import { GalaxyViewportContext } from "./viewportContextDef";
+import { GalaxyViewportContext } from "./viewportContext";
 
 export interface GalaxyViewportProviderProps {
     children: ReactNode;

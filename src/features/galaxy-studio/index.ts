@@ -1,7 +1,12 @@
 export { default as GalaxyStudio } from "./components/GalaxyStudio";
 export type { GalaxyStudioProps, PlanetTab } from "./components/GalaxyStudio";
+export { StudioToolbar, GalaxyToolbar } from "./components/StudioToolbar";
+export type { StudioToolbarProps, GalaxyToolbarProps } from "./components/StudioToolbar";
+export { StudioDataDialog, GalaxyDataDialog } from "./components/StudioDataDialog";
+export type { StudioDataDialogProps, GalaxyDataDialogProps } from "./components/StudioDataDialog";
+export { useStudioDraft } from "./hooks/useStudioDraft";
 export * from "./presets";
-export * from "./utils/studioTarget";
-export * from "./utils/studioDraftUtils";
-
-
+export * from "./utils/targetUtils";
+export * from "./utils/draftUtils";
+export * from "./utils/mathUtils";
+export * from "./types";
