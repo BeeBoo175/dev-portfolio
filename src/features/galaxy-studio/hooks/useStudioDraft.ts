@@ -16,6 +16,7 @@ import { DRAFT_STORAGE_KEY } from "../utils/draftUtils";
 import { useDraftHistory } from "./useDraftHistory";
 import { useDraftPersistence } from "./useDraftPersistence";
 import type { GalaxyDraftState } from "../types";
+import { useRadarTransition } from "../../transition";
 
 export { DRAFT_STORAGE_KEY };
 export type { GalaxyDraftState };
@@ -57,6 +58,7 @@ function getSpatialSignature(planets: OrbitConfig[], sun: SunConfig, belt: Aster
 const _collisionCache = new Map<string, ReturnType<typeof detectAllGalaxyCollisions>>();
 
 export function useStudioDraft(targetId: string) {
+    const { triggerSweep } = useRadarTransition();
     const initialSavedState: GalaxyDraftState = useMemo(() => ({
         planets: galaxyStore.getSnapshot(),
         asteroidBelt: galaxyStore.getAsteroidBeltSnapshot(),
@@ -246,7 +248,8 @@ export function useStudioDraft(targetId: string) {
             defaultPlanetId: draftDefaultPlanetId,
         });
         showToast("Randomized all planet parameters.");
-    }, [draftPlanets, draftBelt, draftSun, draftDefaultPlanetId, applyDraftState, pushHistory, showToast]);
+        triggerSweep();
+    }, [draftPlanets, draftBelt, draftSun, draftDefaultPlanetId, applyDraftState, pushHistory, showToast, triggerSweep]);
 
     const handleResolveCollisions = useCallback(() => {
         const resolved = resolveGalaxyCollisions(draftPlanets, draftBelt, draftSun);

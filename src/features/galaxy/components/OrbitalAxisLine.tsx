@@ -31,16 +31,21 @@ export const OrbitalAxisLine = memo(function OrbitalAxisLine({
         return new THREE.BufferGeometry().setFromPoints(points);
     }, [radius]);
 
-    const [material] = useState(() => new THREE.LineBasicMaterial({
-        color: effectiveColor,
-        transparent: true,
-        opacity: effectiveOpacity,
-        depthWrite: false,
-    }));
+    const [material] = useState(() => {
+        const mat = new THREE.LineBasicMaterial({
+            color: effectiveColor,
+            transparent: true,
+            opacity: effectiveOpacity,
+            depthWrite: false,
+        });
+        mat.userData.baseOpacity = effectiveOpacity;
+        return mat;
+    });
 
     useEffect(() => {
         material.color.copy(effectiveColor);
         material.opacity = effectiveOpacity;
+        material.userData.baseOpacity = effectiveOpacity;
     }, [material, effectiveColor, effectiveOpacity]);
 
     useEffect(() => {

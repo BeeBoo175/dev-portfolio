@@ -32,8 +32,10 @@ export const CelestialBody = memo(forwardRef<THREE.Group, CelestialBodyProps>(
         const bodyRef = useRef<THREE.Mesh>(null);
         const bodyScaleGroupRef = useRef<THREE.Group>(null);
         const orbitPathGroupRef = useRef<THREE.Group>(null);
-        const isRevealedRef = useRef(false);
+        const orbitalAxisGroupRef = useRef<THREE.Group>(null);
         const { radarStateRef } = useRadarTransition();
+        const lineFadeProgressRef = useRef(radarStateRef.current?.isComplete ? 1 : 0);
+        const isRevealedRef = useRef(false);
         const { isLight } = useTheme();
         const [isHovered, setIsHovered] = useState(false);
         const visuals = useGalaxyVisuals();
@@ -68,31 +70,55 @@ export const CelestialBody = memo(forwardRef<THREE.Group, CelestialBodyProps>(
                             bodyScaleGroupRef.current.scale.set(1, 1, 1);
                             bodyScaleGroupRef.current.visible = true;
                         }
-                        if (orbitPathGroupRef.current) {
-                            orbitPathGroupRef.current.visible = true;
-                        }
                         isRevealedRef.current = true;
                     }
+                    if (lineFadeProgressRef.current < 1) {
+                        lineFadeProgressRef.current = Math.min(1, lineFadeProgressRef.current + delta * 6.5);
+                        const alpha = Math.min(1, Math.sqrt(lineFadeProgressRef.current));
+                        if (orbitPathGroupRef.current) {
+                            orbitPathGroupRef.current.visible = true;
+                            orbitPathGroupRef.current.traverse((child) => {
+                                const mat = (child as THREE.Line).material as THREE.LineBasicMaterial | undefined;
+                                if (mat && typeof mat.userData?.baseOpacity === "number") {
+                                    mat.opacity = mat.userData.baseOpacity * alpha;
+                                }
+                            });
+                        }
+                        if (orbitalAxisGroupRef.current) {
+                            orbitalAxisGroupRef.current.visible = true;
+                            orbitalAxisGroupRef.current.traverse((child) => {
+                                const mat = (child as THREE.Line).material as THREE.LineBasicMaterial | undefined;
+                                if (mat && typeof mat.userData?.baseOpacity === "number") {
+                                    mat.opacity = mat.userData.baseOpacity * alpha;
+                                }
+                            });
+                        }
+                    }
                 } else {
+                    isRevealedRef.current = false;
+                    lineFadeProgressRef.current = 0;
+                    if (orbitPathGroupRef.current) {
+                        orbitPathGroupRef.current.visible = false;
+                    }
+                    if (orbitalAxisGroupRef.current) {
+                        orbitalAxisGroupRef.current.visible = false;
+                    }
+
                     const dist = isSun
                         ? 0
                         : isMoon
                             ? (parentOrbitRadius ?? 0) + 0.8
                             : (orbitConfig.orbitRadius ?? 0);
                     const deltaR = radarState.currentRadius - dist;
-                    if (orbitPathGroupRef.current) {
-                        orbitPathGroupRef.current.visible = deltaR >= 0;
-                    }
                     if (bodyScaleGroupRef.current) {
                         if (deltaR < 0) {
                             bodyScaleGroupRef.current.visible = false;
                             bodyScaleGroupRef.current.scale.set(0.001, 0.001, 0.001);
                         } else {
                             bodyScaleGroupRef.current.visible = true;
-                            const progress = Math.min(1, deltaR / 3.0);
-                            const p = progress - 1;
-                            const scale = 1 + 2.70158 * Math.pow(p, 3) + 1.70158 * Math.pow(p, 2);
-                            const clampedScale = Math.max(0.001, Math.min(1.15, scale));
+                            const progress = Math.min(1, deltaR / 2.5);
+                            const scale = 1 - Math.pow(1 - progress, 3);
+                            const clampedScale = Math.max(0.001, Math.min(1, scale));
                             bodyScaleGroupRef.current.scale.set(clampedScale, clampedScale, clampedScale);
                         }
                     }
@@ -203,11 +229,13 @@ export const CelestialBody = memo(forwardRef<THREE.Group, CelestialBodyProps>(
 
 
                             {visuals.showOrbitalAxes && (
-                                <OrbitalAxisLine
-                                    radius={body.radius}
-                                    color={effectiveColor}
-                                    opacity={0.6}
-                                />
+                                <group ref={orbitalAxisGroupRef}>
+                                    <OrbitalAxisLine
+                                        radius={body.radius}
+                                        color={effectiveColor}
+                                        opacity={0.6}
+                                    />
+                                </group>
                             )}
 
                             {isSun && (
