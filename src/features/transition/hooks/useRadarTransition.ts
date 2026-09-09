@@ -5,7 +5,7 @@ import type { RadarStateRefValue, RadarTransitionContextValue } from "../types";
 const DEFAULT_RADAR_STATE: RadarStateRefValue = {
     currentRadius: 32,
     isComplete: true,
-    duration: 0.38,
+    duration: 0.40,
     maxRadius: 32,
     sweepBandWidth: 3.5,
 };

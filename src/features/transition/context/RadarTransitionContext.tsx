@@ -11,8 +11,8 @@ export interface RadarTransitionProviderProps {
 
 export function RadarTransitionProvider({
     children,
-    duration = 0.38,
-    maxRadius = 38.0,
+    duration = 0.40,
+    maxRadius = 46.0,
     sweepBandWidth = 3.5,
 }: RadarTransitionProviderProps) {
     const [isRadarComplete, setIsRadarComplete] = useState(false);

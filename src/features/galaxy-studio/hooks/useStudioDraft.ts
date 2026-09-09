@@ -321,10 +321,19 @@ export function useStudioDraft(targetId: string) {
             sun: structuredClone(DEFAULT_SUN),
             defaultPlanetId: DEFAULT_SPACESHIP_PLANET_ID,
         };
+        const hasChanges =
+            JSON.stringify(stripDetailFromPlanets(draftPlanets)) !== JSON.stringify(stripDetailFromPlanets(resetState.planets)) ||
+            JSON.stringify(draftBelt) !== JSON.stringify(resetState.asteroidBelt) ||
+            JSON.stringify(draftSun) !== JSON.stringify(resetState.sun) ||
+            draftDefaultPlanetId !== resetState.defaultPlanetId;
+
         applyDraftState(resetState);
         pushHistory(resetState);
         showToast("Reset entire galaxy to original default configuration.");
-    }, [applyDraftState, pushHistory, showToast]);
+        if (hasChanges) {
+            triggerSweep();
+        }
+    }, [draftPlanets, draftBelt, draftSun, draftDefaultPlanetId, applyDraftState, pushHistory, showToast, triggerSweep]);
 
     return {
         draftPlanets,
