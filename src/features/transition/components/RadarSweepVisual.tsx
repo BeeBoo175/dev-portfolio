@@ -22,6 +22,14 @@ export function RadarSweepVisual() {
     const primaryBaseOpacity = isLight ? 0.98 : 0.92;
     const trailingBaseOpacity = isLight ? 0.48 : 0.40;
 
+    const prevCompleteRef = useRef(isRadarComplete);
+    useEffect(() => {
+        if (prevCompleteRef.current && !isRadarComplete) {
+            elapsedTimeRef.current = 0;
+        }
+        prevCompleteRef.current = isRadarComplete;
+    }, [isRadarComplete]);
+
     useEffect(() => {
         if (primaryMatRef.current) {
             primaryMatRef.current.color.set(accentPrimary);

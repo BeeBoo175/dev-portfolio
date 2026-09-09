@@ -12,8 +12,9 @@ import {
 } from "../../galaxy";
 import { generateRandomGalaxy } from "../presets";
 import { resolveTargetSelection } from "../utils/studioTarget";
+import { DRAFT_STORAGE_KEY } from "../utils/studioDraftUtils";
 
-export const DRAFT_STORAGE_KEY = "portfolio_galaxy_studio_draft_v1";
+export { DRAFT_STORAGE_KEY };
 
 
 export interface GalaxyDraftState {
@@ -487,6 +488,13 @@ export function useGalaxyStudioDraft(targetId: string) {
 
     const markSaved = useCallback(() => {
         isSavedRef.current = true;
+        try {
+            const serialized = JSON.stringify(currentDraftRef.current);
+            sessionStorage.setItem(DRAFT_STORAGE_KEY, serialized);
+            localStorage.setItem(DRAFT_STORAGE_KEY, serialized);
+        } catch (e) {
+            void e;
+        }
     }, []);
 
     return {
