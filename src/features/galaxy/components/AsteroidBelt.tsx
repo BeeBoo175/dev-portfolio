@@ -175,6 +175,7 @@ export const AsteroidBelt = memo(function AsteroidBelt({ config, isEditorMode = 
                         isRevealedRef.current = true;
                     }
                 } else {
+                    isRevealedRef.current = false;
                     const deltaR = radarState.currentRadius - innerRadius;
                     if (deltaR < 0) {
                         groupRef.current.visible = false;

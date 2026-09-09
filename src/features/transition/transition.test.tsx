@@ -118,4 +118,27 @@ describe("RadarTransition", () => {
             root.unmount();
         });
     });
+
+    it("initializes with fast transition duration by default", async () => {
+        let readDuration = 0;
+        function DurationConsumer() {
+            const { radarStateRef } = useRadarTransition();
+            React.useEffect(() => {
+                readDuration = radarStateRef.current?.duration ?? 0;
+            }, [radarStateRef]);
+            return null;
+        }
+        const root = createRoot(container);
+        await act(async () => {
+            root.render(
+                <RadarTransitionProvider>
+                    <DurationConsumer />
+                </RadarTransitionProvider>
+            );
+        });
+        expect(readDuration).toBe(0.38);
+        await act(async () => {
+            root.unmount();
+        });
+    });
 });

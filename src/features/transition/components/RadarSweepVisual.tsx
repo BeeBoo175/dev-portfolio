@@ -53,7 +53,7 @@ export function RadarSweepVisual() {
         return max;
     }, [planets]);
 
-    const targetMaxRadius = galaxySize * 1.28;
+    const targetMaxRadius = galaxySize * 1.05;
 
     useFrame((_, delta) => {
         if (!groupRef.current) return;
@@ -63,7 +63,7 @@ export function RadarSweepVisual() {
             return;
         }
 
-        if (state.maxRadius < targetMaxRadius) {
+        if (state.maxRadius !== targetMaxRadius) {
             state.maxRadius = targetMaxRadius;
         }
 

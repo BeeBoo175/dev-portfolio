@@ -27,10 +27,10 @@ describe("galaxyStore", () => {
         expect(updated?.color).toBe("#123456");
     });
 
-    it("defaults all visual settings to true with no prior data", () => {
+    it("defaults visual settings with poles and orbit off when no prior data", () => {
         const visuals = galaxyStore.getVisualsSnapshot();
-        expect(visuals.showOrbitPaths).toBe(true);
-        expect(visuals.showOrbitalAxes).toBe(true);
+        expect(visuals.showOrbitPaths).toBe(false);
+        expect(visuals.showOrbitalAxes).toBe(false);
         expect(visuals.showSelectionGlow).toBe(true);
         expect(visuals.showPlanetNames).toBe(true);
         expect(visuals.freezeCameraOrbit).toBe(true);

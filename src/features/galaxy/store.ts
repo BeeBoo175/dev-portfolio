@@ -76,8 +76,8 @@ function loadPersistedVisuals(): GalaxyVisualSettings {
         const raw = localStorage.getItem(VISUALS_KEY);
         if (raw) {
             return {
-                showOrbitPaths: true,
-                showOrbitalAxes: true,
+                showOrbitPaths: false,
+                showOrbitalAxes: false,
                 showSelectionGlow: true,
                 showPlanetNames: true,
                 freezeCameraOrbit: true,
@@ -89,8 +89,8 @@ function loadPersistedVisuals(): GalaxyVisualSettings {
         void e;
     }
     return {
-        showOrbitPaths: true,
-        showOrbitalAxes: true,
+        showOrbitPaths: false,
+        showOrbitalAxes: false,
         showSelectionGlow: true,
         showPlanetNames: true,
         freezeCameraOrbit: true,
@@ -121,8 +121,8 @@ function initLocalStorageDefaultsIfEmpty() {
         }
         if (!localStorage.getItem(VISUALS_KEY)) {
             localStorage.setItem(VISUALS_KEY, JSON.stringify({
-                showOrbitPaths: true,
-                showOrbitalAxes: true,
+                showOrbitPaths: false,
+                showOrbitalAxes: false,
                 showSelectionGlow: true,
                 showPlanetNames: true,
                 freezeCameraOrbit: true,
@@ -282,8 +282,8 @@ class GalaxyStore {
 
     resetVisualSettings() {
         this.visuals = {
-            showOrbitPaths: true,
-            showOrbitalAxes: true,
+            showOrbitPaths: false,
+            showOrbitalAxes: false,
             showSelectionGlow: true,
             showPlanetNames: true,
             freezeCameraOrbit: true,
@@ -302,8 +302,8 @@ class GalaxyStore {
         this.asteroidBelt = cloneDefaultAsteroidBelt();
         this.sun = cloneDefaultSun();
         this.visuals = {
-            showOrbitPaths: true,
-            showOrbitalAxes: true,
+            showOrbitPaths: false,
+            showOrbitalAxes: false,
             showSelectionGlow: true,
             showPlanetNames: true,
             freezeCameraOrbit: true,

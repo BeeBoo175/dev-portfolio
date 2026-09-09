@@ -27,8 +27,8 @@ export type GalaxyToolbarProps = StudioToolbarProps;
 
 export function StudioToolbar({
     visuals = {
-        showOrbitPaths: true,
-        showOrbitalAxes: true,
+        showOrbitPaths: false,
+        showOrbitalAxes: false,
         showSelectionGlow: true,
         showPlanetNames: true,
         freezeCameraOrbit: true,
