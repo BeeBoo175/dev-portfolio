@@ -93,6 +93,7 @@ export function GalaxyScene({
                 bodyRefs={bodyRefs}
                 allowManualOrbit={allowManualOrbit}
                 allowZoom={isEditorMode}
+                isEditorMode={isEditorMode}
                 cameraOrbitSpeed={sun.cameraOrbitSpeed}
                 isCameraOrbitPaused={effectiveCameraOrbitPaused}
                 onFocusChange={onSelect}

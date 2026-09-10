@@ -24,6 +24,7 @@ export interface CameraRigProps {
     bodyRefs: React.RefObject<Record<string, THREE.Group | null>>;
     allowManualOrbit?: boolean;
     allowZoom?: boolean;
+    isEditorMode?: boolean;
     cameraOrbitSpeed?: number;
     isCameraOrbitPaused?: boolean;
     customDistanceConfig?: Partial<CameraDistanceConfig>;
@@ -36,6 +37,7 @@ export function CameraRig({
     bodyRefs,
     allowManualOrbit = false,
     allowZoom = false,
+    isEditorMode = false,
     cameraOrbitSpeed = HOME_ORBIT_SPEED,
     isCameraOrbitPaused = false,
     customDistanceConfig,
@@ -43,6 +45,7 @@ export function CameraRig({
 }: CameraRigProps) {
     const { camera, gl } = useThree();
     const lastFocusId = useRef<string | null>(null);
+    const lastEditorMode = useRef(isEditorMode);
     const currentTargetPos = useRef(new THREE.Vector3());
     const currentLookTarget = useRef(new THREE.Vector3());
     const desiredPos = useRef(new THREE.Vector3());
@@ -119,7 +122,10 @@ export function CameraRig({
             )
             .add(currentTargetPos.current);
 
-        if (focusId !== lastFocusId.current) {
+        const isExitingEditor = lastEditorMode.current && !isEditorMode;
+        lastEditorMode.current = isEditorMode;
+
+        if (focusId !== lastFocusId.current || isExitingEditor) {
             const isInitial = lastFocusId.current === null;
             lastFocusId.current = focusId;
             resetOffsets();
