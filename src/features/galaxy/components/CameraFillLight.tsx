@@ -1,6 +1,9 @@
 import { useMemo, useRef, useEffect } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
+import { getCameraDistanceConfig } from "../cameraConfig";
+
+export const DEFAULT_CAMERA_FILL_LIGHT_INTENSITY = 6.0;
 
 export interface CameraFillLightProps {
     focusId: string;
@@ -15,7 +18,7 @@ function updateSpotlightTarget(
     group: THREE.Group,
     cameraPos: THREE.Vector3,
     targetPosRef: THREE.Vector3
-): number {
+): { dist: number; bodyRadius: number } {
     group.getWorldPosition(targetPosRef);
     targetObj.position.copy(targetPosRef);
 
@@ -26,28 +29,31 @@ function updateSpotlightTarget(
     }
 
     const dist = cameraPos.distanceTo(targetPosRef);
-    const angularRadius = Math.atan2(bodyRadius * 1.15, Math.max(dist, 0.1));
+    const angularRadius = Math.atan2(bodyRadius * 1.2, Math.max(dist, 0.1));
     light.angle = THREE.MathUtils.clamp(angularRadius, 0.05, Math.PI / 3);
-    light.distance = dist + bodyRadius * 0.2;
+    light.distance = dist + bodyRadius * 0.5;
 
-    return dist;
+    return { dist, bodyRadius };
 }
 
 export function CameraFillLight({
     focusId,
     bodyRefs,
-    maxIntensity = 3.2,
+    maxIntensity = DEFAULT_CAMERA_FILL_LIGHT_INTENSITY,
     color = "#ffffff",
 }: CameraFillLightProps) {
     const { camera } = useThree();
     const lightRef = useRef<THREE.SpotLight>(null);
     const targetRef = useRef<THREE.Object3D>(null);
     const targetPos = useRef(new THREE.Vector3());
+
+    const isInitialBody = focusId !== "home" && focusId !== "sun" && focusId !== "asteroid-belt";
+    const activeTargetId = useRef<string | null>(isInitialBody ? focusId : null);
+    const pendingTargetId = useRef<string | null>(null);
     const prevFocusId = useRef(focusId);
-    const activeTargetId = useRef(focusId);
-    const isTransitioning = useRef(false);
+    const departureIntensity = useRef(0);
+    const transitionPhase = useRef<"idle" | "fade-in" | "fade-out" | "crossfade">("idle");
     const transitionElapsed = useRef(0);
-    const transitionStartDist = useRef(0);
 
     useEffect(() => {
         if (lightRef.current && targetRef.current) {
@@ -64,99 +70,166 @@ export function CameraFillLight({
 
         lightRef.current.position.copy(camera.position);
 
+        const isMobile = typeof window !== "undefined" && window.innerWidth <= 1280;
+        const config = getCameraDistanceConfig(isMobile);
+        const baseDist = Math.hypot(config.orbitRadial, config.orbitHeight);
+
         if (focusId !== prevFocusId.current) {
             prevFocusId.current = focusId;
-            isTransitioning.current = true;
             transitionElapsed.current = 0;
-            const newGroup = bodyRefs.current[focusId];
-            if (newGroup && focusId !== "home" && focusId !== "sun") {
-                newGroup.getWorldPosition(targetPos.current);
-                transitionStartDist.current = camera.position.distanceTo(targetPos.current);
+            departureIntensity.current = lightRef.current.intensity;
+
+            const isNextABody = focusId !== "home" && focusId !== "sun" && focusId !== "asteroid-belt";
+            const nextBodyId = isNextABody ? focusId : null;
+
+            if (activeTargetId.current && !nextBodyId) {
+                transitionPhase.current = "fade-out";
+                pendingTargetId.current = null;
+            } else if (!activeTargetId.current && nextBodyId) {
+                activeTargetId.current = nextBodyId;
+                transitionPhase.current = "fade-in";
+                pendingTargetId.current = null;
+            } else if (activeTargetId.current && nextBodyId && activeTargetId.current !== nextBodyId) {
+                pendingTargetId.current = nextBodyId;
+                transitionPhase.current = "crossfade";
             } else {
-                transitionStartDist.current = 0;
+                activeTargetId.current = nextBodyId;
+                transitionPhase.current = "idle";
+                pendingTargetId.current = null;
             }
         }
 
-        const newTargetIsBody = focusId !== "home" && focusId !== "sun";
-        const newGroup = bodyRefs.current[focusId];
+        transitionElapsed.current += delta;
 
-        if (isTransitioning.current) {
-            transitionElapsed.current += delta;
-            const timeProgress = Math.min(transitionElapsed.current / 0.72, 1.0);
-
-            if (activeTargetId.current !== focusId) {
-                const oldGroup = bodyRefs.current[activeTargetId.current];
-                if (oldGroup && activeTargetId.current !== "home" && activeTargetId.current !== "sun") {
-                    updateSpotlightTarget(lightRef.current, targetRef.current, oldGroup, camera.position, targetPos.current);
-
-                    lightRef.current.intensity = THREE.MathUtils.damp(
-                        lightRef.current.intensity,
-                        0,
-                        12.0,
-                        delta
+        if (transitionPhase.current === "crossfade") {
+            const halfDuration = 0.36;
+            if (transitionElapsed.current < halfDuration) {
+                const currentId = activeTargetId.current;
+                const oldGroup = currentId ? bodyRefs.current?.[currentId] : null;
+                if (oldGroup) {
+                    updateSpotlightTarget(
+                        lightRef.current,
+                        targetRef.current,
+                        oldGroup,
+                        camera.position,
+                        targetPos.current
                     );
-
-                    if (lightRef.current.intensity < 0.02 || timeProgress > 0.3) {
-                        activeTargetId.current = focusId;
-                        lightRef.current.intensity = 0;
-                    }
+                    const t = Math.min(transitionElapsed.current / halfDuration, 1.0);
+                    const visibility = 1.0 - t * t * (3 - 2 * t);
+                    lightRef.current.intensity = departureIntensity.current * visibility;
                 } else {
-                    activeTargetId.current = focusId;
                     lightRef.current.intensity = 0;
                 }
                 return;
             }
 
-            if (newGroup && newTargetIsBody) {
-                const dist = updateSpotlightTarget(lightRef.current, targetRef.current, newGroup, camera.position, targetPos.current);
+            if (pendingTargetId.current) {
+                activeTargetId.current = pendingTargetId.current;
+                pendingTargetId.current = null;
+            }
 
-                const startDist = Math.max(transitionStartDist.current, 15);
-                const focusDist = 9.5;
-                const distProgress = THREE.MathUtils.clamp(
-                    1 - (dist - focusDist) / Math.max(startDist - focusDist, 1),
-                    0,
-                    1
+            const currentId = activeTargetId.current;
+            const newGroup = currentId ? bodyRefs.current?.[currentId] : null;
+            if (newGroup) {
+                const { dist } = updateSpotlightTarget(
+                    lightRef.current,
+                    targetRef.current,
+                    newGroup,
+                    camera.position,
+                    targetPos.current
                 );
-                const progress = Math.max(distProgress, timeProgress);
-                const easedProgress = progress * progress * (3 - 2 * progress);
-                const targetIntensity = maxIntensity * easedProgress;
+                const effectiveDist = Math.min(dist, baseDist * 1.5);
+                const compFactor = Math.max(effectiveDist / baseDist, 0.2);
+                const targetIntensity = maxIntensity * (compFactor * compFactor);
+                const t = Math.min((transitionElapsed.current - halfDuration) / halfDuration, 1.0);
+                const visibility = t * t * (3 - 2 * t);
+                lightRef.current.intensity = targetIntensity * visibility;
 
-                lightRef.current.intensity = THREE.MathUtils.damp(
-                    lightRef.current.intensity,
-                    targetIntensity,
-                    6.0,
-                    delta
+                if (t >= 1.0) {
+                    transitionPhase.current = "idle";
+                }
+            } else {
+                lightRef.current.intensity = 0;
+                transitionPhase.current = "idle";
+            }
+            return;
+        }
+
+        if (transitionPhase.current === "fade-in") {
+            const currentId = activeTargetId.current;
+            const targetGroup = currentId ? bodyRefs.current?.[currentId] : null;
+            if (targetGroup) {
+                const { dist } = updateSpotlightTarget(
+                    lightRef.current,
+                    targetRef.current,
+                    targetGroup,
+                    camera.position,
+                    targetPos.current
                 );
+                const effectiveDist = Math.min(dist, baseDist * 1.5);
+                const compFactor = Math.max(effectiveDist / baseDist, 0.2);
+                const targetIntensity = maxIntensity * (compFactor * compFactor);
+                const t = Math.min(transitionElapsed.current / 0.72, 1.0);
+                const visibility = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+                lightRef.current.intensity = targetIntensity * visibility;
 
-                if (timeProgress >= 1.0) {
-                    isTransitioning.current = false;
+                if (t >= 1.0) {
+                    transitionPhase.current = "idle";
                 }
                 return;
             }
+            transitionPhase.current = "idle";
+        }
 
-            isTransitioning.current = false;
+        if (transitionPhase.current === "fade-out") {
+            const currentId = activeTargetId.current;
+            const targetGroup = currentId ? bodyRefs.current?.[currentId] : null;
+            if (targetGroup) {
+                updateSpotlightTarget(
+                    lightRef.current,
+                    targetRef.current,
+                    targetGroup,
+                    camera.position,
+                    targetPos.current
+                );
+                const t = Math.min(transitionElapsed.current / 0.45, 1.0);
+                const visibility = 1.0 - (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+                lightRef.current.intensity = departureIntensity.current * visibility;
+
+                if (t >= 1.0) {
+                    activeTargetId.current = null;
+                    transitionPhase.current = "idle";
+                    lightRef.current.intensity = 0;
+                    lightRef.current.distance = 0;
+                }
+                return;
+            }
+            activeTargetId.current = null;
+            transitionPhase.current = "idle";
+            lightRef.current.intensity = 0;
+            lightRef.current.distance = 0;
             return;
         }
 
-        if (newGroup && newTargetIsBody) {
-            activeTargetId.current = focusId;
-            const dist = updateSpotlightTarget(lightRef.current, targetRef.current, newGroup, camera.position, targetPos.current);
+        const currentId = activeTargetId.current;
+        const targetGroup = currentId ? bodyRefs.current?.[currentId] : null;
 
-            const baseDist = 9.5;
-            const distanceCompFactor = Math.max(dist / baseDist, 0.2);
-            lightRef.current.intensity = maxIntensity * (distanceCompFactor * distanceCompFactor);
+        if (targetGroup && focusId === currentId) {
+            const { dist } = updateSpotlightTarget(
+                lightRef.current,
+                targetRef.current,
+                targetGroup,
+                camera.position,
+                targetPos.current
+            );
+            const compFactor = Math.max(dist / baseDist, 0.2);
+            lightRef.current.intensity = maxIntensity * (compFactor * compFactor);
             return;
         }
 
-        activeTargetId.current = focusId;
-        isTransitioning.current = false;
+        activeTargetId.current = null;
+        lightRef.current.intensity = 0;
         lightRef.current.distance = 0;
-        lightRef.current.intensity = THREE.MathUtils.damp(
-            lightRef.current.intensity,
-            0,
-            8.0,
-            delta
-        );
     });
 
     const effectiveColor = useMemo(() => {
