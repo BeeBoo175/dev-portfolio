@@ -55,6 +55,63 @@ export function MoonsPanel({
         }));
     };
 
+    const subTabs: { id: MoonSubTab; label: string }[] = [
+        { id: "appearance", label: "Appearance" },
+        { id: "orbit", label: "Orbit 3D" },
+        { id: "terrain", label: "Terrain" },
+    ];
+
+    const handleMoonKeyDown = (e: React.KeyboardEvent<HTMLDivElement>, idx: number) => {
+        let newIndex: number | null = null;
+        if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+            e.preventDefault();
+            newIndex = (idx + 1) % moons.length;
+        } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+            e.preventDefault();
+            newIndex = (idx - 1 + moons.length) % moons.length;
+        } else if (e.key === "Home") {
+            e.preventDefault();
+            newIndex = 0;
+        } else if (e.key === "End") {
+            e.preventDefault();
+            newIndex = moons.length - 1;
+        } else if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onSelectMoon(idx);
+            return;
+        }
+
+        if (newIndex !== null) {
+            onSelectMoon(newIndex);
+            const moonEl = document.getElementById(`moon-tab-${newIndex}`);
+            moonEl?.focus();
+        }
+    };
+
+    const handleSubTabKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>, index: number) => {
+        let newIndex: number | null = null;
+        if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+            e.preventDefault();
+            newIndex = (index + 1) % subTabs.length;
+        } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+            e.preventDefault();
+            newIndex = (index - 1 + subTabs.length) % subTabs.length;
+        } else if (e.key === "Home") {
+            e.preventDefault();
+            newIndex = 0;
+        } else if (e.key === "End") {
+            e.preventDefault();
+            newIndex = subTabs.length - 1;
+        }
+
+        if (newIndex !== null) {
+            const nextSubTab = subTabs[newIndex];
+            setSubTab(nextSubTab.id);
+            const tabEl = document.getElementById(`moon-subtab-${nextSubTab.id}`);
+            tabEl?.focus();
+        }
+    };
+
     return (
         <div className="studio-panel">
             <div className="studio-panel__section">
@@ -102,13 +159,8 @@ export function MoonsPanel({
                                     aria-selected={idx === activeMoonIndex}
                                     aria-controls="moon-subtab-panel"
                                     id={`moon-tab-${idx}`}
-                                    tabIndex={0}
-                                    onKeyDown={(e) => {
-                                        if (e.key === "Enter" || e.key === " ") {
-                                            e.preventDefault();
-                                            onSelectMoon(idx);
-                                        }
-                                    }}
+                                    tabIndex={idx === activeMoonIndex ? 0 : -1}
+                                    onKeyDown={(e) => handleMoonKeyDown(e, idx)}
                                 >
                                     <span
                                         className="studio-moon-tab__dot"
@@ -135,11 +187,7 @@ export function MoonsPanel({
                         {activeMoon && (
                             <>
                                 <div className="studio-subtabs" role="tablist" aria-label="Moon configuration subtabs">
-                                    {[
-                                        { id: "appearance", label: "Appearance" },
-                                        { id: "orbit", label: "Orbit 3D" },
-                                        { id: "terrain", label: "Terrain" },
-                                    ].map((tab) => (
+                                    {subTabs.map((tab, index) => (
                                         <button
                                             key={tab.id}
                                             type="button"
@@ -147,10 +195,12 @@ export function MoonsPanel({
                                             id={`moon-subtab-${tab.id}`}
                                             aria-selected={subTab === tab.id}
                                             aria-controls="moon-subtab-panel"
+                                            tabIndex={subTab === tab.id ? 0 : -1}
                                             className={`studio-subtab ${
                                                 subTab === tab.id ? "studio-subtab--active" : ""
                                             }`}
-                                            onClick={() => setSubTab(tab.id as MoonSubTab)}
+                                            onClick={() => setSubTab(tab.id)}
+                                            onKeyDown={(e) => handleSubTabKeyDown(e, index)}
                                         >
                                             {tab.label}
                                         </button>

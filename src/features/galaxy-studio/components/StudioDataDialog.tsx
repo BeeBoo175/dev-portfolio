@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import type { AsteroidBeltConfig, OrbitConfig, SunConfig } from "../../galaxy";
 import { stripDetailFromPlanets } from "../../galaxy";
+import { useModalFocusTrap } from "../hooks/useModalFocusTrap";
 
 export interface StudioDataDialogProps {
     isOpen: boolean;
@@ -32,6 +33,8 @@ export function StudioDataDialog({
     const [importText, setImportText] = useState("");
     const [copySuccess, setCopySuccess] = useState(false);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
+    const dialogRef = useRef<HTMLDivElement | null>(null);
+    useModalFocusTrap(isOpen, onClose, dialogRef);
 
     if (!isOpen) return null;
 
@@ -74,14 +77,15 @@ export function StudioDataDialog({
     return (
         <div className="studio-modal-backdrop" onClick={onClose}>
             <div
+                ref={dialogRef}
                 className="studio-modal"
                 onClick={(e) => e.stopPropagation()}
                 role="dialog"
                 aria-modal="true"
-                aria-label="Galaxy Data Import and Export"
+                aria-labelledby="studio-data-title"
             >
                 <div className="studio-modal__header">
-                    <h3>System Data (JSON)</h3>
+                    <h3 id="studio-data-title">System Data (JSON)</h3>
                     <button
                         type="button"
                         className="studio-modal__close"

@@ -84,6 +84,8 @@ export function HomeOverlay({ onFocusChange, registerTrigger }: HomeOverlayProps
                 onClick={scrollToTop}
                 aria-label="Back to top"
                 title="Back to top"
+                tabIndex={showScrollTop ? 0 : -1}
+                aria-hidden={!showScrollTop}
                 style={sunStyle}
             >
                 <span className="scroll-to-top__corona" aria-hidden="true" />
