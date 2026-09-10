@@ -2,46 +2,13 @@ import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { useTheme } from "../../theme";
+import { getSunGlowDataTexture } from "../utils/textureUtils";
 
 interface SunGlowProps {
     radius: number;
     color?: string;
     glowIntensity?: number;
     visible?: boolean;
-}
-
-const _sunGlowTextureCache = new Map<string, THREE.CanvasTexture>();
-
-function getSunGlowTexture(isLight: boolean): THREE.CanvasTexture {
-    const key = isLight ? "light" : "dark";
-    const cached = _sunGlowTextureCache.get(key);
-    if (cached) return cached;
-
-    const canvas = document.createElement("canvas");
-    canvas.width = 128;
-    canvas.height = 128;
-    const ctx = canvas.getContext("2d");
-    if (ctx) {
-        const gradient = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
-        if (isLight) {
-            gradient.addColorStop(0, "rgba(2, 132, 199, 0.2)");
-            gradient.addColorStop(0.35, "rgba(2, 132, 199, 0.12)");
-            gradient.addColorStop(0.65, "rgba(3, 105, 161, 0.05)");
-            gradient.addColorStop(0.85, "rgba(3, 105, 161, 0.02)");
-            gradient.addColorStop(1, "rgba(3, 105, 161, 0)");
-        } else {
-            gradient.addColorStop(0, "rgba(255, 255, 255, 1)");
-            gradient.addColorStop(0.25, "rgba(255, 251, 235, 0.85)");
-            gradient.addColorStop(0.55, "rgba(255, 215, 107, 0.35)");
-            gradient.addColorStop(0.8, "rgba(245, 158, 11, 0.12)");
-            gradient.addColorStop(1, "rgba(245, 158, 11, 0)");
-        }
-        ctx.fillStyle = gradient;
-        ctx.fillRect(0, 0, 128, 128);
-    }
-    const tex = new THREE.CanvasTexture(canvas);
-    _sunGlowTextureCache.set(key, tex);
-    return tex;
 }
 
 export function SunGlow({ radius, color = "#ffd76b", glowIntensity = 1.0, visible = true }: SunGlowProps) {
@@ -51,7 +18,7 @@ export function SunGlow({ radius, color = "#ffd76b", glowIntensity = 1.0, visibl
 
     const brightColor = useMemo(() => new THREE.Color(isLight ? color : "#fffbeb"), [isLight, color]);
     const warmOrangeColor = useMemo(() => new THREE.Color(color), [color]);
-    const glowTexture = useMemo(() => getSunGlowTexture(isLight), [isLight]);
+    const glowTexture = useMemo(() => getSunGlowDataTexture(isLight), [isLight]);
 
     const worldPos = useRef(new THREE.Vector3());
 

@@ -2,6 +2,7 @@ import { useMemo, useEffect, useRef, memo } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { useTheme } from "../../theme";
+import { getCircleDataTexture } from "../utils/textureUtils";
 
 export interface CosmicBackgroundProps {
     visible?: boolean;
@@ -242,31 +243,6 @@ function getLightModeSkyDomeTexture(): THREE.CanvasTexture {
     return texture;
 }
 
-let _cachedCircleTexture: THREE.CanvasTexture | null = null;
-
-function getCircleTexture(): THREE.CanvasTexture {
-    if (_cachedCircleTexture) return _cachedCircleTexture;
-    const canvas = document.createElement("canvas");
-    canvas.width = 64;
-    canvas.height = 64;
-    const ctx = canvas.getContext("2d");
-    if (ctx) {
-        const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
-        gradient.addColorStop(0, "rgba(255, 255, 255, 1)");
-        gradient.addColorStop(0.2, "rgba(255, 255, 255, 0.9)");
-        gradient.addColorStop(0.5, "rgba(255, 255, 255, 0.35)");
-        gradient.addColorStop(0.8, "rgba(255, 255, 255, 0.08)");
-        gradient.addColorStop(1, "rgba(255, 255, 255, 0)");
-        ctx.fillStyle = gradient;
-        ctx.fillRect(0, 0, 64, 64);
-    }
-    const texture = new THREE.CanvasTexture(canvas);
-    texture.wrapS = THREE.ClampToEdgeWrapping;
-    texture.wrapT = THREE.ClampToEdgeWrapping;
-    _cachedCircleTexture = texture;
-    return texture;
-}
-
 function createOrganicNebulaTexture(
     primaryColor: { r: number; g: number; b: number },
     highlightColor: { r: number; g: number; b: number },
@@ -381,7 +357,7 @@ export const CosmicBackground = memo(function CosmicBackground({ visible = true 
     const nebulaeGroupRef = useRef<THREE.Group>(null);
     const meteorsGroupRef = useRef<THREE.Group>(null);
 
-    const circleTexture = useMemo(() => getCircleTexture(), []);
+    const circleTexture = useMemo(() => getCircleDataTexture(), []);
     const skyDomeTexture = useMemo(() => (isLight ? getLightModeSkyDomeTexture() : null), [isLight]);
 
     const nebulaTextures = useMemo(() => [

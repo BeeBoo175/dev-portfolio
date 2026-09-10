@@ -18,6 +18,7 @@ import {
 import PlanetaryRing from "./PlanetaryRing";
 import { useTheme } from "../../theme";
 import { resolveCelestialBodyColor } from "../utils/colorUtils";
+import { getBlueprintRadialTexture } from "../utils/textureUtils";
 
 interface LowPolyPlanetProps {
     body: OrbitConfig;
@@ -32,27 +33,6 @@ interface LowPolyPlanetProps {
 const _scratchParentWorldQuat = new THREE.Quaternion();
 const _scratchCamQuat = new THREE.Quaternion();
 const _scratchWorldPos = new THREE.Vector3();
-
-let _blueprintRadialTexture: THREE.CanvasTexture | null = null;
-function getBlueprintRadialTexture(): THREE.CanvasTexture {
-    if (!_blueprintRadialTexture && typeof document !== "undefined") {
-        const canvas = document.createElement("canvas");
-        canvas.width = 128;
-        canvas.height = 128;
-        const ctx = canvas.getContext("2d");
-        if (ctx) {
-            const gradient = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
-            gradient.addColorStop(0, "rgba(255, 255, 255, 0.7)");
-            gradient.addColorStop(0.35, "rgba(255, 255, 255, 0.35)");
-            gradient.addColorStop(0.75, "rgba(255, 255, 255, 0.08)");
-            gradient.addColorStop(1, "rgba(255, 255, 255, 0)");
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, 128, 128);
-        }
-        _blueprintRadialTexture = new THREE.CanvasTexture(canvas);
-    }
-    return _blueprintRadialTexture as THREE.CanvasTexture;
-}
 
 function buildBasePlanetGeometry(
     radius: number,
