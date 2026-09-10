@@ -79,3 +79,27 @@
     }
 }
 
+@media (max-width: 960px) {
+    .app-shell {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        height: 100svh;
+        overflow-y: auto;
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: none;
+    }
+
+    .app-shell__canvas {
+        position: sticky;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100svh;
+        margin-bottom: -100svh;
+        pointer-events: auto;
+    }
+}
+
+

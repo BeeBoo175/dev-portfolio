@@ -72,12 +72,20 @@ body.light-theme .sections-overlay__section:not(.sections-overlay__section--home
     border-bottom-right-radius: var(--radius-sm);
 }
 
+.sections-overlay__section--home {
+    width: 100%;
+    pointer-events: none;
+}
+
 .sections-overlay__section--home .sections-overlay__card {
     --card-blur: none;
     background: transparent;
     border: none;
     box-shadow: none;
+    width: 100%;
     max-width: 600px;
+    margin: 0 auto;
+    pointer-events: none;
 }
 
 .sections-overlay__section--home .sections-overlay__card::before,
@@ -269,6 +277,7 @@ body.light-theme .sections-overlay__title {
         right: max(16px, var(--sar));
     }
 }
+
 
 @media (max-width: 640px) {
     .sections-overlay__section {
