@@ -32,10 +32,34 @@ export function PlanetInspector({
         },
     ];
 
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>, index: number) => {
+        let newIndex: number | null = null;
+        if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+            e.preventDefault();
+            newIndex = (index + 1) % tabs.length;
+        } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+            e.preventDefault();
+            newIndex = (index - 1 + tabs.length) % tabs.length;
+        } else if (e.key === "Home") {
+            e.preventDefault();
+            newIndex = 0;
+        } else if (e.key === "End") {
+            e.preventDefault();
+            newIndex = tabs.length - 1;
+        }
+
+        if (newIndex !== null) {
+            const nextTab = tabs[newIndex];
+            onTabChange(nextTab.id);
+            const tabButton = document.getElementById(`planet-tab-${nextTab.id}`);
+            tabButton?.focus();
+        }
+    };
+
     return (
         <>
             <div className="studio-tabs" role="tablist" aria-label="Planet categories">
-                {tabs.map((tab) => (
+                {tabs.map((tab, index) => (
                     <button
                         key={tab.id}
                         type="button"
@@ -43,8 +67,10 @@ export function PlanetInspector({
                         id={`planet-tab-${tab.id}`}
                         aria-selected={activeTab === tab.id}
                         aria-controls={`planet-panel-${tab.id}`}
+                        tabIndex={activeTab === tab.id ? 0 : -1}
                         className={`studio-tab ${activeTab === tab.id ? "studio-tab--active" : ""}`}
                         onClick={() => onTabChange(tab.id)}
+                        onKeyDown={(e) => handleKeyDown(e, index)}
                     >
                         {tab.label}
                     </button>

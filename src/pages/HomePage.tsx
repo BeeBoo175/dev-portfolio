@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { galaxyStore, useGalaxyPlanets, useGalaxyViewport } from "../features/galaxy";
 import { HomeOverlay, PLANET_SECTIONS, type SectionId } from "../features/sections";
 import { DockedNavigation, type DockedTargetItem } from "../components/navigation";
 
 export function HomePage() {
+    const navigate = useNavigate();
     const { focusId, setFocusId, registerSelectHandler } = useGalaxyViewport();
     const triggerRef = useRef<(id: SectionId) => void>(() => { });
     const dynamicPlanets = useGalaxyPlanets();
@@ -44,8 +45,28 @@ export function HomePage() {
 
     const studioUrl = focusId && focusId !== "home" ? `/studio?target=${focusId}` : "/studio";
 
+    const handleLauncherKeyDown = useCallback((e: React.KeyboardEvent<HTMLAnchorElement>) => {
+        if (e.key === " " || e.key === "Spacebar") {
+            e.preventDefault();
+            navigate(studioUrl);
+        }
+    }, [navigate, studioUrl]);
+
     return (
         <>
+            <header className="app-shell__top-actions">
+                <Link
+                    to={studioUrl}
+                    className="studio-launcher-btn"
+                    title="Launch 3D Galaxy Studio"
+                    aria-label="Launch 3D Galaxy Studio"
+                    tabIndex={0}
+                    onKeyDown={handleLauncherKeyDown}
+                >
+                    Galaxy Studio
+                </Link>
+            </header>
+
             <HomeOverlay
                 onFocusChange={handleFocusChange}
                 registerTrigger={registerTrigger}
@@ -56,17 +77,6 @@ export function HomePage() {
                 selectedId={focusId}
                 onSelectTarget={handleSelect}
             />
-
-            <div className="app-shell__top-actions">
-                <Link
-                    to={studioUrl}
-                    className="studio-launcher-btn"
-                    title="Launch 3D Galaxy Studio"
-                    aria-label="Launch 3D Galaxy Studio"
-                >
-                    Galaxy Studio
-                </Link>
-            </div>
         </>
     );
 }

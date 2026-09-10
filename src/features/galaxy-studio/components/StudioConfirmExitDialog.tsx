@@ -1,3 +1,6 @@
+import { useRef } from "react";
+import { useModalFocusTrap } from "../hooks/useModalFocusTrap";
+
 export interface StudioConfirmExitDialogProps {
     isOpen: boolean;
     onClose: () => void;
@@ -11,6 +14,9 @@ export function StudioConfirmExitDialog({
     onKeepDraftAndExit,
     onDiscardAndExit,
 }: StudioConfirmExitDialogProps) {
+    const dialogRef = useRef<HTMLDivElement | null>(null);
+    useModalFocusTrap(isOpen, onClose, dialogRef);
+
     if (!isOpen) return null;
 
     return (
@@ -19,16 +25,19 @@ export function StudioConfirmExitDialog({
             onClick={onClose}
         >
             <div
+                ref={dialogRef}
                 className="studio-confirm-dialog"
                 onClick={(e) => e.stopPropagation()}
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="studio-confirm-title"
+                aria-describedby="studio-confirm-text"
+                tabIndex={-1}
             >
                 <div className="studio-confirm-title" id="studio-confirm-title">
                     Unapplied Changes
                 </div>
-                <div className="studio-confirm-text">
+                <div className="studio-confirm-text" id="studio-confirm-text">
                     You have working modifications in Galaxy Studio. Would you like to keep your draft saved locally for your next session or discard it?
                 </div>
                 <div className="studio-confirm-actions">

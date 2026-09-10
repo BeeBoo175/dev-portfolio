@@ -37,6 +37,7 @@ export function DockedNavigation({
     const pillsRef = useRef<HTMLDivElement | null>(null);
     const [canScrollLeft, setCanScrollLeft] = useState(false);
     const [canScrollRight, setCanScrollRight] = useState(false);
+    const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
 
     const updateScrollState = useCallback(() => {
         const el = pillsRef.current;
@@ -87,6 +88,35 @@ export function DockedNavigation({
         );
     };
 
+    const selectedIndex = targets.findIndex((t) => t.id === selectedId);
+    const activeFocusIndex =
+        focusedIndex !== null && focusedIndex >= 0 && focusedIndex < targets.length
+            ? focusedIndex
+            : (selectedIndex !== -1 ? selectedIndex : 0);
+
+    const handleChipKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>, index: number) => {
+        let nextIndex: number | null = null;
+        if (e.key === "ArrowRight") {
+            e.preventDefault();
+            nextIndex = (index + 1) % targets.length;
+        } else if (e.key === "ArrowLeft") {
+            e.preventDefault();
+            nextIndex = (index - 1 + targets.length) % targets.length;
+        } else if (e.key === "Home") {
+            e.preventDefault();
+            nextIndex = 0;
+        } else if (e.key === "End") {
+            e.preventDefault();
+            nextIndex = targets.length - 1;
+        }
+
+        if (nextIndex !== null) {
+            setFocusedIndex(nextIndex);
+            const chips = pillsRef.current?.querySelectorAll<HTMLButtonElement>(".docked-navigation__chip");
+            chips?.[nextIndex]?.focus();
+        }
+    };
+
     return (
         <nav
             ref={ref}
@@ -97,10 +127,7 @@ export function DockedNavigation({
                 <button
                     type="button"
                     className="docked-navigation__expand-tab"
-                    onClick={(e) => {
-                        onToggleSidebar();
-                        e.currentTarget.blur();
-                    }}
+                    onClick={onToggleSidebar}
                     aria-expanded={false}
                     aria-label="Expand inspector"
                     title="Expand inspector"
@@ -111,14 +138,23 @@ export function DockedNavigation({
             <div className="docked-navigation__track">
                 <div
                     ref={pillsRef}
+                    role="tablist"
+                    aria-label="Celestial Targets"
+                    aria-orientation="horizontal"
+                    onBlur={(e) => {
+                        if (!pillsRef.current?.contains(e.relatedTarget as Node)) {
+                            setFocusedIndex(null);
+                        }
+                    }}
                     className={`docked-navigation__pills ${
                         canScrollLeft ? "docked-navigation__pills--fade-left" : ""
                     } ${
                         canScrollRight ? "docked-navigation__pills--fade-right" : ""
                     }`}
                 >
-                    {targets.map((target) => {
+                    {targets.map((target, index) => {
                         const isSelected = selectedId === target.id;
+                        const isFocusable = index === activeFocusIndex;
                         const rawColor = target.color || "#38bdf8";
                         const color = getEffectiveAccentColor(rawColor, isLight);
                         const isSpaceshipBase = Boolean(defaultPlanetId && target.id === defaultPlanetId);
@@ -128,11 +164,17 @@ export function DockedNavigation({
                                 key={target.id}
                                 ref={isSelected ? activeChipRef : null}
                                 type="button"
+                                role="tab"
                                 className={`docked-navigation__chip ${
                                     isSelected ? "docked-navigation__chip--active" : ""
                                 }`}
-                                onClick={() => onSelectTarget(target.id)}
-                                aria-current={isSelected ? "true" : undefined}
+                                onClick={() => {
+                                    setFocusedIndex(index);
+                                    onSelectTarget(target.id);
+                                }}
+                                onKeyDown={(e) => handleChipKeyDown(e, index)}
+                                tabIndex={isFocusable ? 0 : -1}
+                                aria-selected={isSelected}
                                 aria-label={`${target.label}${isSpaceshipBase ? " (Ship Base)" : ""}`}
                                 style={
                                     isSelected

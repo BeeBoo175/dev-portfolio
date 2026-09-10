@@ -70,12 +70,20 @@ export function Tooltip({ text, children }: TooltipProps) {
             }
         };
 
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Escape") {
+                setIsVisible(false);
+            }
+        };
+
         window.addEventListener("pointerdown", handleOutside);
+        window.addEventListener("keydown", handleKeyDown);
         window.addEventListener("scroll", hide, true);
         window.addEventListener("resize", hide);
 
         return () => {
             window.removeEventListener("pointerdown", handleOutside);
+            window.removeEventListener("keydown", handleKeyDown);
             window.removeEventListener("scroll", hide, true);
             window.removeEventListener("resize", hide);
         };
@@ -90,6 +98,11 @@ export function Tooltip({ text, children }: TooltipProps) {
             onFocus={show}
             onBlur={hide}
             onClick={handleClick}
+            onKeyDown={(e) => {
+                if (e.key === "Escape") {
+                    hide();
+                }
+            }}
             tabIndex={0}
             role="note"
             aria-label={text}

@@ -256,10 +256,7 @@ export function GalaxyStudio({
                     <button
                         type="button"
                         className="studio-sidebar__toggle-btn"
-                        onClick={(e) => {
-                            handleToggleSidebar();
-                            e.currentTarget.blur();
-                        }}
+                        onClick={handleToggleSidebar}
                         aria-expanded={isSidebarOpen}
                         title={isSidebarOpen ? "Collapse Inspector" : "Expand Inspector"}
                         aria-label="Toggle inspector panel"

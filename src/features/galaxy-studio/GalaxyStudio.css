@@ -447,7 +447,17 @@ body.light-theme .studio-collision-banner__btn:focus-visible {
 .studio-toolbar__icon-btn:focus-visible,
 .studio-target-chip:focus-visible,
 .studio-tab:focus-visible,
-.studio-preset-chip:focus-visible {
+.studio-preset-chip:focus-visible,
+.studio-sidebar__toggle-btn:focus-visible,
+.studio-moon-tab:focus-visible,
+.studio-subtab:focus-visible,
+.studio-modal__close:focus-visible,
+.studio-slider:focus-visible,
+.studio-select:focus-visible,
+.studio-textarea:focus-visible,
+.studio-input:focus-visible,
+.studio-color-picker input[type="color"]:focus-visible,
+.studio-switch input:focus-visible + .studio-switch__slider {
     outline: 2px solid var(--accent-cyan);
     outline-offset: 1px;
 }
@@ -1624,10 +1634,7 @@ body.light-theme .studio-textarea::placeholder {
     }
 
     .studio-toolbar__controls-row {
-        display: flex;
-        align-items: center;
-        margin-left: auto;
-        gap: 8px;
+        display: contents;
     }
 
     .studio-toolbar__primary-actions {
@@ -1757,7 +1764,7 @@ body.light-theme .studio-textarea::placeholder {
         justify-content: space-between;
         gap: 6px;
         width: 100%;
-        flex-wrap: nowrap;
+        flex-wrap: wrap;
     }
 
     .studio-toolbar__primary-actions {
@@ -1767,6 +1774,7 @@ body.light-theme .studio-textarea::placeholder {
         flex-wrap: nowrap;
         flex: 0 1 auto;
         min-width: 0;
+        order: 1;
     }
 
     .studio-toolbar__right {
@@ -1776,6 +1784,8 @@ body.light-theme .studio-textarea::placeholder {
         flex: 0 0 auto;
         justify-content: flex-end;
         flex-wrap: nowrap;
+        order: 2;
+        margin-left: auto;
     }
 
     .studio-toolbar__mobile-toggle-btn {
@@ -1828,6 +1838,7 @@ body.light-theme .studio-textarea::placeholder {
         padding-top: 6px;
         margin-top: 2px;
         border-top: 1px solid var(--border-subtle);
+        order: 3;
     }
 
     .studio-toolbar__center--visible {

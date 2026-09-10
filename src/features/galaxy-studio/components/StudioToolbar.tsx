@@ -82,10 +82,7 @@ export function StudioToolbar({
                     <button
                         type="button"
                         className={`studio-toolbar__mobile-toggle-btn ${isMobileToolsOpen ? "studio-toolbar__mobile-toggle-btn--active" : ""}`}
-                        onClick={(e) => {
-                            setIsMobileToolsOpen(!isMobileToolsOpen);
-                            e.currentTarget.blur();
-                        }}
+                        onClick={() => setIsMobileToolsOpen(!isMobileToolsOpen)}
                         aria-expanded={isMobileToolsOpen}
                         aria-controls="studio-toolbar-tools-panel"
                         aria-label="Toggle studio tools ribbon"
@@ -114,6 +111,114 @@ export function StudioToolbar({
                             aria-label="Redo change"
                         >
                             Redo
+                        </button>
+                    </div>
+                </div>
+
+                <div
+                    id="studio-toolbar-tools-panel"
+                    className={`studio-toolbar__center ${isMobileToolsOpen ? "studio-toolbar__center--visible" : ""}`}
+                >
+                    <div className="studio-toolbar__group">
+                        <button
+                            type="button"
+                            className="studio-toolbar__action-btn"
+                            onClick={onRandomizeAll}
+                            title="Generate random planet sizes, colors, and orbit parameters"
+                        >
+                            Randomize Galaxy
+                        </button>
+
+                        <button
+                            type="button"
+                            className="studio-toolbar__action-btn"
+                            onClick={onResetGalaxy}
+                            title="Reset all planets, star, and asteroid belt to original default configuration"
+                        >
+                            Reset to Defaults
+                        </button>
+                    </div>
+
+                    <div className="studio-toolbar__divider" />
+
+                    <div className="studio-toolbar__group studio-toolbar__group--toggles" role="toolbar" aria-label="Visual Display Toggles">
+                        <button
+                            type="button"
+                            className={`studio-toolbar__toggle-btn ${visuals.showOrbitPaths ? "studio-toolbar__toggle-btn--active" : ""
+                                }`}
+                            onClick={onToggleOrbitPaths}
+                            aria-pressed={visuals.showOrbitPaths}
+                            title="Toggle orbital ellipse trail lines"
+                        >
+                            Orbit Lines
+                        </button>
+
+                        <button
+                            type="button"
+                            className={`studio-toolbar__toggle-btn ${visuals.showOrbitalAxes ? "studio-toolbar__toggle-btn--active" : ""
+                                }`}
+                            onClick={onToggleOrbitalAxes}
+                            aria-pressed={visuals.showOrbitalAxes}
+                            title="Toggle planetary axial tilt lines"
+                        >
+                            Axial Poles
+                        </button>
+
+                        <button
+                            type="button"
+                            className={`studio-toolbar__toggle-btn ${isSelectionGlowActive ? "studio-toolbar__toggle-btn--active" : ""
+                                }`}
+                            onClick={onToggleSelectionGlow}
+                            aria-pressed={isSelectionGlowActive}
+                            title="Toggle selection glow brackets and reticles"
+                        >
+                            Selection Glow
+                        </button>
+
+                        <button
+                            type="button"
+                            className={`studio-toolbar__toggle-btn ${isPlanetNamesActive ? "studio-toolbar__toggle-btn--active" : ""
+                                }`}
+                            onClick={onTogglePlanetNames}
+                            aria-pressed={isPlanetNamesActive}
+                            title="Toggle celestial body name labels"
+                        >
+                            Names
+                        </button>
+
+                        <button
+                            type="button"
+                            className={`studio-toolbar__toggle-btn ${isBackgroundPhenomenaActive ? "studio-toolbar__toggle-btn--active" : ""
+                                }`}
+                            onClick={onToggleBackgroundPhenomena}
+                            aria-pressed={isBackgroundPhenomenaActive}
+                            title="Toggle starfield, nebulae, and shooting stars in the background"
+                        >
+                            Cosmic BG
+                        </button>
+
+                        <button
+                            type="button"
+                            className={`studio-toolbar__toggle-btn ${isCameraOrbitPaused ? "studio-toolbar__toggle-btn--active" : ""
+                                }`}
+                            onClick={onTogglePauseCameraOrbit}
+                            aria-pressed={Boolean(isCameraOrbitPaused)}
+                            title="Freeze camera orbit in editor only to observe planetary motion (editor preview only, not saved)"
+                        >
+                            Freeze Cam
+                        </button>
+                    </div>
+
+                    <div className="studio-toolbar__divider" />
+
+                    <div className="studio-toolbar__group">
+                        <button
+                            type="button"
+                            className="studio-toolbar__icon-btn"
+                            onClick={onOpenDataModal}
+                            title="Import or Export JSON system configurations"
+                        >
+                            <span>Data JSON</span>
                         </button>
                     </div>
                 </div>
@@ -148,114 +253,6 @@ export function StudioToolbar({
                     >
                         <span className="studio-btn__label--desktop">Exit Studio</span>
                         <span className="studio-btn__label--mobile">Exit</span>
-                    </button>
-                </div>
-            </div>
-
-            <div
-                id="studio-toolbar-tools-panel"
-                className={`studio-toolbar__center ${isMobileToolsOpen ? "studio-toolbar__center--visible" : ""}`}
-            >
-                <div className="studio-toolbar__group">
-                    <button
-                        type="button"
-                        className="studio-toolbar__action-btn"
-                        onClick={onRandomizeAll}
-                        title="Generate random planet sizes, colors, and orbit parameters"
-                    >
-                        Randomize Galaxy
-                    </button>
-
-                    <button
-                        type="button"
-                        className="studio-toolbar__action-btn"
-                        onClick={onResetGalaxy}
-                        title="Reset all planets, star, and asteroid belt to original default configuration"
-                    >
-                        Reset to Defaults
-                    </button>
-                </div>
-
-                <div className="studio-toolbar__divider" />
-
-                <div className="studio-toolbar__group studio-toolbar__group--toggles" role="toolbar" aria-label="Visual Display Toggles">
-                    <button
-                        type="button"
-                        className={`studio-toolbar__toggle-btn ${visuals.showOrbitPaths ? "studio-toolbar__toggle-btn--active" : ""
-                            }`}
-                        onClick={onToggleOrbitPaths}
-                        aria-pressed={visuals.showOrbitPaths}
-                        title="Toggle orbital ellipse trail lines"
-                    >
-                        Orbit Lines
-                    </button>
-
-                    <button
-                        type="button"
-                        className={`studio-toolbar__toggle-btn ${visuals.showOrbitalAxes ? "studio-toolbar__toggle-btn--active" : ""
-                            }`}
-                        onClick={onToggleOrbitalAxes}
-                        aria-pressed={visuals.showOrbitalAxes}
-                        title="Toggle planetary axial tilt lines"
-                    >
-                        Axial Poles
-                    </button>
-
-                    <button
-                        type="button"
-                        className={`studio-toolbar__toggle-btn ${isSelectionGlowActive ? "studio-toolbar__toggle-btn--active" : ""
-                            }`}
-                        onClick={onToggleSelectionGlow}
-                        aria-pressed={isSelectionGlowActive}
-                        title="Toggle selection glow brackets and reticles"
-                    >
-                        Selection Glow
-                    </button>
-
-                    <button
-                        type="button"
-                        className={`studio-toolbar__toggle-btn ${isPlanetNamesActive ? "studio-toolbar__toggle-btn--active" : ""
-                            }`}
-                        onClick={onTogglePlanetNames}
-                        aria-pressed={isPlanetNamesActive}
-                        title="Toggle celestial body name labels"
-                    >
-                        Names
-                    </button>
-
-                    <button
-                        type="button"
-                        className={`studio-toolbar__toggle-btn ${isBackgroundPhenomenaActive ? "studio-toolbar__toggle-btn--active" : ""
-                            }`}
-                        onClick={onToggleBackgroundPhenomena}
-                        aria-pressed={isBackgroundPhenomenaActive}
-                        title="Toggle starfield, nebulae, and shooting stars in the background"
-                    >
-                        Cosmic BG
-                    </button>
-
-                    <button
-                        type="button"
-                        className={`studio-toolbar__toggle-btn ${isCameraOrbitPaused ? "studio-toolbar__toggle-btn--active" : ""
-                            }`}
-                        onClick={onTogglePauseCameraOrbit}
-                        aria-pressed={Boolean(isCameraOrbitPaused)}
-                        title="Freeze camera orbit in editor only to observe planetary motion (editor preview only, not saved)"
-                    >
-                        Freeze Cam
-                    </button>
-                </div>
-
-                <div className="studio-toolbar__divider" />
-
-                <div className="studio-toolbar__group">
-                    <button
-                        type="button"
-                        className="studio-toolbar__icon-btn"
-                        onClick={onOpenDataModal}
-                        title="Import or Export JSON system configurations"
-                    >
-                        <span>Data JSON</span>
                     </button>
                 </div>
             </div>
