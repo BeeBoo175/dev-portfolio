@@ -3,6 +3,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { getCameraDistanceConfig, type CameraDistanceConfig } from "../cameraConfig";
 import { useCameraRigControls, FIXED_POLAR_ANGLE } from "../hooks/useCameraRigControls";
+import { shouldTriggerCameraTransition } from "../utils/cameraTransitionUtils";
 
 const HOME_ORBIT_SPEED = -0.045;
 const TRANSITION_DURATION = 0.72;
@@ -125,10 +126,29 @@ export function CameraRig({
         const isExitingEditor = lastEditorMode.current && !isEditorMode;
         lastEditorMode.current = isEditorMode;
 
-        if (focusId !== lastFocusId.current || isExitingEditor) {
-            const isInitial = lastFocusId.current === null;
+        const { shouldTransition, isInitial, isFocusChanged } = shouldTriggerCameraTransition({
+            focusId,
+            lastFocusId: lastFocusId.current,
+            isExitingEditor,
+            isTransitioning: isTransitioning.current,
+            userThetaOffset: userThetaOffsetRef.current,
+            userPhiOffset: userPhiOffsetRef.current,
+            userZoomOffset: userZoomOffsetRef.current,
+        });
+
+        if (shouldTransition) {
             lastFocusId.current = focusId;
             resetOffsets();
+
+            if (isExitingEditor && !isFocusChanged) {
+                desiredPos.current
+                    .set(
+                        baseDistance * Math.sin(FIXED_POLAR_ANGLE) * Math.sin(baseTheta),
+                        baseDistance * Math.cos(FIXED_POLAR_ANGLE),
+                        baseDistance * Math.sin(FIXED_POLAR_ANGLE) * Math.cos(baseTheta)
+                    )
+                    .add(currentTargetPos.current);
+            }
 
             if (isInitial) {
                 camera.position.copy(desiredPos.current);
@@ -143,6 +163,8 @@ export function CameraRig({
                 scratchOffset.current.subVectors(camera.position, currentTargetPos.current);
                 transitionStartSpherical.current.setFromVector3(scratchOffset.current).makeSafe();
             }
+        } else if (isExitingEditor) {
+            resetOffsets();
         }
 
         if (isTransitioning.current) {
