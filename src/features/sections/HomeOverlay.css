@@ -101,12 +101,16 @@ body.light-theme .sections-overlay__section:not(.sections-overlay__section--home
     line-height: 1.15;
     letter-spacing: -0.02em;
     word-break: break-word;
-    text-shadow: 0 4px 24px rgba(0, 0, 0, 0.9);
+    filter: drop-shadow(0 4px 20px rgba(0, 0, 0, 0.85));
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
 }
 
 :root[data-theme="light"] .sections-overlay__title,
 body.light-theme .sections-overlay__title {
-    text-shadow: 0 2px 12px rgba(255, 255, 255, 0.8), 0 1px 3px rgba(15, 23, 42, 0.2);
+    filter: drop-shadow(0 2px 8px rgba(255, 255, 255, 0.8)) drop-shadow(0 1px 3px rgba(15, 23, 42, 0.2));
 }
 
 .sections-overlay__section--home .sections-overlay__title {
