@@ -27,6 +27,15 @@ export function useSectionScroll({ onFocusChange, registerTrigger }: UseSectionS
     const isNotHomeRoute = location.pathname !== "/" && location.pathname !== "";
     const showScrollTop = isNotHomeRoute || isScrolledPastThreshold;
 
+    const locationPathRef = useRef(location.pathname);
+    const onFocusChangeRef = useRef(onFocusChange);
+    const activeSectionRef = useRef<SectionId>(targetId);
+
+    useEffect(() => {
+        locationPathRef.current = location.pathname;
+        onFocusChangeRef.current = onFocusChange;
+    }, [location.pathname, onFocusChange]);
+
     const clearFailsafe = useCallback(() => {
         if (failsafeTimeout.current) {
             clearTimeout(failsafeTimeout.current);
@@ -49,12 +58,18 @@ export function useSectionScroll({ onFocusChange, registerTrigger }: UseSectionS
 
     const scrollToTop = useCallback(() => {
         startProgrammaticScroll("home", "smooth");
+        const appShell = document.querySelector(".app-shell");
+        if (appShell) {
+            appShell.scrollTo({ top: 0, behavior: "smooth" });
+        }
+        window.scrollTo({ top: 0, behavior: "smooth" });
         if (location.pathname !== "/") {
             navigate("/");
         }
     }, [location.pathname, navigate, startProgrammaticScroll]);
 
     useLayoutEffect(() => {
+        activeSectionRef.current = targetId;
         onFocusChange(targetId);
 
         if (!hasMounted.current) {
@@ -66,6 +81,11 @@ export function useSectionScroll({ onFocusChange, registerTrigger }: UseSectionS
     }, [location.pathname, navType, onFocusChange, startProgrammaticScroll, targetId]);
 
     useEffect(() => {
+        const rootElement =
+            typeof window !== "undefined" && window.innerWidth <= 960
+                ? (document.querySelector(".app-shell") as HTMLElement | null)
+                : null;
+
         const observer = new IntersectionObserver(
             (entries) => {
                 if (
@@ -81,15 +101,22 @@ export function useSectionScroll({ onFocusChange, registerTrigger }: UseSectionS
 
                 if (visible) {
                     const id = visible.target.id as SectionId;
-                    onFocusChange(id);
+                    if (id !== activeSectionRef.current) {
+                        activeSectionRef.current = id;
+                        onFocusChangeRef.current(id);
 
-                    const path = SECTION_MAP[id]?.path;
-                    if (path && path !== location.pathname) {
-                        navigate(path, { replace: true });
+                        const path = SECTION_MAP[id]?.path;
+                        if (path && path !== locationPathRef.current) {
+                            locationPathRef.current = path;
+                            navigate(path, { replace: true });
+                        }
                     }
                 }
             },
-            { threshold: 0.6 }
+            {
+                root: rootElement,
+                threshold: 0.6,
+            }
         );
 
         Object.values(sectionRefs.current).forEach((el) => {
@@ -97,11 +124,15 @@ export function useSectionScroll({ onFocusChange, registerTrigger }: UseSectionS
         });
 
         return () => observer.disconnect();
-    }, [onFocusChange, navigate, location.pathname]);
+    }, [navigate]);
 
     useEffect(() => {
         const handleScroll = () => {
-            const currentScrollY = window.scrollY || document.documentElement.scrollTop;
+            const appShell = document.querySelector(".app-shell");
+            const currentScrollY =
+                appShell && appShell.scrollTop > 0
+                    ? appShell.scrollTop
+                    : window.scrollY || document.documentElement.scrollTop;
             setIsScrolledPastThreshold(currentScrollY > SCROLL_TOP_THRESHOLD);
         };
 
@@ -111,13 +142,18 @@ export function useSectionScroll({ onFocusChange, registerTrigger }: UseSectionS
             handleScroll();
         };
 
+        const appShell = document.querySelector(".app-shell");
         window.addEventListener("scroll", handleScroll, { passive: true });
         window.addEventListener("scrollend", handleScrollEnd);
+        appShell?.addEventListener("scroll", handleScroll, { passive: true });
+        appShell?.addEventListener("scrollend", handleScrollEnd);
         handleScroll();
 
         return () => {
             window.removeEventListener("scroll", handleScroll);
             window.removeEventListener("scrollend", handleScrollEnd);
+            appShell?.removeEventListener("scroll", handleScroll);
+            appShell?.removeEventListener("scrollend", handleScrollEnd);
             clearFailsafe();
         };
     }, [clearFailsafe]);
