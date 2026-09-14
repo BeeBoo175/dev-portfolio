@@ -14,6 +14,8 @@ export default defineConfig({
     target: 'es2022',
     cssTarget: 'chrome100',
     chunkSizeWarningLimit: 1000,
+    // ships the notices that bundled packages' licences ask for, kept in step with what is bundled
+    license: { fileName: 'third-party-licenses.md' },
     rolldownOptions: {
       output: {
         codeSplitting: {
