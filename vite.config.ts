@@ -9,6 +9,8 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./src/test/setup.ts'],
+    // the palette test reads the real stylesheet; Vitest blanks CSS unless told otherwise
+    css: { include: [/index\.css/] },
   },
   build: {
     target: 'es2022',

@@ -1,83 +1,77 @@
-@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500&family=Hanken+Grotesk:wght@400;600&display=swap");
 
 :root {
-    --bg-canvas: #02040a;
-    --bg-surface: rgba(10, 14, 23, 0.60);
-    --bg-surface-elevated: rgba(14, 20, 32, 0.72);
-    --bg-surface-subtle: rgba(255, 255, 255, 0.05);
-    --bg-surface-hover: rgba(255, 255, 255, 0.10);
+    /* night atlas: ink, ivory, brass; signal orange is reserved for the primary action and planet callouts */
+    --bg-canvas: #060a14;
+    --text-primary: #e9e4d4;
+    --text-secondary: #d3cfc2;
+    --text-muted: #9aa3b8;
+    --text-dim: #8590a8;
 
-    --obsidian-bg: rgba(7, 11, 20, 0.65);
-    --obsidian-bg-card: rgba(8, 13, 24, 0.62);
-    --obsidian-bg-elevated: rgba(11, 17, 30, 0.74);
-    --obsidian-bg-subtle: rgba(255, 255, 255, 0.05);
-    --obsidian-bg-hover: rgba(255, 255, 255, 0.10);
+    --panel: #0a1020;
+    --field: #111a2e;
+    --line: rgba(233, 228, 212, 0.15);
+    --rule: rgba(216, 181, 106, 0.25);
+    --tint: rgba(216, 181, 106, 0.12);
+    --accent: #d8b56a;
+    --accent-bright: #d8b56a;
+    /* a stressed word inside a gold-washed pill: brass by night, ink by day */
+    --on-highlight: #d8b56a;
+    --accent-border: rgba(216, 181, 106, 0.45);
+    --accent-subtle: rgba(216, 181, 106, 0.12);
+    --signal: #ff7a4d;
+    --on-signal: #1a0a04;
 
-    --obsidian-border: rgba(255, 255, 255, 0.18);
-    --obsidian-border-subtle: rgba(255, 255, 255, 0.10);
-    --obsidian-border-highlight: rgba(255, 255, 255, 0.45);
+    --bg-surface: var(--panel);
+    --bg-surface-elevated: var(--panel);
+    --bg-surface-subtle: var(--field);
+    --bg-surface-hover: var(--tint);
+    --obsidian-bg: var(--panel);
+    --obsidian-bg-card: var(--panel);
+    --obsidian-bg-elevated: var(--panel);
+    --obsidian-bg-subtle: var(--field);
+    --obsidian-bg-hover: var(--tint);
+    --obsidian-border: var(--line);
+    --obsidian-border-subtle: var(--line);
+    --obsidian-border-highlight: var(--accent-border);
+
+    --border-subtle: var(--line);
+    --border-default: var(--line);
+    --border-hover: var(--accent);
+    --border-focus: var(--signal);
 
     --celestial-sun: #ffd76b;
     --celestial-about: #ffb15d;
     --celestial-skills: #5da9ff;
     --celestial-projects: #7dff9c;
     --celestial-contact: #ff5d8f;
-
-    --accent-cyan: #38bdf8;
-    --accent-border: rgba(56, 189, 248, 0.4);
     --accent-starlight: #ffd76b;
-    --accent-subtle: rgba(255, 255, 255, 0.08);
-
-    --glass-blur: blur(20px) saturate(180%);
-    --glass-blur-sm: blur(12px) saturate(160%);
-    --glass-blur-lg: blur(28px) saturate(200%);
-    --glass-shadow: 0 16px 40px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.18);
-    --glass-shadow-elevated: 0 24px 56px rgba(0, 0, 0, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.22);
-    --glass-shadow-subtle: 0 6px 20px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.12);
-
-    --border-subtle: rgba(255, 255, 255, 0.1);
-    --border-default: rgba(255, 255, 255, 0.16);
-    --border-hover: rgba(255, 255, 255, 0.35);
-    --border-focus: rgba(255, 255, 255, 0.75);
-
-    --text-primary: #f8fafc;
-    --text-secondary: #cbd5e1;
-    --text-muted: #94a3b8;
-    --text-dim: #64748b;
-
-    --accent-primary: #0284c7;
-    --accent-hover: #0369a1;
-    --accent-subtle: rgba(56, 189, 248, 0.12);
-    --accent-glow: rgba(56, 189, 248, 0.25);
-
-    --slider-track-bg: rgba(255, 255, 255, 0.18);
-    --slider-track-border: rgba(255, 255, 255, 0.15);
-
-    --badge-station-bg: rgba(255, 215, 107, 0.15);
-    --badge-station-border: rgba(255, 215, 107, 0.4);
-    --badge-station-text: #ffd76b;
 
     --destructive: #f87171;
     --destructive-bg: rgba(239, 68, 68, 0.12);
-    --destructive-border: rgba(239, 68, 68, 0.25);
-    --destructive-hover-bg: rgba(239, 68, 68, 0.22);
+    --destructive-border: rgba(239, 68, 68, 0.35);
 
-    --radius-xs: 4px;
-    --radius-sm: 6px;
-    --radius-md: 8px;
-    --radius-lg: 12px;
-    --radius-xl: 16px;
+    /* shape: controls and one-row bars are pills; multi-row surfaces use --r-box
+       (16px control radius + 8px inset, so the curves stay concentric) */
+    --r-pill: 999px;
+    --r-box: 24px;
+    --r-in: 16px;
 
-    --font-sans: "Space Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    /* size: every control is --control-h tall (44px on touch layouts) */
+    --control-h: 32px;
 
-    --text-2xs: 10px;
-    --text-xs: 11px;
-    --text-sm: 12px;
-    --text-base: 13.5px;
-    --text-md: 14px;
-    --text-lg: 16px;
+    /* space: 4px scale */
+    --s1: 4px;
+    --s2: 8px;
+    --s3: 12px;
+    --s4: 16px;
+    --s5: 24px;
 
+    --font-sans: "Hanken Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --font-mono: "DM Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --font-display: "Instrument Serif", Georgia, serif;
+
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
     --transition-fast: 0.15s ease;
     --transition-normal: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
@@ -89,63 +83,49 @@
 
 :root[data-theme="light"],
 body.light-theme {
-    --bg-canvas: #cad2dc;
-    --bg-surface: rgba(240, 246, 254, 0.58);
-    --bg-surface-elevated: rgba(248, 251, 255, 0.70);
-    --bg-surface-subtle: rgba(15, 23, 42, 0.04);
-    --bg-surface-hover: rgba(15, 23, 42, 0.08);
+    /*
+     * The night chart by day: the same blue-and-gold pairing. Yellow can't be darkened into a text
+     * colour without turning brown, so by day gold is only ever a surface or a line (with ink on it),
+     * and a clear blue takes over wherever the dark theme writes in brass. Roles follow the Radix
+     * colour scale: amber 9 for solid fills with dark text, amber 7-8 for borders.
+     */
+    --bg-canvas: #eef4fb;
+    --text-primary: #10203f;
+    --text-secondary: #25344f;
+    --text-muted: #4d5a73;
+    --text-dim: #55627c;
 
-    --obsidian-bg: rgba(240, 246, 254, 0.62);
-    --obsidian-bg-card: rgba(242, 248, 255, 0.58);
-    --obsidian-bg-elevated: rgba(250, 252, 255, 0.72);
-    --obsidian-bg-subtle: rgba(15, 23, 42, 0.05);
-    --obsidian-bg-hover: rgba(15, 23, 42, 0.09);
-
-    --obsidian-border: rgba(255, 255, 255, 0.85);
-    --obsidian-border-subtle: rgba(255, 255, 255, 0.6);
-    --obsidian-border-highlight: rgba(2, 132, 199, 0.85);
+    --panel: #ffffff;
+    --field: #f6f9fd;
+    --line: rgba(16, 32, 63, 0.14);
+    --rule: rgba(226, 163, 54, 0.6);
+    --tint: rgba(255, 197, 61, 0.2);
+    --accent: #0b62b0;
+    --accent-bright: #ffc53d;
+    --accent-border: #e2a336;
+    --accent-subtle: rgba(255, 197, 61, 0.24);
+    --on-highlight: #10203f;
+    --signal: #bd3f08;
+    --on-signal: #ffffff;
 
     --celestial-sun: #b45309;
     --celestial-about: #c2410c;
     --celestial-skills: #0369a1;
     --celestial-projects: #047857;
     --celestial-contact: #be185d;
-
-    --accent-cyan: #0284c7;
-    --accent-border: rgba(2, 132, 199, 0.45);
     --accent-starlight: #b45309;
-    --accent-subtle: rgba(2, 132, 199, 0.16);
 
-    --glass-shadow: 0 16px 36px rgba(15, 23, 42, 0.14), 0 0 0 1px rgba(15, 23, 42, 0.07), inset 0 1px 1px rgba(255, 255, 255, 0.95);
-    --glass-shadow-elevated: 0 24px 50px rgba(15, 23, 42, 0.18), 0 0 0 1px rgba(15, 23, 42, 0.09), inset 0 1px 1px rgba(255, 255, 255, 1);
-    --glass-shadow-subtle: 0 6px 18px rgba(15, 23, 42, 0.09), 0 0 0 1px rgba(15, 23, 42, 0.06), inset 0 1px 1px rgba(255, 255, 255, 0.9);
+    --destructive: #b91c1c;
+    --destructive-bg: rgba(185, 28, 28, 0.1);
+    --destructive-border: rgba(185, 28, 28, 0.35);
+}
 
-    --border-subtle: rgba(15, 23, 42, 0.15);
-    --border-default: rgba(15, 23, 42, 0.24);
-    --border-hover: rgba(15, 23, 42, 0.45);
-    --border-focus: rgba(2, 132, 199, 0.9);
-
-    --text-primary: #090d16;
-    --text-secondary: #1e293b;
-    --text-muted: #475569;
-    --text-dim: #64748b;
-
-    --accent-primary: #0284c7;
-    --accent-hover: #0369a1;
-    --accent-subtle: rgba(2, 132, 199, 0.16);
-    --accent-glow: rgba(2, 132, 199, 0.35);
-
-    --slider-track-bg: rgba(15, 23, 42, 0.2);
-    --slider-track-border: rgba(15, 23, 42, 0.28);
-
-    --badge-station-bg: rgba(2, 132, 199, 0.16);
-    --badge-station-border: rgba(2, 132, 199, 0.65);
-    --badge-station-text: #0369a1;
-
-    --destructive: #dc2626;
-    --destructive-bg: rgba(220, 38, 38, 0.14);
-    --destructive-border: rgba(220, 38, 38, 0.32);
-    --destructive-hover-bg: rgba(220, 38, 38, 0.24);
+@media (max-width: 960px) {
+    :root {
+        --control-h: 44px;
+        --r-box: 30px;
+        --edge: 16px;
+    }
 }
 
 * {
@@ -247,6 +227,15 @@ p {
 }
 
 ::selection {
-    background: var(--accent-cyan);
-    color: #030712;
+    background: var(--accent);
+    color: var(--bg-canvas);
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
 }
