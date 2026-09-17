@@ -239,3 +239,9 @@ p {
     clip-path: inset(50%);
     white-space: nowrap;
 }
+
+/* Lucide icons sit on the text line and never squash inside flex controls */
+svg.lucide {
+    flex-shrink: 0;
+    vertical-align: -0.15em;
+}
