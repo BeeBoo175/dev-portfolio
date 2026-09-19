@@ -247,6 +247,35 @@ svg.lucide {
 }
 
 /*
+ * Pressed state, for everything that can be pressed. "scale" composes with components' own
+ * transforms, and the selector is just strong enough to win over their hover styles.
+ */
+html {
+    -webkit-tap-highlight-color: transparent;
+}
+
+:is(button, a[href], summary, select, [role="button"], input[type="color"], input[type="checkbox"], input[type="radio"]):active:not(:disabled) {
+    scale: 0.96;
+    filter: brightness(0.8);
+}
+
+/* wide rows barely move: a large shift reads as a glitch */
+.app-shell :is(.sections-overlay__row--link, .project-screen__next):active {
+    scale: 0.99;
+}
+
+input[type="range"]:active {
+    cursor: grabbing;
+    filter: brightness(1.25);
+}
+
+@media (max-width: 960px) {
+    html {
+        scrollbar-gutter: auto;
+    }
+}
+
+/*
  * The one pill. Every pill-shaped button, link and badge takes its size, type and states from here;
  * components add only where it sits. "--primary" is the single main action, "--label" is for facts
  * that can't be pressed.
