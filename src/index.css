@@ -246,6 +246,22 @@ svg.lucide {
     vertical-align: -0.15em;
 }
 
+/* the pause button and the system setting both still the decorative CSS loops */
+:root[data-motion="paused"] :is(.scroll-to-top__corona, .scroll-to-top__rays) {
+    animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
 /*
  * Pressed state, for everything that can be pressed. "scale" composes with components' own
  * transforms, and the selector is just strong enough to win over their hover styles.
