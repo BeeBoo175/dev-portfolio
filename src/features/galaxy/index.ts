@@ -19,3 +19,4 @@ export * from "./store";
 export * from "./context/viewportContext";
 export * from "./context/GalaxyViewportProvider";
 export * from "./hooks/useGalaxyViewport";
+export * from "./utils/numerals";
