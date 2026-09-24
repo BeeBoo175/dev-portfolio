@@ -115,15 +115,10 @@ export function AppearancePanel({
                                 key={preset.id}
                                 type="button"
                                 className="studio-preset-chip"
-                                style={{
-                                    borderLeftColor: preset.color,
-                                }}
+                                style={{ "--preset": preset.color } as React.CSSProperties}
                                 onClick={() => handleApplyBiome(preset.id)}
                             >
-                                <span
-                                    className="studio-preset-chip__dot"
-                                    style={{ backgroundColor: preset.color }}
-                                />
+                                <span className="studio-preset-chip__dot" aria-hidden="true" />
                                 <span className="studio-preset-chip__name">{preset.name}</span>
                             </button>
                         ))}
@@ -135,13 +130,13 @@ export function AppearancePanel({
                         <span>Elevation Layer Colors</span>
                         <Tooltip text="Custom chromatic gradient mapping from oceanic abyss to alpine peaks." />
                     </div>
-                    <div className="studio-palette-grid">
+                    <div className="studio-palette-grid studio-palette-grid--swatches">
                         {[
-                            { key: "water", label: "Water / Ocean", default: "#0284c7" },
-                            { key: "coast", label: "Coast / Beach", default: "#38bdf8" },
-                            { key: "land", label: "Lowland / Plain", default: "#10b981" },
-                            { key: "mountain", label: "Highland / Rock", default: "#047857" },
-                            { key: "peak", label: "Snow / Peak", default: "#f8fafc" },
+                            { key: "water", label: "Water", default: "#0284c7" },
+                            { key: "coast", label: "Coast", default: "#38bdf8" },
+                            { key: "land", label: "Lowland", default: "#10b981" },
+                            { key: "mountain", label: "Highland", default: "#047857" },
+                            { key: "peak", label: "Snow", default: "#f8fafc" },
                         ].map((layer) => {
                             const currentColor =
                                 (palette as Record<string, string | undefined>)[layer.key] || layer.default;

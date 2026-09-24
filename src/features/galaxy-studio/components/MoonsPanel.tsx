@@ -1,3 +1,4 @@
+import { CloseIcon } from "../../../components/ui/Icons";
 import { useState } from "react";
 import type { OrbitConfig } from "../../galaxy";
 import { generateRandomMoon } from "../presets";
@@ -178,7 +179,7 @@ export function MoonsPanel({
                                         title={`Delete Moon ${idx + 1}`}
                                         aria-label={`Delete Moon ${idx + 1}`}
                                     >
-                                        x
+                                        <CloseIcon />
                                     </button>
                                 </div>
                             ))}

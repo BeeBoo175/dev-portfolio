@@ -1,4 +1,5 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
+import { TuneIcon } from "../../../components/ui/Icons";
 import { useNavigate } from "react-router-dom";
 import {
     galaxyStore,
@@ -147,6 +148,26 @@ export function GalaxyStudio({
 
 
 
+    // the camera and the planet callout reframe around the open inspector
+    useEffect(() => {
+        document.body.dataset.inspector = isSidebarOpen ? "open" : "closed";
+        return () => {
+            delete document.body.dataset.inspector;
+        };
+    }, [isSidebarOpen]);
+
+    useEffect(() => {
+        document.documentElement.dataset.studio = "true";
+        return () => {
+            delete document.documentElement.dataset.studio;
+            delete document.body.dataset.studioZen;
+        };
+    }, []);
+
+    useEffect(() => {
+        document.body.dataset.studioZen = String(isInteracting);
+    }, [isInteracting]);
+
     const [isDataModalOpen, setIsDataModalOpen] = useState<boolean>(false);
     const [isConfirmExitOpen, setIsConfirmExitOpen] = useState<boolean>(false);
 
@@ -206,7 +227,7 @@ export function GalaxyStudio({
     };
 
     return (
-        <div className={`galaxy-studio-container ${isInteracting ? "galaxy-studio-container--zen" : ""}`}>
+        <main className={`galaxy-studio-container ${isInteracting ? "galaxy-studio-container--zen" : ""}`}>
             <div className="studio-header-area">
                 <StudioToolbar
                     visuals={visuals}
@@ -253,22 +274,6 @@ export function GalaxyStudio({
 
             <div className="studio-workspace-area">
                 <aside className={`studio-sidebar ${isSidebarOpen ? "studio-sidebar--open" : "studio-sidebar--collapsed"}`}>
-                    <button
-                        type="button"
-                        className="studio-sidebar__toggle-btn"
-                        onClick={handleToggleSidebar}
-                        aria-expanded={isSidebarOpen}
-                        title={isSidebarOpen ? "Collapse Inspector" : "Expand Inspector"}
-                        aria-label="Toggle inspector panel"
-                    >
-                        <span className="studio-sidebar__toggle-icon studio-sidebar__toggle-icon--desktop">
-                            {isSidebarOpen ? "▸" : "◂"}
-                        </span>
-                        <span className="studio-sidebar__toggle-label studio-sidebar__toggle-label--mobile">
-                            {isSidebarOpen ? "▼ Inspector" : "▲ Inspector"}
-                        </span>
-                    </button>
-
                     <div className="studio-sidebar__content">
                         <StudioSidebarHeader
                             selectedId={selectedId}
@@ -279,23 +284,32 @@ export function GalaxyStudio({
                             onResetBelt={handleResetBelt}
                             onResetCurrentPlanet={handleResetCurrentPlanet}
                             onSetDefaultPlanetId={handleSetDefaultPlanetId}
+                            onClose={handleToggleSidebar}
                         />
 
                         {renderInspectorContent()}
                     </div>
                 </aside>
+
+                {!isSidebarOpen && (
+                    <button
+                        type="button"
+                        className="studio-sidebar__toggle-btn"
+                        onClick={handleToggleSidebar}
+                        aria-expanded={false}
+                        aria-label="Open inspector panel"
+                    >
+                        <TuneIcon />
+                        Inspector
+                    </button>
+                )}
             </div>
 
             <TargetSelector
                 targets={TARGET_LIST}
                 selectedId={selectedId}
                 onSelectTarget={handleSelectTarget}
-                sun={draftSun}
-                planets={draftPlanets}
-                asteroidBelt={draftBelt}
                 defaultPlanetId={draftDefaultPlanetId}
-                isSidebarOpen={isSidebarOpen}
-                onToggleSidebar={handleToggleSidebar}
             />
 
             <StudioConfirmExitDialog
@@ -326,7 +340,7 @@ export function GalaxyStudio({
                 onClose={() => setIsDataModalOpen(false)}
                 onImport={handleImportData}
             />
-        </div>
+        </main>
     );
 }
 

@@ -1,4 +1,5 @@
-import type { OrbitConfig } from "../../galaxy";
+import { getBodyNumeral, type OrbitConfig } from "../../galaxy";
+import { CloseIcon, ResetIcon, ShipIcon } from "../../../components/ui/Icons";
 
 export interface StudioSidebarHeaderProps {
     selectedId: string;
@@ -9,6 +10,7 @@ export interface StudioSidebarHeaderProps {
     onResetBelt: () => void;
     onResetCurrentPlanet: (label: string) => void;
     onSetDefaultPlanetId: (id: string, label: string) => void;
+    onClose: () => void;
 }
 
 export function StudioSidebarHeader({
@@ -20,71 +22,64 @@ export function StudioSidebarHeader({
     onResetBelt,
     onResetCurrentPlanet,
     onSetDefaultPlanetId,
+    onClose,
 }: StudioSidebarHeaderProps) {
+    const isStar = selectedId === "home" || selectedId === "sun";
+    const isBelt = selectedId === "asteroid-belt";
+    const targetType = isStar ? "Star" : isBelt ? "Debris Belt" : "Planet";
+    const numeral = getBodyNumeral(currentPlanet?.id ?? selectedId);
+    const isShipBase = Boolean(currentPlanet && draftDefaultPlanetId === currentPlanet.id);
+
+    const handleReset = () => {
+        if (isStar) onResetSun();
+        else if (isBelt) onResetBelt();
+        else onResetCurrentPlanet(targetLabel);
+    };
+
     return (
         <div className="studio-sidebar__header">
             <div className="studio-sidebar__header-info">
+                <h2 className="studio-sidebar__target-name">{targetLabel}</h2>
                 <span className="studio-sidebar__target-type">
-                    {selectedId === "home" || selectedId === "sun"
-                        ? "Star"
-                        : selectedId === "asteroid-belt"
-                            ? "Debris Belt"
-                            : "Planet"}
+                    {[numeral, targetType].filter(Boolean).join(" \u00b7 ")}
                 </span>
-                <h2 className="studio-sidebar__target-name">
-                    {targetLabel}
-                </h2>
             </div>
 
             <div className="studio-sidebar__header-actions">
-                {(selectedId === "home" || selectedId === "sun") && (
-                    <button
-                        type="button"
-                        className="studio-btn studio-btn--ghost studio-btn--sm"
-                        onClick={onResetSun}
-                        title="Reset star to original default configuration"
-                    >
-                        Reset
-                    </button>
-                )}
-                {selectedId === "asteroid-belt" && (
-                    <button
-                        type="button"
-                        className="studio-btn studio-btn--ghost studio-btn--sm"
-                        onClick={onResetBelt}
-                        title="Reset asteroid belt to original default configuration"
-                    >
-                        Reset
-                    </button>
-                )}
                 {currentPlanet && (
-                    <>
-                        <button
-                            type="button"
-                            className={`studio-btn studio-btn--sm ${draftDefaultPlanetId === currentPlanet.id
-                                    ? "studio-btn--station-active"
-                                    : "studio-btn--ghost"
-                                }`}
-                            onClick={() => onSetDefaultPlanetId(currentPlanet.id, targetLabel)}
-                            title={
-                                draftDefaultPlanetId === currentPlanet.id
-                                    ? "Current default starting base for spaceship"
-                                    : "Set this planet as spaceship default starting base"
-                            }
-                            aria-pressed={draftDefaultPlanetId === currentPlanet.id}
-                        >
-                            {draftDefaultPlanetId === currentPlanet.id ? "Ship Base" : "Set Ship Base"}
-                        </button>
-                        <button
-                            type="button"
-                            className="studio-btn studio-btn--ghost studio-btn--sm"
-                            onClick={() => onResetCurrentPlanet(targetLabel)}
-                            title="Reset this planet to original default configuration"
-                        >
-                            Reset
-                        </button>
-                    </>
+                    <button
+                        type="button"
+                        className={`studio-btn studio-btn--outline ${isShipBase ? "studio-btn--station-active" : ""}`}
+                        onClick={() => onSetDefaultPlanetId(currentPlanet.id, targetLabel)}
+                        title={
+                            isShipBase
+                                ? "Current default starting base for spaceship"
+                                : "Set this planet as spaceship default starting base"
+                        }
+                        aria-pressed={isShipBase}
+                    >
+                        <ShipIcon />
+                        {isShipBase ? "Ship Base" : "Set Base"}
+                    </button>
                 )}
+                <button
+                    type="button"
+                    className="studio-btn studio-btn--ghost studio-btn--icon"
+                    onClick={handleReset}
+                    title={`Reset ${targetLabel} to original default configuration`}
+                    aria-label={`Reset ${targetLabel}`}
+                >
+                    <ResetIcon />
+                </button>
+                <button
+                    type="button"
+                    className="studio-btn studio-btn--ghost studio-btn--icon"
+                    onClick={onClose}
+                    title="Close inspector"
+                    aria-label="Close inspector"
+                >
+                    <CloseIcon />
+                </button>
             </div>
         </div>
     );

@@ -1,3 +1,4 @@
+import { CloseIcon } from "../../../components/ui/Icons";
 import { useState, useRef } from "react";
 import type { AsteroidBeltConfig, OrbitConfig, SunConfig } from "../../galaxy";
 import { stripDetailFromPlanets } from "../../galaxy";
@@ -92,7 +93,7 @@ export function StudioDataDialog({
                         onClick={onClose}
                         aria-label="Close dialog"
                     >
-                        x
+                        <CloseIcon />
                     </button>
                 </div>
 
