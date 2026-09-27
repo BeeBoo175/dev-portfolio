@@ -16,6 +16,7 @@ import StudioConfirmExitDialog from "./StudioConfirmExitDialog";
 import { useStudioDraft } from "../hooks/useStudioDraft";
 import "../GalaxyStudio.css";
 import "../StudioInspector.css";
+import "../StudioResponsive.css";
 
 const TARGET_LIST: TargetItem[] = [
     { id: "home", label: "Sun", type: "sun" },
