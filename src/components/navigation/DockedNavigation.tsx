@@ -1,13 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ThemeToggle, useTheme } from "../../features/theme";
-import { getEffectiveAccentColor } from "../../features/galaxy";
+import { ThemeToggle } from "../../features/theme";
+import { MotionToggle } from "../../features/motion/MotionToggle";
+import { prefersReducedMotion } from "../../features/motion/store";
+import { getBodyNumeral } from "../../features/galaxy";
+import { MinusIcon, PlusIcon, ShipIcon } from "../ui/Icons";
 import "./DockedNavigation.css";
 
 export interface DockedTargetItem {
     id: string;
     label: string;
     type?: "sun" | "planet" | "belt";
-    color?: string;
     badge?: string;
 }
 
@@ -16,8 +18,6 @@ export interface DockedNavigationProps {
     selectedId: string;
     onSelectTarget: (id: string) => void;
     defaultPlanetId?: string;
-    isSidebarOpen?: boolean;
-    onToggleSidebar?: () => void;
     className?: string;
     ref?: React.Ref<HTMLElement>;
 }
@@ -27,17 +27,13 @@ export function DockedNavigation({
     selectedId,
     onSelectTarget,
     defaultPlanetId,
-    isSidebarOpen,
-    onToggleSidebar,
     className = "",
     ref,
 }: DockedNavigationProps) {
-    const { isLight } = useTheme();
     const activeChipRef = useRef<HTMLButtonElement | null>(null);
     const pillsRef = useRef<HTMLDivElement | null>(null);
     const [canScrollLeft, setCanScrollLeft] = useState(false);
     const [canScrollRight, setCanScrollRight] = useState(false);
-    const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
 
     const updateScrollState = useCallback(() => {
         const el = pillsRef.current;
@@ -64,7 +60,7 @@ export function DockedNavigation({
     useEffect(() => {
         if (activeChipRef.current && typeof activeChipRef.current.scrollIntoView === "function") {
             activeChipRef.current.scrollIntoView({
-                behavior: "smooth",
+                behavior: prefersReducedMotion() ? "auto" : "smooth",
                 inline: "center",
                 block: "nearest",
             });
@@ -88,12 +84,6 @@ export function DockedNavigation({
         );
     };
 
-    const selectedIndex = targets.findIndex((t) => t.id === selectedId);
-    const activeFocusIndex =
-        focusedIndex !== null && focusedIndex >= 0 && focusedIndex < targets.length
-            ? focusedIndex
-            : (selectedIndex !== -1 ? selectedIndex : 0);
-
     const handleChipKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>, index: number) => {
         let nextIndex: number | null = null;
         if (e.key === "ArrowRight") {
@@ -111,7 +101,6 @@ export function DockedNavigation({
         }
 
         if (nextIndex !== null) {
-            setFocusedIndex(nextIndex);
             const chips = pillsRef.current?.querySelectorAll<HTMLButtonElement>(".docked-navigation__chip");
             chips?.[nextIndex]?.focus();
         }
@@ -121,31 +110,11 @@ export function DockedNavigation({
         <nav
             ref={ref}
             className={`docked-navigation ${className}`}
-            aria-label="Celestial Target Navigation"
+            aria-label="Sections"
         >
-            {onToggleSidebar && !isSidebarOpen && (
-                <button
-                    type="button"
-                    className="docked-navigation__expand-tab"
-                    onClick={onToggleSidebar}
-                    aria-expanded={false}
-                    aria-label="Expand inspector"
-                    title="Expand inspector"
-                >
-                    ▲ Inspector
-                </button>
-            )}
             <div className="docked-navigation__track">
                 <div
                     ref={pillsRef}
-                    role="tablist"
-                    aria-label="Celestial Targets"
-                    aria-orientation="horizontal"
-                    onBlur={(e) => {
-                        if (!pillsRef.current?.contains(e.relatedTarget as Node)) {
-                            setFocusedIndex(null);
-                        }
-                    }}
                     className={`docked-navigation__pills ${
                         canScrollLeft ? "docked-navigation__pills--fade-left" : ""
                     } ${
@@ -154,9 +123,6 @@ export function DockedNavigation({
                 >
                     {targets.map((target, index) => {
                         const isSelected = selectedId === target.id;
-                        const isFocusable = index === activeFocusIndex;
-                        const rawColor = target.color || "#38bdf8";
-                        const color = getEffectiveAccentColor(rawColor, isLight);
                         const isSpaceshipBase = Boolean(defaultPlanetId && target.id === defaultPlanetId);
 
                         return (
@@ -164,40 +130,24 @@ export function DockedNavigation({
                                 key={target.id}
                                 ref={isSelected ? activeChipRef : null}
                                 type="button"
-                                role="tab"
                                 className={`docked-navigation__chip ${
                                     isSelected ? "docked-navigation__chip--active" : ""
                                 }`}
-                                onClick={() => {
-                                    setFocusedIndex(index);
-                                    onSelectTarget(target.id);
-                                }}
+                                onClick={() => onSelectTarget(target.id)}
                                 onKeyDown={(e) => handleChipKeyDown(e, index)}
-                                tabIndex={isFocusable ? 0 : -1}
-                                aria-selected={isSelected}
+                                aria-current={isSelected ? "page" : undefined}
                                 aria-label={`${target.label}${isSpaceshipBase ? " (Ship Base)" : ""}`}
-                                style={
-                                    isSelected
-                                        ? {
-                                              borderColor: color,
-                                              boxShadow: `0 0 16px ${color}55`,
-                                          }
-                                        : undefined
-                                }
                             >
-                                <span
-                                    className="docked-navigation__dot"
-                                    style={{ backgroundColor: color }}
-                                    aria-hidden="true"
-                                />
+                                <span className="docked-navigation__numeral" aria-hidden="true">
+                                    {getBodyNumeral(target.id)}
+                                </span>
                                 <span className="docked-navigation__label">{target.label}</span>
                                 {isSpaceshipBase && (
                                     <span
                                         className="docked-navigation__badge docked-navigation__badge--station"
                                         title="Spaceship Default Station"
-                                        aria-label="Spaceship Default Station"
                                     >
-                                        Ship Base
+                                        <ShipIcon />
                                     </span>
                                 )}
                                 {target.badge && (
@@ -213,24 +163,26 @@ export function DockedNavigation({
 
                     <ThemeToggle className="docked-navigation__theme-btn" />
 
-                    <div className="docked-navigation__zoom-controls" aria-label="Camera Zoom Controls">
+                    <MotionToggle className="docked-navigation__zoom-btn docked-navigation__motion-btn" />
+
+                    <div className="docked-navigation__zoom-controls" role="group" aria-label="Camera zoom">
                         <button
                             type="button"
                             className="docked-navigation__zoom-btn"
                             onClick={handleZoomIn}
                             aria-label="Zoom in camera"
-                            title="Zoom In (-)"
+                            title="Zoom in"
                         >
-                            +
+                            <PlusIcon />
                         </button>
                         <button
                             type="button"
                             className="docked-navigation__zoom-btn"
                             onClick={handleZoomOut}
                             aria-label="Zoom out camera"
-                            title="Zoom Out (+)"
+                            title="Zoom out"
                         >
-                            -
+                            <MinusIcon />
                         </button>
                     </div>
                 </div>

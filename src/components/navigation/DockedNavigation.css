@@ -1,24 +1,22 @@
+/* one dock, same anatomy on the portfolio and in the Studio */
 .docked-navigation {
     position: fixed;
-    bottom: max(12px, var(--sab));
+    bottom: max(var(--s4), var(--sab));
     left: 50%;
     transform: translateX(-50%);
     z-index: 60;
     pointer-events: auto;
-    max-width: calc(100vw - 32px);
+    max-width: calc(100vw - var(--s4));
 }
 
 .docked-navigation__track {
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 5px 8px;
-    background: var(--obsidian-bg);
-    border: 1px solid var(--obsidian-border);
-    border-radius: var(--radius-xs);
-    box-shadow: var(--glass-shadow);
-    backdrop-filter: var(--glass-blur);
-    -webkit-backdrop-filter: var(--glass-blur);
+    gap: var(--s1);
+    padding: var(--s1);
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--r-pill);
     max-width: 100%;
     min-width: 0;
     box-sizing: border-box;
@@ -27,13 +25,13 @@
 .docked-navigation__pills {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--s1);
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     min-width: 0;
     flex: 1 1 auto;
-    transition: -webkit-mask-image var(--transition-fast), mask-image var(--transition-fast);
+    border-radius: var(--r-pill);
 }
 
 .docked-navigation__pills--fade-left:not(.docked-navigation__pills--fade-right) {
@@ -58,7 +56,7 @@
 .docked-navigation__actions {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--s1);
     flex-shrink: 0;
     margin-left: auto;
 }
@@ -66,69 +64,40 @@
 .docked-navigation__chip {
     display: flex;
     align-items: center;
-    gap: 6px;
-    height: 28px;
-    padding: 0 12px;
-    border-radius: var(--radius-xs);
-    border: 1px solid var(--border-subtle);
-    background: var(--obsidian-bg-subtle);
-    color: var(--text-secondary);
-    font-size: 12px;
-    font-weight: 500;
-    cursor: pointer;
-    font-family: inherit;
+    gap: var(--s2);
+    height: var(--control-h);
+    padding: 0 var(--s4);
+    border: 0;
+    border-radius: var(--r-pill);
+    background: transparent;
+    color: var(--text-primary);
+    font: 600 13px/1 var(--font-sans);
     letter-spacing: 0.01em;
     white-space: nowrap;
     flex-shrink: 0;
-    box-sizing: border-box;
-    transition: all var(--transition-fast);
+    cursor: pointer;
+    transition: background-color var(--transition-fast), color var(--transition-fast);
 }
 
 .docked-navigation__chip:hover {
-    background: var(--obsidian-bg-hover);
-    color: var(--text-primary);
-    border-color: var(--border-hover);
+    background: var(--tint);
 }
 
-.docked-navigation__chip--active {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.35);
-    color: var(--text-primary);
-    font-weight: 600;
-    box-shadow: 0 0 16px rgba(255, 255, 255, 0.12), inset 0 0 8px rgba(255, 255, 255, 0.05);
+/* "where you are" is always a solid fill */
+.docked-navigation__chip--active,
+.docked-navigation__chip--active:hover {
+    background: var(--text-primary);
+    color: var(--bg-canvas);
 }
 
-:root[data-theme="light"] .docked-navigation__chip--active,
-body.light-theme .docked-navigation__chip--active {
-    background: var(--accent-subtle);
-    border-color: var(--accent-border);
-    color: var(--text-primary);
-    box-shadow: 0 0 12px var(--accent-glow), inset 0 0 8px rgba(255, 255, 255, 0.6);
+.docked-navigation__numeral {
+    font: 400 11px/1 var(--font-mono);
+    color: var(--accent);
 }
 
-.docked-navigation__chip:active {
-    transform: scale(0.97);
-}
-
-.docked-navigation__chip:focus-visible,
-.docked-navigation__zoom-btn:focus-visible,
-.docked-navigation__theme-btn:focus-visible,
-.docked-navigation__expand-tab:focus-visible {
-    outline: 2px solid var(--accent-cyan);
-    outline-offset: 1px;
-}
-
-.docked-navigation__dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    box-shadow: 0 0 6px currentColor;
-    flex-shrink: 0;
-}
-
-:root[data-theme="light"] .docked-navigation__dot,
-body.light-theme .docked-navigation__dot {
-    box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.12);
+.docked-navigation__chip--active .docked-navigation__numeral,
+.docked-navigation__chip--active .docked-navigation__badge {
+    color: var(--bg-canvas);
 }
 
 .docked-navigation__label {
@@ -137,157 +106,80 @@ body.light-theme .docked-navigation__dot {
 }
 
 .docked-navigation__badge {
-    font-size: 10px;
-    font-family: var(--font-mono);
-    font-weight: 600;
-    padding: 1px 5px;
-    border-radius: 2px;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    white-space: nowrap;
+    display: inline-flex;
     flex-shrink: 0;
-    line-height: 1.2;
+    font: 400 11px/1 var(--font-mono);
 }
 
 .docked-navigation__badge--station {
-    background: var(--badge-station-bg);
-    color: var(--badge-station-text);
-    border: 1px solid var(--badge-station-border);
-    font-weight: 600;
+    color: var(--accent);
+}
+
+.docked-navigation__badge--station svg {
+    width: 14px;
+    height: 14px;
 }
 
 .docked-navigation__zoom-divider {
     width: 1px;
-    height: 18px;
-    background: var(--border-subtle);
-    margin: 0 2px;
+    height: var(--s4);
+    background: var(--line);
+    margin: 0 var(--s1);
     flex-shrink: 0;
 }
 
 .docked-navigation__zoom-controls {
     display: flex;
     align-items: center;
-    gap: 3px;
+    gap: var(--s1);
     flex-shrink: 0;
 }
 
 .docked-navigation__zoom-btn {
-    width: 28px;
-    height: 28px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    width: var(--control-h);
+    height: var(--control-h);
+    display: grid;
+    place-items: center;
     padding: 0;
-    border-radius: var(--radius-xs);
-    border: 1px solid var(--border-subtle);
-    background: var(--obsidian-bg-subtle);
-    color: var(--text-secondary);
-    font-size: 18px;
-    font-weight: 600;
-    font-family: inherit;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--text-primary);
     cursor: pointer;
-    line-height: 1;
-    box-sizing: border-box;
-    transition: all var(--transition-fast);
     flex-shrink: 0;
 }
 
 .docked-navigation__zoom-btn:hover {
-    background: var(--obsidian-bg-hover);
-    color: var(--text-primary);
-    border-color: var(--border-hover);
-    box-shadow: 0 0 10px rgba(255, 255, 255, 0.15);
+    background: var(--tint);
+    color: var(--accent);
 }
 
-:root[data-theme="light"] .docked-navigation__zoom-btn:hover,
-body.light-theme .docked-navigation__zoom-btn:hover {
-    box-shadow: 0 0 10px rgba(15, 23, 42, 0.15);
-}
-
-.docked-navigation__zoom-btn:active {
-    transform: scale(0.92);
-}
-
-.docked-navigation__expand-tab {
-    display: none;
+.docked-navigation__chip:focus-visible,
+.docked-navigation__zoom-btn:focus-visible,
+.docked-navigation__theme-btn:focus-visible {
+    outline: 2px solid var(--signal);
+    outline-offset: -2px;
 }
 
 @media (max-width: 960px) {
     .docked-navigation {
-        bottom: max(8px, var(--sab));
-        left: max(8px, var(--sal));
-        right: max(8px, var(--sar));
+        bottom: max(var(--edge), var(--sab));
+        left: max(var(--edge), var(--sal));
+        right: max(var(--edge), var(--sar));
         transform: none;
         max-width: 100%;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
         z-index: 100;
     }
+}
 
-    .docked-navigation__expand-tab {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        height: 30px;
-        padding: 0 18px;
-        margin-bottom: -1px;
-        background: var(--obsidian-bg-elevated);
-        border: 1px solid var(--accent-cyan);
-        border-bottom: none;
-        border-radius: var(--radius-xs) var(--radius-xs) 0 0;
-        color: var(--accent-cyan);
-        font-family: inherit;
-        font-size: 11px;
-        font-weight: 600;
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
-        cursor: pointer;
-        backdrop-filter: var(--glass-blur);
-        -webkit-backdrop-filter: var(--glass-blur);
-        box-shadow: 0 -6px 24px rgba(0, 240, 255, 0.4), inset 0 0 12px rgba(0, 240, 255, 0.25);
-        z-index: 1;
-        position: relative;
-        animation: docked-pulse-arrow-up 2.5s infinite ease-in-out;
-        transition: all var(--transition-fast);
-    }
+.docked-navigation__motion-btn {
+    margin-right: var(--s1);
+}
 
-    @media (hover: hover) and (pointer: fine) {
-        .docked-navigation__expand-tab:hover {
-            color: var(--accent-cyan);
-            background: var(--obsidian-bg-hover);
-            border-color: var(--accent-cyan);
-            box-shadow: 0 -8px 28px rgba(0, 240, 255, 0.6), inset 0 0 16px rgba(0, 240, 255, 0.35);
-            transform: translateY(-2px);
-        }
-    }
-
-    .docked-navigation__expand-tab:active {
-        transform: translateY(0);
-    }
-
-    @keyframes docked-pulse-arrow-up {
-
-        0%,
-        100% {
-            box-shadow: 0 -6px 18px rgba(0, 240, 255, 0.3), inset 0 0 8px rgba(0, 240, 255, 0.15);
-        }
-
-        50% {
-            box-shadow: 0 -8px 28px rgba(0, 240, 255, 0.6), inset 0 0 16px rgba(0, 240, 255, 0.35);
-        }
-    }
-
-    .docked-navigation__track {
-        max-width: 100%;
-        padding: 5px 8px;
-        background: var(--obsidian-bg);
-        -webkit-backdrop-filter: var(--glass-blur);
-        backdrop-filter: var(--glass-blur);
-        border: 1px solid var(--obsidian-border);
-        border-radius: var(--radius-xs);
-        box-shadow: var(--glass-shadow-subtle);
-        position: relative;
-        z-index: 2;
+/* narrow phones keep room for the section names: the studio needs zoom, the other pages the pause */
+@media (max-width: 600px) {
+    :root:not([data-studio]) .docked-navigation__zoom-controls,
+    :root[data-studio] .docked-navigation__motion-btn {
+        display: none;
     }
 }
