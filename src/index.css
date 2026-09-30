@@ -246,6 +246,13 @@ svg.lucide {
     vertical-align: -0.15em;
 }
 
+/* the theme reveal is driven from script, so the default cross-fade is off */
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
+}
+
 /* the pause button and the system setting both still the decorative CSS loops */
 :root[data-motion="paused"] :is(.scroll-to-top__corona, .scroll-to-top__rays) {
     animation: none;
