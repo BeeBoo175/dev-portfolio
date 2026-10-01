@@ -10,8 +10,7 @@
     padding: 0 8px;
     background: var(--bg-surface-subtle);
     border: 1px solid var(--border-default);
-    border-radius: var(--radius-xs);
-    box-shadow: var(--glass-shadow-subtle);
+    border-radius: var(--r-pill);
     color: var(--text-secondary);
     font-family: inherit;
     font-size: 12px;
@@ -19,8 +18,6 @@
     letter-spacing: 0.01em;
     cursor: pointer;
     white-space: nowrap;
-    backdrop-filter: var(--glass-blur);
-    -webkit-backdrop-filter: var(--glass-blur);
     transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
     outline: none;
     -webkit-tap-highlight-color: transparent;
@@ -52,12 +49,8 @@
 }
 
 .theme-toggle-btn:focus-visible {
-    outline: 2px solid var(--accent-cyan);
+    outline: 2px solid var(--accent);
     outline-offset: 2px;
-}
-
-.theme-toggle-btn:active {
-    transform: scale(0.97);
 }
 
 .theme-toggle-btn__celestial {
@@ -80,7 +73,7 @@
     box-shadow: inset -3.5px 2px 0 0 #f1f5f9;
     filter: drop-shadow(0 0 3px rgba(241, 245, 249, 0.45));
     transform: rotate(-15deg) scale(1);
-    transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.35s ease, background-color 0.35s ease, filter 0.35s ease;
+    transition: transform 0.45s var(--ease-out), box-shadow 0.35s ease, background-color 0.35s ease, filter 0.35s ease;
 }
 
 .theme-toggle-btn__celestial-rays {
@@ -102,7 +95,7 @@
         4.2px -4.2px 0 0.4px #f59e0b,
         -4.2px 4.2px 0 0.4px #f59e0b,
         4.2px 4.2px 0 0.4px #f59e0b;
-    transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.35s ease;
+    transition: transform 0.45s var(--ease-out), opacity 0.35s ease;
 }
 
 .theme-toggle-btn--light .theme-toggle-btn__celestial-body {
@@ -130,36 +123,27 @@
 }
 
 .docked-navigation__theme-btn {
-    height: 28px;
-    width: 74px;
-    min-width: 74px;
-    max-width: 74px;
-    padding: 0 8px;
-    border-radius: var(--radius-xs);
-    border: 1px solid var(--border-subtle);
-    background: var(--obsidian-bg-subtle);
-    color: var(--text-secondary);
-    font-size: 12px;
-    font-weight: 500;
-    font-family: inherit;
-    letter-spacing: 0.01em;
+    width: var(--control-h);
+    height: var(--control-h);
+    min-width: var(--control-h);
+    max-width: var(--control-h);
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
     box-shadow: none;
     box-sizing: border-box;
 }
 
 .docked-navigation__theme-btn:hover {
-    background: var(--obsidian-bg-hover);
-    color: var(--text-primary);
-    border-color: var(--border-hover);
+    background: var(--tint);
 }
 
-@media (max-width: 1280px) {
-    .theme-toggle-btn:not(.docked-navigation__theme-btn) {
-        width: 70px;
-        min-width: 70px;
-        max-width: 70px;
-        padding: 0 6px;
-        font-size: 11px;
-        gap: 5px;
-    }
+/* the sun-to-moon morph carries the meaning; the word stays for assistive tech */
+.docked-navigation__theme-btn .theme-toggle-btn__text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
 }
