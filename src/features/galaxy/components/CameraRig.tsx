@@ -4,9 +4,13 @@ import * as THREE from "three";
 import { getCameraDistanceConfig, type CameraDistanceConfig } from "../cameraConfig";
 import { useCameraRigControls, FIXED_POLAR_ANGLE } from "../hooks/useCameraRigControls";
 import { shouldTriggerCameraTransition } from "../utils/cameraTransitionUtils";
+import { getPlanetViewAzimuth, getPortraitScale, getViewShift } from "../utils/viewFraming";
+import { motionStore, prefersReducedMotion } from "../../motion/store";
 
 const HOME_ORBIT_SPEED = -0.045;
 const TRANSITION_DURATION = 0.72;
+const PLANET_VIEW_LIFT = 0.1;
+const FRAMING_DAMPING = 5;
 
 function easeInOutCubic(t: number) {
     return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
@@ -44,7 +48,8 @@ export function CameraRig({
     customDistanceConfig,
     onFocusChange,
 }: CameraRigProps) {
-    const { camera, gl } = useThree();
+    const { camera, gl, size } = useThree();
+    const viewShift = useRef({ x: 0, y: 0, isSet: false });
     const lastFocusId = useRef<string | null>(null);
     const lastEditorMode = useRef(isEditorMode);
     const currentTargetPos = useRef(new THREE.Vector3());
@@ -81,7 +86,7 @@ export function CameraRig({
 
         if (isHome || isBelt) {
             currentTargetPos.current.set(0, 0, 0);
-            if (!isCameraOrbitPaused) {
+            if (!isCameraOrbitPaused && !motionStore.isPaused()) {
                 homeTheta.current += cameraOrbitSpeed * frameDelta;
             }
         } else {
@@ -102,15 +107,17 @@ export function CameraRig({
         const homeBaseDist = Math.hypot(config.homeRadial, config.homeHeight);
         const orbitBaseDist = Math.hypot(config.orbitRadial, config.orbitHeight);
         const baseDistance = isBelt ? config.beltDistance : isHome ? homeBaseDist : orbitBaseDist;
-        const distance = Math.max(1.5, baseDistance + userZoomOffsetRef.current);
+        const framedDistance = isHome || isBelt ? baseDistance : baseDistance * getPortraitScale(size.width, size.height);
+        const distance = Math.max(1.5, framedDistance + userZoomOffsetRef.current);
 
         const baseTheta = isHome || isBelt
             ? homeTheta.current
-            : Math.atan2(currentTargetPos.current.x, currentTargetPos.current.z);
+            : Math.atan2(currentTargetPos.current.x, currentTargetPos.current.z) +
+              getPlanetViewAzimuth(Math.hypot(currentTargetPos.current.x, currentTargetPos.current.z));
 
         const activeTheta = baseTheta + userThetaOffsetRef.current;
         const activePhi = THREE.MathUtils.clamp(
-            FIXED_POLAR_ANGLE + userPhiOffsetRef.current,
+            FIXED_POLAR_ANGLE - (isHome || isBelt ? 0 : PLANET_VIEW_LIFT) + userPhiOffsetRef.current,
             0.1,
             Math.PI - 0.1
         );
@@ -169,7 +176,8 @@ export function CameraRig({
 
         if (isTransitioning.current) {
             transitionElapsed.current += frameDelta;
-            const t = Math.min(transitionElapsed.current / TRANSITION_DURATION, 1);
+            // visitors who ask for reduced motion jump straight to the destination
+            const t = prefersReducedMotion() ? 1 : Math.min(transitionElapsed.current / TRANSITION_DURATION, 1);
             const eased = easeInOutCubic(t);
 
             scratchOffset.current.subVectors(desiredPos.current, currentTargetPos.current);
@@ -214,6 +222,33 @@ export function CameraRig({
         }
 
         camera.lookAt(currentLookTarget.current);
+
+        const framing = getViewShift({
+            width: size.width,
+            height: size.height,
+            isEditorMode,
+            isHome,
+            isInspectorOpen: document.body.dataset.inspector === "open",
+        });
+        const shift = viewShift.current;
+        if (!shift.isSet) {
+            shift.x = framing.x;
+            shift.y = framing.y;
+            shift.isSet = true;
+        } else {
+            shift.x = THREE.MathUtils.damp(shift.x, framing.x, FRAMING_DAMPING, frameDelta);
+            shift.y = THREE.MathUtils.damp(shift.y, framing.y, FRAMING_DAMPING, frameDelta);
+        }
+        if (camera instanceof THREE.PerspectiveCamera) {
+            camera.setViewOffset(
+                size.width,
+                size.height,
+                -shift.x * size.width,
+                shift.y * size.height,
+                size.width,
+                size.height
+            );
+        }
     });
 
     return null;
