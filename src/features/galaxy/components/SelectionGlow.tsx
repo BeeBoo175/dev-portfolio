@@ -6,6 +6,9 @@ import { useTheme } from "../../theme";
 import { getEffectiveAccentThreeColor } from "../utils/colorUtils";
 
 const _whiteColor = new THREE.Color("#ffffff");
+const RETICLE_SCALE = 1.45;
+const RETICLE_ARC_STEPS = 18;
+const RETICLE_ARC_INSET = 0.32;
 
 export interface SelectionGlowProps {
     radius: number;
@@ -15,83 +18,76 @@ export interface SelectionGlowProps {
     isHovered?: boolean;
     showReticle?: boolean;
     showLabel?: boolean;
+    /** The screen-space callout names the selected planet, so its 3D label can step aside. */
+    hideSelectedLabel?: boolean;
 }
 
 const _labelTextureCache = new Map<string, THREE.CanvasTexture>();
+
+const LABEL_FONT = "500 34px 'DM Mono', ui-monospace, Consolas, monospace";
+
+function drawLabel(canvas: HTMLCanvasElement, label: string, isLight: boolean) {
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    const { width, height } = canvas;
+    ctx.clearRect(0, 0, width, height);
+    ctx.font = LABEL_FONT;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.letterSpacing = "4px";
+    if (isLight) {
+        ctx.fillStyle = "#10203f";
+    } else {
+        ctx.shadowColor = "rgba(0, 0, 0, 0.95)";
+        ctx.shadowBlur = 8;
+        ctx.shadowOffsetY = 1;
+        ctx.fillStyle = "#ffffff";
+    }
+    ctx.fillText(label.toUpperCase(), width / 2, height / 2);
+}
 
 function getLabelTexture(label: string, isLight: boolean): THREE.CanvasTexture {
     const key = `${label}_${isLight ? "light" : "dark"}`;
     const cached = _labelTextureCache.get(key);
     if (cached) return cached;
 
-    const width = 512;
-    const height = 128;
     const canvas = document.createElement("canvas");
-    canvas.width = width;
-    canvas.height = height;
-    const ctx = canvas.getContext("2d");
-    if (ctx) {
-        ctx.clearRect(0, 0, width, height);
-        ctx.font = "600 36px 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-
-        if (isLight) {
-            ctx.fillStyle = "#1e293b";
-            ctx.letterSpacing = "3px";
-            ctx.fillText(label.toUpperCase(), width / 2, height / 2);
-        } else {
-            ctx.shadowColor = "rgba(0, 0, 0, 0.95)";
-            ctx.shadowBlur = 8;
-            ctx.shadowOffsetX = 0;
-            ctx.shadowOffsetY = 1;
-
-            ctx.fillStyle = "#ffffff";
-            ctx.letterSpacing = "4px";
-            ctx.fillText(label.toUpperCase(), width / 2, height / 2);
-        }
-    }
+    canvas.width = 512;
+    canvas.height = 128;
+    drawLabel(canvas, label, isLight);
     const tex = new THREE.CanvasTexture(canvas);
     tex.minFilter = THREE.LinearFilter;
     tex.magFilter = THREE.LinearFilter;
     _labelTextureCache.set(key, tex);
+    // redraw once the web font arrives; canvas text never reflows on its own
+    document.fonts?.load(LABEL_FONT).then(() => {
+        drawLabel(canvas, label, isLight);
+        tex.needsUpdate = true;
+    });
     return tex;
 }
 
-function createBracketsGeometry(radius: number, cornerSize: number) {
-    const r = radius * 1.35;
-    const s = cornerSize;
+function createReticleGeometry(radius: number) {
+    const r = radius * RETICLE_SCALE;
+    const tick = radius * 0.1;
+    const at = (angle: number, length: number) =>
+        new THREE.Vector3(Math.cos(angle) * length, Math.sin(angle) * length, 0);
     const points: THREE.Vector3[] = [];
 
-    points.push(new THREE.Vector3(-r, r - s, 0));
-    points.push(new THREE.Vector3(-r, r, 0));
-    points.push(new THREE.Vector3(-r + s, r, 0));
-
-    points.push(new THREE.Vector3(r - s, r, 0));
-    points.push(new THREE.Vector3(r, r, 0));
-    points.push(new THREE.Vector3(r, r - s, 0));
-
-    points.push(new THREE.Vector3(r, -r + s, 0));
-    points.push(new THREE.Vector3(r, -r, 0));
-    points.push(new THREE.Vector3(r - s, -r, 0));
-
-    points.push(new THREE.Vector3(-r + s, -r, 0));
-    points.push(new THREE.Vector3(-r, -r, 0));
-    points.push(new THREE.Vector3(-r, -r + s, 0));
-
-    const geom = new THREE.BufferGeometry().setFromPoints(points);
-    return geom;
-}
-
-function createDottedRingGeometry(radius: number, segments = 32) {
-    const r = radius * 1.25;
-    const points: THREE.Vector3[] = [];
-    for (let i = 0; i < segments; i++) {
-        const theta = (i / segments) * Math.PI * 2;
-        points.push(new THREE.Vector3(Math.cos(theta) * r, Math.sin(theta) * r, 0));
+    for (let quarter = 0; quarter < 4; quarter++) {
+        const cardinal = (quarter * Math.PI) / 2;
+        const from = cardinal + RETICLE_ARC_INSET;
+        const span = Math.PI / 2 - RETICLE_ARC_INSET * 2;
+        for (let i = 0; i < RETICLE_ARC_STEPS; i++) {
+            points.push(
+                at(from + (span * i) / RETICLE_ARC_STEPS, r),
+                at(from + (span * (i + 1)) / RETICLE_ARC_STEPS, r)
+            );
+        }
+        points.push(at(cardinal, r - tick), at(cardinal, r + tick));
     }
-    const geom = new THREE.BufferGeometry().setFromPoints(points);
-    return geom;
+
+    return new THREE.BufferGeometry().setFromPoints(points);
 }
 
 export function SelectionGlow({
@@ -102,6 +98,7 @@ export function SelectionGlow({
     isHovered = false,
     showReticle,
     showLabel,
+    hideSelectedLabel = false,
 }: SelectionGlowProps) {
     const { isLight } = useTheme();
     const visuals = useGalaxyVisuals();
@@ -109,18 +106,15 @@ export function SelectionGlow({
     const effectiveShowLabel = showLabel ?? (visuals.showPlanetNames !== false);
 
     const groupRef = useRef<THREE.Group>(null);
-    const bracketsRef = useRef<THREE.LineSegments>(null);
-    const dotsRef = useRef<THREE.Points>(null);
+    const reticleRef = useRef<THREE.LineSegments>(null);
     const labelSpriteRef = useRef<THREE.Sprite>(null);
-    const reticleRotation = useRef(0);
 
-    const cornerSize = radius * 0.35;
-    const bracketGeom = useMemo(() => createBracketsGeometry(radius, cornerSize), [radius, cornerSize]);
-    const dottedGeom = useMemo(() => createDottedRingGeometry(radius, 32), [radius]);
+    const reticleGeom = useMemo(() => createReticleGeometry(radius), [radius]);
 
     const lineColor = useMemo(() => {
         return getEffectiveAccentThreeColor(color, isLight);
     }, [color, isLight]);
+    const reticleColor = isLight ? "#bd3f08" : "#ff7a4d";
     const idleTextColor = useMemo(() => new THREE.Color(isLight ? "#334155" : "#94a3b8"), [isLight]);
 
     const labelTexture = useMemo(() => {
@@ -130,10 +124,9 @@ export function SelectionGlow({
 
     useEffect(() => {
         return () => {
-            bracketGeom.dispose();
-            dottedGeom.dispose();
+            reticleGeom.dispose();
         };
-    }, [bracketGeom, dottedGeom]);
+    }, [reticleGeom]);
 
     const worldPos = useRef(new THREE.Vector3());
 
@@ -142,35 +135,12 @@ export function SelectionGlow({
 
         groupRef.current.lookAt(state.camera.position);
 
-        const targetBracketOpacity = effectiveShowReticle
-            ? (isSelected ? 1.0 : isHovered ? 0.8 : 0)
-            : 0;
-
-        if (bracketsRef.current) {
-            const mat = bracketsRef.current.material as THREE.LineBasicMaterial;
-            mat.opacity = THREE.MathUtils.damp(mat.opacity, targetBracketOpacity, 8, delta);
-            bracketsRef.current.visible = mat.opacity > 0.01;
-
-            if (isSelected) {
-                const pulse = 1 + Math.sin(state.clock.getElapsedTime() * 4) * 0.04;
-                bracketsRef.current.scale.set(pulse, pulse, 1);
-            } else if (isHovered) {
-                bracketsRef.current.scale.set(1.03, 1.03, 1);
-            } else {
-                bracketsRef.current.scale.set(1.08, 1.08, 1);
-            }
-        }
-
-        if (dotsRef.current) {
-            const dotMat = dotsRef.current.material as THREE.PointsMaterial;
-            const dotTargetOpacity = effectiveShowReticle
-                ? (isSelected ? 0.95 : isHovered ? 0.65 : 0)
-                : 0;
-            dotMat.opacity = THREE.MathUtils.damp(dotMat.opacity, dotTargetOpacity, 8, delta);
-            dotsRef.current.visible = dotMat.opacity > 0.01;
-
-            reticleRotation.current += (isSelected ? 0.75 : 0.25) * delta;
-            dotsRef.current.rotation.z = reticleRotation.current;
+        if (reticleRef.current) {
+            const material = reticleRef.current.material as THREE.LineBasicMaterial;
+            const targetOpacity = effectiveShowReticle ? (isSelected ? 1.0 : isHovered ? 0.65 : 0) : 0;
+            material.opacity = THREE.MathUtils.damp(material.opacity, targetOpacity, 8, delta);
+            reticleRef.current.visible = material.opacity > 0.01;
+            reticleRef.current.rotation.z += (isSelected ? 0.2 : 0.08) * delta;
         }
 
         if (labelSpriteRef.current) {
@@ -184,7 +154,7 @@ export function SelectionGlow({
             const targetBaseOpacity = effectiveShowLabel
                 ? (isSelected ? 1.0 : isHovered ? 0.95 : (isLight ? 0.8 : 0.6))
                 : 0;
-            const labelTargetOpacity = targetBaseOpacity * closeFocusFade;
+            const labelTargetOpacity = isSelected && hideSelectedLabel ? 0 : targetBaseOpacity * closeFocusFade;
 
             labelMat.opacity = isSelected ? labelTargetOpacity : THREE.MathUtils.damp(labelMat.opacity, labelTargetOpacity, 10, delta);
             labelSpriteRef.current.visible = labelMat.opacity > 0.005;
@@ -210,28 +180,15 @@ export function SelectionGlow({
 
     return (
         <group ref={groupRef} renderOrder={998}>
-            <lineSegments ref={bracketsRef} geometry={bracketGeom} renderOrder={998}>
+            <lineSegments ref={reticleRef} geometry={reticleGeom} renderOrder={998}>
                 <lineBasicMaterial
-                    color={lineColor}
+                    color={reticleColor}
                     transparent
                     opacity={0}
-                    linewidth={1}
                     depthTest={false}
                     depthWrite={false}
                 />
             </lineSegments>
-
-            <points ref={dotsRef} geometry={dottedGeom} renderOrder={998}>
-                <pointsMaterial
-                    color={lineColor}
-                    size={isLight ? 0.1 : 0.08}
-                    transparent
-                    opacity={0}
-                    sizeAttenuation
-                    depthTest={false}
-                    depthWrite={false}
-                />
-            </points>
 
             {labelTexture && (
                 <sprite
