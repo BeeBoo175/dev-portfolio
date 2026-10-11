@@ -17,7 +17,7 @@ import {
 } from "../utils/lodUtils";
 import PlanetaryRing from "./PlanetaryRing";
 import { useTheme } from "../../theme";
-import { resolveCelestialBodyColor } from "../utils/colorUtils";
+import { BLUEPRINT_KEYLINE_OPACITY, getBlueprintRimColors, resolveCelestialBodyColor } from "../utils/colorUtils";
 import { getBlueprintRadialTexture } from "../utils/textureUtils";
 
 interface LowPolyPlanetProps {
@@ -122,13 +122,17 @@ export const LowPolyPlanet = memo(forwardRef<THREE.Mesh, LowPolyPlanetProps>(
             toUpdate.forEach((g) => updatePlanetGeometryColors(g, body.palette, effectiveColor, isSun));
         }, [singleGeometry, multiLODGeometries, body.palette, effectiveColor, isSun]);
 
-        const outerBorderColor = isSun ? (body.palette?.peak ?? "#fffbeb") : effectiveColor;
+        // the rim is the body's own colour; the hairline outside it is what holds the shape on paper
+        // the sun stays a solid disc of its own colour: the warm centre of the chart in both themes
+        const rim = useMemo(() => getBlueprintRimColors(effectiveColor, isSun), [effectiveColor, isSun]);
 
         const billboardGeometries = useMemo(() => {
             return {
                 mask: new THREE.CircleGeometry(body.radius * 0.995, 48),
                 glow: new THREE.CircleGeometry(body.radius * 1.02, 48),
-                ring: new THREE.RingGeometry(body.radius * 1.015, body.radius * 1.025, 64),
+                ring: new THREE.RingGeometry(body.radius * 1.01, body.radius * 1.07, 64),
+                keyline: new THREE.RingGeometry(body.radius * 1.07, body.radius * 1.084, 64),
+                casing: new THREE.RingGeometry(body.radius * 1.084, body.radius * 1.17, 64),
             };
         }, [body.radius]);
 
@@ -137,6 +141,8 @@ export const LowPolyPlanet = memo(forwardRef<THREE.Mesh, LowPolyPlanetProps>(
                 billboardGeometries.mask.dispose();
                 billboardGeometries.glow.dispose();
                 billboardGeometries.ring.dispose();
+                billboardGeometries.keyline.dispose();
+                billboardGeometries.casing.dispose();
             };
         }, [billboardGeometries]);
 
@@ -226,19 +232,12 @@ export const LowPolyPlanet = memo(forwardRef<THREE.Mesh, LowPolyPlanetProps>(
         });
 
         const glowMatRef = useRef<THREE.MeshBasicMaterial>(null);
-        const ringMatRef = useRef<THREE.MeshBasicMaterial>(null);
 
         useEffect(() => {
             if (glowMatRef.current) {
                 glowMatRef.current.color.set(effectiveColor);
             }
         }, [effectiveColor]);
-
-        useEffect(() => {
-            if (ringMatRef.current) {
-                ringMatRef.current.color.set(outerBorderColor);
-            }
-        }, [outerBorderColor]);
 
         const radialTexture = isLight ? getBlueprintRadialTexture() : null;
 
@@ -256,37 +255,54 @@ export const LowPolyPlanet = memo(forwardRef<THREE.Mesh, LowPolyPlanetProps>(
                     >
                         <mesh geometry={billboardGeometries.mask} raycast={() => null}>
                             <meshBasicMaterial
-                                color="#cad2dc"
+                                color={rim.fill}
                                 side={THREE.DoubleSide}
                                 depthWrite={true}
                             />
                         </mesh>
 
-                        <mesh
-                            position={[0, 0, 0.01]}
-                            geometry={billboardGeometries.glow}
-                            raycast={() => null}
-                        >
-                            <meshBasicMaterial
-                                ref={glowMatRef}
-                                map={radialTexture}
-                                color={effectiveColor}
-                                transparent
-                                opacity={0.75}
-                                side={THREE.DoubleSide}
-                                depthWrite={false}
-                            />
-                        </mesh>
+                        {/* the shading would grey the sun's fill, so only planets wear it */}
+                        {!isSun && (
+                            <mesh
+                                position={[0, 0, 0.01]}
+                                geometry={billboardGeometries.glow}
+                                raycast={() => null}
+                            >
+                                <meshBasicMaterial
+                                    ref={glowMatRef}
+                                    map={radialTexture}
+                                    color={effectiveColor}
+                                    transparent
+                                    opacity={0.75}
+                                    side={THREE.DoubleSide}
+                                    depthWrite={false}
+                                />
+                            </mesh>
+                        )}
 
                         <mesh
                             position={[0, 0, 0.015]}
                             geometry={billboardGeometries.ring}
                             raycast={() => null}
                         >
+                            <meshBasicMaterial color={rim.edge} side={THREE.DoubleSide} depthWrite={false} />
+                        </mesh>
+
+                        <mesh position={[0, 0, 0.015]} geometry={billboardGeometries.keyline} raycast={() => null}>
                             <meshBasicMaterial
-                                ref={ringMatRef}
-                                color={outerBorderColor}
-                                wireframe
+                                color={rim.keyline}
+                                transparent
+                                opacity={BLUEPRINT_KEYLINE_OPACITY}
+                                side={THREE.DoubleSide}
+                                depthWrite={false}
+                            />
+                        </mesh>
+
+                        <mesh position={[0, 0, 0.015]} geometry={billboardGeometries.casing} raycast={() => null}>
+                            <meshBasicMaterial
+                                color="#f8fbff"
+                                transparent
+                                opacity={0.9}
                                 side={THREE.DoubleSide}
                                 depthWrite={false}
                             />

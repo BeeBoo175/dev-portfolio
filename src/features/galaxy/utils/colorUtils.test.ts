@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getEffectiveAccentColor, getEffectiveAccentThreeColor, resolveCelestialBodyColor } from "./colorUtils";
+import { getEffectiveAccentColor, getEffectiveAccentThreeColor, resolveCelestialBodyColor, getBlueprintRimColors } from "./colorUtils";
 
 describe("colorUtils", () => {
     it("returns original color in dark mode", () => {
@@ -26,5 +26,13 @@ describe("colorUtils", () => {
         expect(resolveCelestialBodyColor({ color: "#111111", palette: { water: "#555555" } })).toBe("#555555");
         expect(resolveCelestialBodyColor({ color: "#111111", palette: { peak: "#666666" } })).toBe("#666666");
         expect(resolveCelestialBodyColor({}, undefined, "#abcdef")).toBe("#abcdef");
+    });
+});
+
+describe("getBlueprintRimColors", () => {
+    it("keeps each body's own colour on the rim", () => {
+        for (const color of ["#ffe59e", "#d97706", "#10b981", "#34d399", "#a855f7"]) {
+            expect(getBlueprintRimColors(color).edge).toBe(color);
+        }
     });
 });

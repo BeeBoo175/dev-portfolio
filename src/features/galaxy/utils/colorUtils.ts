@@ -42,18 +42,14 @@ export function getEffectiveAccentThreeColor(color: string, isLight: boolean): T
     return created.clone();
 }
 
-export function resolveCelestialBodyColor(
-    body: { color?: string; palette?: { land?: string; coast?: string; water?: string; peak?: string } },
-    overrideColor?: string,
-    defaultFallback = "#5da9ff"
-): string {
-    return (
-        overrideColor ??
-        body.palette?.land ??
-        body.palette?.coast ??
-        body.palette?.water ??
-        body.palette?.peak ??
-        body.color ??
-        defaultFallback
-    );
+export { resolveCelestialBodyColor } from "./bodyColor";
+
+/** The pale theme's blue, drawn faintly: enough to part a body from the paper without outlining it. */
+const BLUEPRINT_KEYLINE = "#1c3f8f";
+export const BLUEPRINT_KEYLINE_OPACITY = 0.28;
+
+/** How a body is set off from the pale chart without altering its colour. */
+export function getBlueprintRimColors(color: string, isSun = false): { fill: string; edge: string; keyline: string } {
+    const fill = new THREE.Color("#fbfdff").lerp(new THREE.Color(color), isSun ? 0.92 : 0.3);
+    return { fill: `#${fill.getHexString()}`, edge: color, keyline: BLUEPRINT_KEYLINE };
 }
