@@ -3,9 +3,12 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { useTheme } from "../../theme";
 import { getCircleDataTexture } from "../utils/textureUtils";
+import { motionStore } from "../../motion/store";
 
 export interface CosmicBackgroundProps {
     visible?: boolean;
+    /** Low-end devices: stars only, with no nebulae, meteors or twinkling. */
+    lite?: boolean;
 }
 
 const STAR_COUNT = 1400;
@@ -182,36 +185,36 @@ function getLightModeSkyDomeTexture(): THREE.CanvasTexture {
                 const nz = cosLat * Math.cos(lon);
 
                 const tVert = Math.sin(lat) * 0.5 + 0.5;
-                const topR = 190, topG = 212, topB = 240;
-                const botR = 244, botG = 232, botB = 246;
+                const topR = 221, topG = 236, topB = 252;
+                const botR = 250, botG = 250, botB = 249;
 
                 let r = botR + (topR - botR) * tVert;
                 let g = botG + (topG - botG) * tVert;
                 let b = botB + (topB - botB) * tVert;
 
                 const pinkField = Math.max(0, nx * 0.65 + ny * 0.25 + nz * 0.7);
-                const pinkWeight = Math.pow(pinkField, 1.8) * 0.6;
+                const pinkWeight = Math.pow(pinkField, 1.8) * 0.16;
                 r = r * (1 - pinkWeight) + 252 * pinkWeight;
                 g = g * (1 - pinkWeight) + 195 * pinkWeight;
                 b = b * (1 - pinkWeight) + 225 * pinkWeight;
 
                 const cyanField = Math.max(0, -nx * 0.72 - ny * 0.18 - nz * 0.65);
-                const cyanWeight = Math.pow(cyanField, 1.8) * 0.58;
+                const cyanWeight = Math.pow(cyanField, 1.8) * 0.42;
                 r = r * (1 - cyanWeight) + 175 * cyanWeight;
                 g = g * (1 - cyanWeight) + 228 * cyanWeight;
                 b = b * (1 - cyanWeight) + 255 * cyanWeight;
 
                 const violetField = Math.max(0, -nx * 0.55 + ny * 0.75 + nz * 0.35);
-                const violetWeight = Math.pow(violetField, 2.0) * 0.48;
+                const violetWeight = Math.pow(violetField, 2.0) * 0.12;
                 r = r * (1 - violetWeight) + 220 * violetWeight;
                 g = g * (1 - violetWeight) + 205 * violetWeight;
                 b = b * (1 - violetWeight) + 250 * violetWeight;
 
                 const amberField = Math.max(0, nx * 0.5 - ny * 0.65 - nz * 0.55);
-                const amberWeight = Math.pow(amberField, 2.2) * 0.45;
+                const amberWeight = Math.pow(amberField, 2.2) * 0.3;
                 r = r * (1 - amberWeight) + 254 * amberWeight;
-                g = g * (1 - amberWeight) + 225 * amberWeight;
-                b = b * (1 - amberWeight) + 195 * amberWeight;
+                g = g * (1 - amberWeight) + 232 * amberWeight;
+                b = b * (1 - amberWeight) + 196 * amberWeight;
 
                 const brightCore1 = Math.max(0, nx * 0.55 + ny * 0.35 + nz * 0.75);
                 const glow1 = Math.pow(brightCore1, 4.0) * 0.65;
@@ -350,7 +353,7 @@ interface MeteorState {
     nextSpawnTime: number;
 }
 
-export const CosmicBackground = memo(function CosmicBackground({ visible = true }: CosmicBackgroundProps) {
+export const CosmicBackground = memo(function CosmicBackground({ visible = true, lite = false }: CosmicBackgroundProps) {
     const { isLight } = useTheme();
     const starsRef = useRef<THREE.Points>(null);
     const brightStarsRef = useRef<THREE.Points>(null);
@@ -360,14 +363,15 @@ export const CosmicBackground = memo(function CosmicBackground({ visible = true 
     const circleTexture = useMemo(() => getCircleDataTexture(), []);
     const skyDomeTexture = useMemo(() => (isLight ? getLightModeSkyDomeTexture() : null), [isLight]);
 
-    const nebulaTextures = useMemo(() => [
+    // six large see-through planes, each with a texture painted at start-up
+    const nebulaTextures = useMemo(() => lite ? [] : [
         createOrganicNebulaTexture({ r: 56, g: 189, b: 248 }, { r: 186, g: 230, b: 253 }, 101),
         createOrganicNebulaTexture({ r: 129, g: 140, b: 248 }, { r: 224, g: 231, b: 255 }, 202),
         createOrganicNebulaTexture({ r: 240, g: 90, b: 165 }, { r: 251, g: 207, b: 232 }, 303),
         createOrganicNebulaTexture({ r: 251, g: 160, b: 50 }, { r: 254, g: 243, b: 199 }, 404),
         createOrganicNebulaTexture({ r: 45, g: 212, b: 191 }, { r: 204, g: 251, b: 241 }, 505),
         createOrganicNebulaTexture({ r: 180, g: 105, b: 250 }, { r: 243, g: 232, b: 255 }, 606),
-    ], []);
+    ], [lite]);
 
     useEffect(() => {
         return () => {
@@ -411,7 +415,7 @@ export const CosmicBackground = memo(function CosmicBackground({ visible = true 
             { x: -200, y: 240, z: 360, scaleX: 350, scaleY: 220, rotSpeed: -0.004, texIdx: 5 },
         ];
 
-        for (let i = 0; i < NEBULA_COUNT; i++) {
+        for (let i = 0; i < (nebulaTextures.length ? NEBULA_COUNT : 0); i++) {
             const config = offsets[i % offsets.length];
             items.push({
                 position: new THREE.Vector3(config.x, config.y, config.z),
@@ -509,6 +513,13 @@ export const CosmicBackground = memo(function CosmicBackground({ visible = true 
 
     useFrame((state, delta) => {
         if (!visible) return;
+        const still = lite || motionStore.isPaused();
+        if (meteorsGroupRef.current) meteorsGroupRef.current.visible = !still;
+        if (still) {
+            // flat cards must keep facing a camera that can still be moved
+            nebulaeGroupRef.current?.children.forEach((child) => child.lookAt(state.camera.position));
+            return;
+        }
         const time = state.clock.getElapsedTime();
 
         if (starsRef.current) {
