@@ -10,7 +10,9 @@ import SunGlow from "./SunGlow";
 import SelectionGlow from "./SelectionGlow";
 import { useTheme } from "../../theme";
 import { resolveCelestialBodyColor } from "../utils/colorUtils";
+import { getBodyNumeral } from "../utils/numerals";
 import { useRadarTransition } from "../../transition";
+import { motionStore } from "../../motion/store";
 
 export interface CelestialBodyProps {
     body: OrbitConfig | SunConfig;
@@ -23,6 +25,9 @@ export interface CelestialBodyProps {
     isEditorMode?: boolean;
     onSelect?: (id: string) => void;
 }
+
+/** Longest step the animation takes in one frame, in seconds. */
+const MAX_FRAME_DELTA = 0.1;
 
 export const CelestialBody = memo(forwardRef<THREE.Group, CelestialBodyProps>(
     ({ body, color, isSun, isMoon = false, parentOrbitRadius, isSelected = false, selectedMoonId, isEditorMode = false, onSelect }, ref) => {
@@ -51,15 +56,18 @@ export const CelestialBody = memo(forwardRef<THREE.Group, CelestialBodyProps>(
         const orbitConfig = body as OrbitConfig;
         const sunConfig = body as SunConfig;
 
-        useFrame((_, delta) => {
+        useFrame((_, frameDelta) => {
+            const delta = Math.min(frameDelta, MAX_FRAME_DELTA);
             if (positionRef.current && bodyRef.current && !positionRef.current.userData.surfaceMesh) {
                 positionRef.current.userData.surfaceMesh = bodyRef.current;
             }
+            // orbits and spins stop when paused; the reveal below still completes
+            const motion = motionStore.isPaused() ? 0 : delta;
             if (orbitRef.current && orbitConfig.orbitSpeed) {
-                orbitRef.current.rotation.y += orbitConfig.orbitSpeed * delta;
+                orbitRef.current.rotation.y += orbitConfig.orbitSpeed * motion;
             }
             if (bodyRef.current) {
-                bodyRef.current.rotation.y += body.rotationSpeed * delta;
+                bodyRef.current.rotation.y += body.rotationSpeed * motion;
             }
 
             const radarState = radarStateRef.current;
@@ -132,7 +140,8 @@ export const CelestialBody = memo(forwardRef<THREE.Group, CelestialBodyProps>(
         const orbitArgument = orbitConfig.orbitArgument ?? 0;
         const axialTilt = orbitConfig.axialTilt ?? sunConfig.axialTilt ?? 0;
 
-        const labelText = isSun ? "SUN" : (body.id.charAt(0).toUpperCase() + body.id.slice(1));
+        const bodyName = isSun ? "Sun" : (body.id.charAt(0).toUpperCase() + body.id.slice(1));
+        const labelText = [getBodyNumeral(isSun ? "sun" : body.id), bodyName].filter(Boolean).join("  ");
 
         return (
             <group rotation={[orbitInclination, orbitAscendingNode, orbitArgument]}>
@@ -222,7 +231,9 @@ export const CelestialBody = memo(forwardRef<THREE.Group, CelestialBodyProps>(
                             <SelectionGlow
                                 radius={body.radius}
                                 color={effectiveColor}
-                                label={isSun ? (isEditorMode ? "SUN" : undefined) : (!isMoon && hasOrbit ? labelText : undefined)}
+                                label={isSun ? (isEditorMode ? labelText : undefined) : (!isMoon && hasOrbit ? labelText : undefined)}
+                                showReticle={isEditorMode ? undefined : false}
+                                hideSelectedLabel={!isSun && !isMoon}
                                 isSelected={isSun ? (isEditorMode && isSelected) : (isMoon ? (isEditorMode && isSelected) : isSelected)}
                                 isHovered={isSun ? (isEditorMode && isHovered) : (isMoon ? (isEditorMode && isHovered) : isHovered)}
                             />

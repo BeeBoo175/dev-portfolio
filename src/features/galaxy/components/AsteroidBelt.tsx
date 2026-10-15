@@ -5,6 +5,7 @@ import type { AsteroidBeltConfig } from "../types";
 import { useTheme } from "../../theme";
 import { getEffectiveAccentColor } from "../utils/colorUtils";
 import { useRadarTransition } from "../../transition";
+import { motionStore } from "../../motion/store";
 
 export interface AsteroidBeltProps {
     config: AsteroidBeltConfig;
@@ -164,7 +165,7 @@ export const AsteroidBelt = memo(function AsteroidBelt({ config, isEditorMode = 
 
     useFrame((state, delta) => {
         if (groupRef.current) {
-            groupRef.current.rotation.y += orbitSpeed * delta;
+            groupRef.current.rotation.y += motionStore.isPaused() ? 0 : orbitSpeed * delta;
 
             const radarState = radarStateRef.current;
             if (radarState) {
