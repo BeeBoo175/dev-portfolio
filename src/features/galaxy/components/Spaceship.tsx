@@ -524,15 +524,15 @@ export const Spaceship = memo(function Spaceship({ focusId, bodyRefs }: Spaceshi
                         wireframe
                     />
                 ) : (
-                    <meshPhysicalMaterial
+                    // plain see-through glass: "transmission" would draw the whole scene twice a frame
+                    <meshStandardMaterial
                         color="#67e8f9"
                         emissive="#0284c7"
-                        emissiveIntensity={0.22}
+                        emissiveIntensity={0.35}
                         roughness={0.15}
                         metalness={0.05}
-                        transmission={0.65}
-                        thickness={0.25}
-                        ior={1.4}
+                        transparent
+                        opacity={0.75}
                     />
                 )}
             </mesh>
@@ -672,14 +672,6 @@ export const Spaceship = memo(function Spaceship({ focusId, bodyRefs }: Spaceshi
                     <sphereGeometry args={[0.036, 8, 6]} />
                     <meshBasicMaterial color={isLight ? "#0284c7" : "#38bdf8"} wireframe={isLight} />
                 </mesh>
-                <pointLight
-                    position={[0, -0.12, 0]}
-                    color="#38bdf8"
-                    intensity={0.4}
-                    distance={0.8}
-                    decay={2}
-                    visible={!isLight}
-                />
             </group>
 
             <group ref={vtolRightRef} position={[0.26, 0, 0]}>
@@ -707,14 +699,6 @@ export const Spaceship = memo(function Spaceship({ focusId, bodyRefs }: Spaceshi
                     <sphereGeometry args={[0.036, 8, 6]} />
                     <meshBasicMaterial color={isLight ? "#0284c7" : "#38bdf8"} wireframe={isLight} />
                 </mesh>
-                <pointLight
-                    position={[0, -0.12, 0]}
-                    color="#38bdf8"
-                    intensity={0.4}
-                    distance={0.8}
-                    decay={2}
-                    visible={!isLight}
-                />
             </group>
 
             <mesh position={[0, 0, -0.17]} rotation={[Math.PI / 2, 0, 0]}>
@@ -733,14 +717,6 @@ export const Spaceship = memo(function Spaceship({ focusId, bodyRefs }: Spaceshi
                 <sphereGeometry args={[0.042, 8, 6]} />
                 <meshBasicMaterial color={isLight ? "#0284c7" : "#38bdf8"} wireframe={isLight} />
             </mesh>
-            <pointLight
-                position={[0, 0, -0.26]}
-                color="#38bdf8"
-                intensity={0.5}
-                distance={0.9}
-                decay={2}
-                visible={!isLight}
-            />
         </group>
     );
 });
