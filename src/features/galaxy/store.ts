@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from "react";
 import type { AsteroidBeltConfig, GalaxyVisualSettings, OrbitConfig, SunConfig } from "./types";
 import { DEFAULT_ASTEROID_BELT, DEFAULT_SUN, DEFAULT_SPACESHIP_PLANET_ID, ORBIT_LAYOUT } from "./data";
-import { stripDetailFromPlanets } from "./utils/proceduralTerrain";
+import { stripDetailFromPlanets } from "./utils/stripDetail";
 
 const STORAGE_KEY = "portfolio_custom_planets_v1";
 const VISUALS_KEY = "portfolio_galaxy_visuals_v1";
@@ -139,6 +139,10 @@ function initLocalStorageDefaultsIfEmpty() {
 
 initLocalStorageDefaultsIfEmpty();
 
+function keepIfEqual<T>(current: T, loaded: T): T {
+    return JSON.stringify(current) === JSON.stringify(loaded) ? current : loaded;
+}
+
 class GalaxyStore {
     private planets: OrbitConfig[] = loadPersistedPlanets();
     private asteroidBelt: AsteroidBeltConfig = loadPersistedAsteroidBelt();
@@ -193,13 +197,21 @@ class GalaxyStore {
         this.notify(true);
     }
 
+    /**
+     * Pages call this on every mount. Slices that already match storage keep their identity,
+     * because a new object makes the scene rebuild its geometry and the planets flicker.
+     */
     revertToPersisted() {
-        this.planets = loadPersistedPlanets();
-        this.asteroidBelt = loadPersistedAsteroidBelt();
-        this.sun = loadPersistedSun();
-        this.visuals = loadPersistedVisuals();
+        const previous = [this.planets, this.asteroidBelt, this.sun, this.visuals, this.defaultPlanetId];
+        this.planets = keepIfEqual(this.planets, loadPersistedPlanets());
+        this.asteroidBelt = keepIfEqual(this.asteroidBelt, loadPersistedAsteroidBelt());
+        this.sun = keepIfEqual(this.sun, loadPersistedSun());
+        this.visuals = keepIfEqual(this.visuals, loadPersistedVisuals());
         this.defaultPlanetId = loadPersistedDefaultPlanetId();
-        this.notify(false);
+        const next = [this.planets, this.asteroidBelt, this.sun, this.visuals, this.defaultPlanetId];
+        if (next.some((value, index) => value !== previous[index])) {
+            this.notify(false);
+        }
     }
 
     updatePlanet(id: string, updates: Partial<OrbitConfig>) {

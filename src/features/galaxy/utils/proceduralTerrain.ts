@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import type { OrbitConfig, PaletteConfig, PlanetTerrainConfig } from "../types";
+import type { PaletteConfig, PlanetTerrainConfig } from "../types";
 
 const PERM_TABLE = new Uint8Array(512);
 const P = [
@@ -334,18 +334,5 @@ export function createMultiLODPlanetGeometries(
     };
 }
 
-export function stripDetailFromPlanets(planets: OrbitConfig[]): OrbitConfig[] {
-    return planets.map((p) => {
-        const next = { ...p };
-        if (next.terrain && "detail" in (next.terrain as Record<string, unknown>)) {
-            const cleanTerrain = { ...next.terrain } as PlanetTerrainConfig & { detail?: number };
-            delete cleanTerrain.detail;
-            next.terrain = cleanTerrain;
-        }
-        if (next.children) {
-            next.children = stripDetailFromPlanets(next.children);
-        }
-        return next;
-    });
-}
+export { stripDetailFromPlanets } from "./stripDetail";
 
