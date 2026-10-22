@@ -5,8 +5,9 @@ import {
     GalaxyViewportProvider,
     useGalaxyViewport,
     galaxyStore,
+    PlanetCallout,
 } from "../features/galaxy";
-import { RadarTransitionProvider, RadarSweepVisual, useRadarTransition } from "../features/transition";
+import { RadarTransitionProvider, useRadarTransition } from "../features/transition";
 import { PATH_TO_ID } from "../features/sections";
 
 function getInitialFocusId(pathname: string, search: string): string {
@@ -33,6 +34,7 @@ function RootLayoutContent() {
 
     const { focusId, selectedMoonId, handleSelect } = useGalaxyViewport();
     const { triggerSweep } = useRadarTransition();
+    const calloutRef = useRef<SVGSVGElement>(null);
 
     const prevRouteTypeRef = useRef<"studio" | "main">(isStudio ? "studio" : "main");
     const prevGalaxySigRef = useRef<string>(getGalaxySignature());
@@ -58,10 +60,10 @@ function RootLayoutContent() {
                     isEditorMode={isStudio}
                     selectedMoonId={selectedMoonId}
                     onSelect={handleSelect}
-                >
-                    <RadarSweepVisual />
-                </GalaxyScene>
+                    calloutRef={calloutRef}
+                />
             </div>
+            <PlanetCallout ref={calloutRef} />
             <Outlet />
         </div>
     );
