@@ -1,0 +1,29 @@
+.system-notice {
+    position: fixed;
+    z-index: 60;
+    margin: 0;
+    padding: var(--s3) var(--s4);
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--r-box);
+    color: var(--text-secondary);
+    font: 400 14px/1.5 var(--font-sans);
+    pointer-events: auto;
+}
+
+.system-notice--center {
+    left: 50%;
+    top: 50%;
+    translate: -50% -50%;
+    width: max-content;
+    max-width: calc(100vw - var(--s5));
+    text-align: center;
+}
+
+.system-notice p {
+    margin: 0 0 var(--s3);
+}
+
+.system-notice .lucide {
+    color: var(--signal);
+}
