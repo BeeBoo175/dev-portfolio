@@ -22,3 +22,4 @@ export * from "./hooks/useGalaxyViewport";
 export * from "./utils/numerals";
 export { default as PlanetCallout } from "./components/PlanetCallout";
 export * from "./sceneStatus";
+export { StarChart } from "./components/StarChart";

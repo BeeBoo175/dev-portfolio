@@ -1,0 +1,170 @@
+/* fills the space the 3D scene would have used, clear of the plate, the dock and the studio panel */
+.star-chart {
+    position: absolute;
+    inset: 40px 0 96px 42%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 var(--s5);
+}
+
+.star-chart__figure {
+    width: 100%;
+    max-width: 780px;
+    max-height: 100%;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--s3);
+}
+
+.star-chart__figure > svg {
+    width: 100%;
+    min-height: 0;
+    overflow: visible;
+}
+
+.star-chart figcaption {
+    align-self: center;
+    font: 400 12px/1.5 var(--font-mono);
+    color: var(--text-muted);
+    text-align: center;
+    text-wrap: balance;
+}
+
+/* inline, so on two lines the icon stays beside the words instead of at the box's far edge */
+.star-chart figcaption .lucide {
+    margin-right: var(--s2);
+    color: var(--signal);
+}
+
+.star-chart__orbit,
+.star-chart__belt,
+.star-chart__ring,
+.star-chart__mark {
+    fill: none;
+}
+
+.star-chart__orbit {
+    stroke: var(--rule);
+    stroke-width: 1;
+}
+
+.star-chart__orbit--selected {
+    stroke: var(--accent);
+}
+
+/* round dots on a wide dash gap read as rubble */
+.star-chart__belt {
+    stroke: var(--text-muted);
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-dasharray: 0.1 9;
+    opacity: 0.7;
+}
+
+.star-chart__corona {
+    opacity: 0.14;
+}
+
+.star-chart__ring {
+    stroke-width: 4;
+}
+
+/* the hairline holds every colour's shape on either theme */
+.star-chart__disc {
+    stroke: color-mix(in srgb, var(--text-primary) 55%, transparent);
+    stroke-width: 1.25;
+}
+
+.star-chart__shade {
+    pointer-events: none;
+}
+
+.star-chart__mark {
+    stroke: var(--signal);
+    stroke-width: 1.5;
+    stroke-dasharray: 22 8;
+}
+
+.star-chart__label {
+    fill: var(--text-muted);
+    font: 500 11px var(--font-mono);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    text-anchor: middle;
+    paint-order: stroke;
+    stroke: var(--bg-canvas);
+    stroke-width: 4px;
+}
+
+.star-chart__body--selected .star-chart__label {
+    fill: var(--signal);
+}
+
+.star-chart__body {
+    cursor: pointer;
+}
+
+.star-chart__target {
+    fill: transparent;
+}
+
+.star-chart__body:hover .star-chart__label {
+    fill: var(--text-primary);
+}
+
+.star-chart__body:active {
+    filter: brightness(0.8);
+}
+
+/* the studio: clear of its toolbar above and panel on the right */
+:root[data-studio] .star-chart {
+    inset: 132px 350px 96px 0;
+}
+
+/* a reading page's column is wider than the home plate */
+:root[data-reading] .star-chart {
+    left: 56%;
+}
+
+/* only narrow screens use the in-page copy */
+.star-chart--inline {
+    display: none;
+}
+
+@media (max-width: 960px) {
+    /* a plate fills a narrow screen, so there is no room beside it: the first plate carries the chart */
+    :root:not([data-studio]) .star-chart:not(.star-chart--inline) {
+        display: none;
+    }
+
+    .star-chart--inline {
+        display: flex;
+        position: static;
+        width: 100%;
+        padding: 0 0 var(--s4);
+        pointer-events: auto;
+    }
+
+    .star-chart figcaption {
+        font-size: 11px;
+    }
+
+    /* labels would be unreadably small here; the dock names every section */
+    .star-chart__label {
+        display: none;
+    }
+
+    :root[data-studio] .star-chart {
+        inset: 180px 0 auto;
+        height: 30vh;
+        padding: 0 var(--edge);
+    }
+}
+
+/* on the pale theme a lighter edge is enough, and doesn't shout */
+:root[data-theme="light"] .star-chart__disc {
+    stroke: color-mix(in srgb, var(--accent) 30%, transparent);
+    stroke-width: 1;
+}
