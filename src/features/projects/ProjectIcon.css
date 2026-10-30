@@ -1,0 +1,22 @@
+/* one rounded tile for every project, sized by whoever places it */
+.project-icon {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: var(--project-icon-size, 40px);
+    height: var(--project-icon-size, 40px);
+    border-radius: 22%;
+    overflow: hidden;
+    background: #0e1b2a;
+}
+
+.project-icon img {
+    width: 100%;
+    height: 100%;
+}
+
+/* the fruit is already a shape of its own, so it needs no tile behind it */
+.project-icon--suika-bot {
+    background: none;
+    border-radius: 0;
+}
