@@ -9,6 +9,7 @@ import {
 } from "../features/galaxy";
 import { RadarTransitionProvider, useRadarTransition } from "../features/transition";
 import { PATH_TO_ID } from "../features/sections";
+import { findProject } from "../features/projects/data";
 
 function getInitialFocusId(pathname: string, search: string): string {
     if (pathname.startsWith("/studio")) {
@@ -17,7 +18,19 @@ function getInitialFocusId(pathname: string, search: string): string {
         if (target) return target;
         return "home";
     }
+    if (pathname.startsWith("/projects/")) return "projects";
     return PATH_TO_ID[pathname] || "home";
+}
+
+const SITE_NAME = "Hew Xiao Qin";
+
+function getPageTitle(pathname: string): string {
+    if (pathname === "/") return `${SITE_NAME} | Portfolio`;
+    if (pathname.startsWith("/studio")) return `Galaxy Studio | ${SITE_NAME}`;
+    const slug = pathname.split("/").filter(Boolean).pop()!;
+    // a project keeps the capitals of its own name
+    const name = findProject(slug)?.name ?? `${slug.charAt(0).toUpperCase()}${slug.slice(1)}`;
+    return `${name} | ${SITE_NAME}`;
 }
 
 function getGalaxySignature(): string {
@@ -38,6 +51,10 @@ function RootLayoutContent() {
 
     const prevRouteTypeRef = useRef<"studio" | "main">(isStudio ? "studio" : "main");
     const prevGalaxySigRef = useRef<string>(getGalaxySignature());
+
+    useEffect(() => {
+        document.title = getPageTitle(location.pathname);
+    }, [location.pathname]);
 
     useEffect(() => {
         const currentRouteType = isStudio ? "studio" : "main";
