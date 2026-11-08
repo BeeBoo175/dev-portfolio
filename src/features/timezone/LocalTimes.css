@@ -1,0 +1,260 @@
+.local-times {
+    display: grid;
+    /* only the two clocks share a row with the dial: the longer sentence would push it away */
+    grid-template-areas:
+        "clocks dial"
+        "difference difference";
+    grid-template-columns: max-content 136px;
+    justify-content: start;
+    align-items: center;
+    column-gap: var(--s5);
+    margin-top: 40px;
+    text-align: left;
+}
+
+.time-dial {
+    grid-area: dial;
+    width: 100%;
+    overflow: visible;
+}
+
+.time-dial__day,
+.time-dial__night,
+.time-dial__gap {
+    fill: none;
+}
+
+.time-dial__day {
+    stroke: var(--accent-bright);
+    stroke-width: 3;
+}
+
+.time-dial__night {
+    stroke: var(--text-muted);
+    stroke-width: 1;
+    stroke-dasharray: 2 4;
+}
+
+.time-dial__gap {
+    stroke: var(--text-primary);
+    stroke-width: 3;
+    stroke-linecap: round;
+}
+
+.time-dial__sky {
+    color: var(--text-muted);
+}
+
+.time-dial__value {
+    fill: var(--text-primary);
+    font: 500 11px var(--font-mono);
+    text-anchor: middle;
+}
+
+/* me is solid, you are a ring: at the same hour the two nest */
+.time-dial__me {
+    fill: var(--accent-bright);
+}
+
+/* pale gold needs an edge to be found on paper */
+:root[data-theme="light"] .time-dial__me,
+:root[data-theme="light"] .local-times__clock--me dt::before {
+    stroke: var(--text-primary);
+    stroke-width: 1;
+    box-shadow: 0 0 0 1px var(--text-primary);
+}
+
+.time-dial__you {
+    fill: none;
+    stroke: var(--text-primary);
+    stroke-width: 2;
+}
+
+.local-times__clocks {
+    grid-area: clocks;
+    margin: 0;
+}
+
+.local-times__clock + .local-times__clock {
+    margin-top: var(--s4);
+}
+
+.local-times__clock dt {
+    display: flex;
+    align-items: center;
+    gap: var(--s2);
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+/* the same two marks as on the dial */
+.local-times__clock dt::before {
+    content: "";
+    box-sizing: border-box;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+}
+
+.local-times__clock--me dt::before {
+    background: var(--accent-bright);
+}
+
+.local-times__clock--you dt::before {
+    border: 2px solid var(--text-primary);
+}
+
+.local-times__clock dd {
+    margin: 0;
+}
+
+.local-times__time {
+    display: block;
+    margin: var(--s1) 0 2px;
+    font: 500 18px/1.3 var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    color: var(--text-primary);
+}
+
+.local-times__clock span {
+    display: block;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.local-times__difference {
+    grid-area: difference;
+    margin: var(--s4) 0 0;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+/* narrow screens: my time, the dial, your time across one row, and the sentence beneath */
+@media (max-width: 960px) {
+    .local-times {
+        grid-template-areas:
+            "me dial you"
+            "difference difference difference";
+        grid-template-columns: 1fr 104px 1fr;
+        justify-content: stretch;
+        column-gap: var(--s2);
+        margin-top: var(--s4);
+    }
+
+    /* the list steps aside so each clock can take its own side of the dial */
+    .local-times__clocks {
+        display: contents;
+    }
+
+    .local-times__clock--me {
+        grid-area: me;
+        text-align: right;
+    }
+
+    .local-times__clock--you {
+        grid-area: you;
+    }
+
+    .local-times__clock + .local-times__clock {
+        margin-top: 0;
+    }
+
+    .local-times__clock--me dt {
+        justify-content: flex-end;
+    }
+
+    .local-times__time {
+        font-size: 14px;
+    }
+
+    .local-times__clock span {
+        font-size: 11px;
+        line-height: 1.4;
+    }
+
+    /* the sentence belongs to the dial above it, so it sits right under the ring */
+    .local-times__difference {
+        margin-top: var(--s2);
+        line-height: 1.4;
+        text-align: center;
+    }
+
+    /* the dial is drawn smaller here; its label is scaled back up to stay legible */
+    .time-dial__value {
+        font-size: 15px;
+    }
+}
+
+/* ---- first appearance: the whole widget arrives at once; only the two markers then travel ---- */
+.local-times--waiting {
+    opacity: 0;
+}
+
+.time-dial__hand {
+    transform-origin: 70px 70px;
+}
+
+.local-times--entering {
+    animation: local-times-arrive 0.25s var(--ease-out) both;
+}
+
+/* ring and dot leave 9 o'clock together, go once round, and settle */
+.local-times--entering .time-dial__hand {
+    animation: dial-lap 1s cubic-bezier(0.4, 0, 0.2, 1) 0.05s both;
+}
+
+/* the gap between them only means something once they have stopped */
+.local-times--entering .time-dial__gap {
+    animation: local-times-fade 0.25s ease-out 1s both;
+}
+
+@keyframes local-times-arrive {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+}
+
+@keyframes local-times-fade {
+    from {
+        opacity: 0;
+    }
+}
+
+@keyframes dial-lap {
+    from {
+        transform: rotate(var(--lap));
+    }
+
+    to {
+        transform: rotate(0deg);
+    }
+}
+
+/* reduced motion: no waiting between the steps either */
+@media (prefers-reduced-motion: reduce) {
+    .local-times--entering * {
+        animation-delay: 0s !important;
+    }
+}
+
+/* the narrowest phones: slightly smaller clocks, so neither runs into the screen's edge */
+@media (max-width: 359px) {
+    .local-times {
+        grid-template-columns: minmax(0, 1fr) 92px minmax(0, 1fr);
+        column-gap: var(--s1);
+    }
+
+    .local-times__time {
+        font-size: 12.5px;
+    }
+
+    .local-times__clock dt {
+        font-size: 12px;
+    }
+
+    .local-times__clock span {
+        font-size: 10px;
+    }
+}
