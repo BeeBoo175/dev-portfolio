@@ -1,0 +1,13 @@
+/* the site's pill in its label form; this file only places the flag and stresses the country */
+
+.location-badge img {
+    display: block;
+    /* the same slot as the icons in the buttons beside it */
+    width: 18px;
+    height: 13.5px;
+    border-radius: 3px;
+}
+
+.location-badge strong {
+    color: var(--on-highlight);
+}
