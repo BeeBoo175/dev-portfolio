@@ -8,8 +8,8 @@ export const HOME_SECTION: SectionMeta = {
 };
 
 export const PLANET_SECTIONS: SectionMeta[] = [
-    { id: "about", label: "About", path: "/about", color: "#5da9ff" },
-    { id: "skills", label: "Skills", path: "/skills", color: "#ffb15d" },
+    { id: "about", label: "About", path: "/about", color: "#ffb15d" },
+    { id: "skills", label: "Skills", path: "/skills", color: "#5da9ff" },
     { id: "projects", label: "Projects", path: "/projects", color: "#7dff9c" },
     { id: "contact", label: "Contact", path: "/contact", color: "#ff5d8f" },
 ];
