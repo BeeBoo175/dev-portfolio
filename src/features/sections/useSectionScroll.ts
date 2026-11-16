@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState, useCallback } from "react
 import { useLocation, useNavigate, useNavigationType, NavigationType } from "react-router-dom";
 import { PATH_TO_ID, SECTION_MAP } from "./data";
 import type { SectionId } from "./types";
+import { prefersReducedMotion } from "../motion/store";
 
 export const PROGRAMMATIC_SCROLL_FAILSAFE_MS = 1500;
 const SCROLL_TOP_THRESHOLD = 300;
@@ -51,7 +52,7 @@ export function useSectionScroll({ onFocusChange, registerTrigger }: UseSectionS
                 isProgrammaticScroll.current = false;
                 failsafeTimeout.current = null;
             }, PROGRAMMATIC_SCROLL_FAILSAFE_MS);
-            sectionRefs.current[targetSectionId]?.scrollIntoView({ behavior });
+            sectionRefs.current[targetSectionId]?.scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : behavior });
         },
         [clearFailsafe]
     );
