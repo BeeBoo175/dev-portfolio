@@ -1,8 +1,10 @@
 import { useMemo } from "react";
-import * as THREE from "three";
-import { useGalaxyPlanets, useGalaxySun, getEffectiveAccentColor } from "../galaxy";
-import { useTheme } from "../theme";
+import { useGalaxySun, useGalaxyViewport, getBodyNumeral, StarChart, useSceneStatus, SCENE_REASONS } from "../galaxy";
+import { getSunButtonStyle } from "./sunButtonStyle";
 import { ALL_SECTIONS } from "./data";
+import { PLATE_CONTENT } from "./content";
+import { SectionPlate } from "./SectionPlate";
+import { UpIcon } from "../../components/ui/Icons";
 import { useSectionScroll } from "./useSectionScroll";
 import type { SectionId } from "./types";
 import "./HomeOverlay.css";
@@ -13,53 +15,20 @@ export interface HomeOverlayProps {
 }
 
 export function HomeOverlay({ onFocusChange, registerTrigger }: HomeOverlayProps) {
-    const { isLight } = useTheme();
     const { sectionRefs, showScrollTop, scrollToTop } = useSectionScroll({
         onFocusChange,
         registerTrigger,
     });
     const sun = useGalaxySun();
-    const dynamicPlanets = useGalaxyPlanets();
+    const { handleSelect } = useGalaxyViewport();
+    const scene = useSceneStatus();
 
-    const sunStyle = useMemo(() => {
-        const rawHex = sun.color || "#ffe59e";
-        const baseHex = getEffectiveAccentColor(rawHex, isLight);
-        const peakHex = sun.palette?.peak || "#fffbeb";
-        const baseColor = new THREE.Color(baseHex);
-        const peakColor = new THREE.Color(peakHex);
-
-        const lightColor = baseColor.clone().offsetHSL(0, -0.04, 0.08);
-        const darkColor = baseColor.clone().multiplyScalar(0.92);
-
-        const r = Math.round(baseColor.r * 255);
-        const g = Math.round(baseColor.g * 255);
-        const b = Math.round(baseColor.b * 255);
-
-        const luminance = 0.299 * baseColor.r + 0.587 * baseColor.g + 0.114 * baseColor.b;
-        const iconColor = luminance > 0.55 ? "#1a0b02" : "#ffffff";
-
-        return {
-            "--sun-specular": `#${peakColor.getHexString()}`,
-            "--sun-light": `#${lightColor.getHexString()}`,
-            "--sun-base": `#${baseColor.getHexString()}`,
-            "--sun-dark": `#${darkColor.getHexString()}`,
-            "--sun-glow-rgb": `${r}, ${g}, ${b}`,
-            "--sun-icon-color": iconColor,
-        } as React.CSSProperties;
-    }, [sun.color, sun.palette?.peak, isLight]);
-
-    const getSectionCardStyle = (sectionId: string): React.CSSProperties => {
-        if (sectionId === "home") return {};
-        const planet = dynamicPlanets.find((p) => p.id === sectionId);
-        const rawColor = planet?.color || (sectionId === "about" ? "#ffb15d" : sectionId === "skills" ? "#5da9ff" : sectionId === "projects" ? "#7dff9c" : "#ff5d8f");
-        const planetColor = getEffectiveAccentColor(rawColor, isLight);
-        return {
-            "--card-accent": planetColor,
-        } as React.CSSProperties;
-    };
+    const sunStyle = useMemo(() => getSunButtonStyle(sun.color || "#ffe59e"), [sun.color]);
 
     return (
-        <div className="sections-overlay">
+        <main className="sections-overlay">
+            <div className="sections-overlay__scrim" aria-hidden="true" />
+
             {ALL_SECTIONS.map((section) => (
                 <section
                     key={section.id}
@@ -67,14 +36,23 @@ export function HomeOverlay({ onFocusChange, registerTrigger }: HomeOverlayProps
                     ref={(el) => {
                         sectionRefs.current[section.id] = el;
                     }}
-                    className={`sections-overlay__section sections-overlay__section--${section.id}`}
+                    className={`sections-overlay__section sections-overlay__section--${section.id} ${
+                        section.id === "home" && scene !== "ready" ? "sections-overlay__section--flat" : ""
+                    }`}
                 >
-                    <div className="sections-overlay__card" style={getSectionCardStyle(section.id)}>
-                        <h1 className="sections-overlay__title">{section.label}</h1>
-                        <p className="sections-overlay__subtitle">
-                            Scroll or click a planet to explore.
-                        </p>
-                    </div>
+                    {section.id === "home" && scene !== "ready" && (
+                        <StarChart
+                            inline
+                            focusId="home"
+                            onSelect={handleSelect}
+                            caption={`Flat chart view. ${SCENE_REASONS[scene]}`}
+                        />
+                    )}
+                    <SectionPlate
+                        numeral={getBodyNumeral(section.id)}
+                        content={PLATE_CONTENT[section.id]}
+                        isLead={section.id === "home"}
+                    />
                 </section>
             ))}
 
@@ -91,24 +69,10 @@ export function HomeOverlay({ onFocusChange, registerTrigger }: HomeOverlayProps
                 <span className="scroll-to-top__corona" aria-hidden="true" />
                 <span className="scroll-to-top__rays" aria-hidden="true" />
                 <span className="scroll-to-top__core" aria-hidden="true">
-                    <svg
-                        className="scroll-to-top__icon"
-                        width="18"
-                        height="18"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2.75"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        aria-hidden="true"
-                    >
-                        <line x1="12" y1="19" x2="12" y2="5" />
-                        <polyline points="5 12 12 5 19 12" />
-                    </svg>
+                    <UpIcon className="scroll-to-top__icon" size={18} strokeWidth={2.5} />
                 </span>
             </button>
-        </div>
+        </main>
     );
 }
 

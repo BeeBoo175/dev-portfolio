@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { galaxyStore, useGalaxyPlanets, useGalaxyViewport } from "../features/galaxy";
-import { HomeOverlay, PLANET_SECTIONS, type SectionId } from "../features/sections";
+import { galaxyStore, useGalaxyViewport, useSceneStatus } from "../features/galaxy";
+import { HomeOverlay, ALL_SECTIONS, type SectionId } from "../features/sections";
 import { DockedNavigation, type DockedTargetItem } from "../components/navigation";
 
 export function HomePage() {
     const navigate = useNavigate();
     const { focusId, setFocusId, registerSelectHandler } = useGalaxyViewport();
+    const hasScene = useSceneStatus() === "ready";
     const triggerRef = useRef<(id: SectionId) => void>(() => { });
-    const dynamicPlanets = useGalaxyPlanets();
 
     useEffect(() => {
         galaxyStore.revertToPersisted();
@@ -32,16 +32,10 @@ export function HomePage() {
         setFocusId(id);
     }, [setFocusId]);
 
-    const navTargets: DockedTargetItem[] = useMemo(() => {
-        return PLANET_SECTIONS.map((section) => {
-            const planetConfig = dynamicPlanets.find((p) => p.id === section.id);
-            return {
-                id: section.id,
-                label: section.label,
-                color: planetConfig?.color || section.color,
-            };
-        });
-    }, [dynamicPlanets]);
+    const navTargets: DockedTargetItem[] = useMemo(
+        () => ALL_SECTIONS.map((section) => ({ id: section.id, label: section.label })),
+        []
+    );
 
     const studioUrl = focusId && focusId !== "home" ? `/studio?target=${focusId}` : "/studio";
 
@@ -54,18 +48,20 @@ export function HomePage() {
 
     return (
         <>
-            <header className="app-shell__top-actions">
-                <Link
-                    to={studioUrl}
-                    className="studio-launcher-btn"
-                    title="Launch 3D Galaxy Studio"
-                    aria-label="Launch 3D Galaxy Studio"
-                    tabIndex={0}
-                    onKeyDown={handleLauncherKeyDown}
-                >
-                    Galaxy Studio
-                </Link>
-            </header>
+            {hasScene && (
+                <header className="app-shell__top-actions">
+                    <Link
+                        to={studioUrl}
+                        className="studio-launcher-btn pill"
+                        title="Launch 3D Galaxy Studio"
+                        aria-label="Launch 3D Galaxy Studio"
+                        tabIndex={0}
+                        onKeyDown={handleLauncherKeyDown}
+                    >
+                        Galaxy Studio
+                    </Link>
+                </header>
+            )}
 
             <HomeOverlay
                 onFocusChange={handleFocusChange}

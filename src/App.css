@@ -24,46 +24,6 @@
     z-index: 60;
 }
 
-.studio-launcher-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    height: 36px;
-    padding: 0 16px;
-    background: var(--obsidian-bg);
-    border: 1px solid var(--border-default);
-    border-radius: var(--radius-xs);
-    box-shadow: var(--glass-shadow-subtle);
-    color: var(--text-primary);
-    font-family: inherit;
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    text-decoration: none;
-    white-space: nowrap;
-    backdrop-filter: var(--glass-blur);
-    -webkit-backdrop-filter: var(--glass-blur);
-    transition: all var(--transition-fast);
-}
-
-.studio-launcher-btn:hover {
-    background: var(--obsidian-bg-hover);
-    border-color: var(--border-hover);
-    color: var(--text-primary);
-    box-shadow: var(--glass-shadow);
-}
-
-.studio-launcher-btn:active {
-    transform: scale(0.97);
-    filter: brightness(0.92);
-}
-
-.studio-launcher-btn:focus-visible {
-    outline: 2px solid var(--accent-cyan);
-    outline-offset: 2px;
-}
 
 @media (max-width: 1280px) {
     .app-shell__top-actions {
@@ -71,15 +31,14 @@
         right: max(8px, var(--sar));
         gap: 6px;
     }
-
-    .studio-launcher-btn {
-        height: 32px;
-        padding: 0 12px;
-        font-size: 11px;
-    }
 }
 
 @media (max-width: 960px) {
+    .app-shell__top-actions {
+        top: max(var(--edge), var(--sat));
+        right: max(var(--edge), var(--sar));
+    }
+
     .app-shell {
         position: relative;
         width: 100%;
@@ -101,5 +60,3 @@
         pointer-events: auto;
     }
 }
-
-
