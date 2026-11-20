@@ -444,3 +444,68 @@
         padding-bottom: 72px;
     }
 }
+
+/* a pale sun on pale paper gets a faint edge; its colour stays as it is */
+:root[data-theme="light"] .scroll-to-top__core {
+    border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+:root[data-theme="light"] .scroll-to-top__rays {
+    border-color: color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+/* without 3D, a narrow screen stacks the chart above the first plate and lets the page scroll */
+@media (max-width: 960px) {
+    .sections-overlay__section--flat {
+        flex-direction: column;
+        justify-content: flex-end;
+        align-items: stretch;
+        padding-top: calc(max(var(--edge), var(--sat)) + var(--control-h) + var(--s3));
+    }
+}
+
+/* the project's badge stands beside its name and detail */
+.sections-overlay__list .sections-overlay__row--project {
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto auto;
+    align-content: center;
+    align-items: center;
+    column-gap: var(--s4);
+}
+
+.sections-overlay__row--project .project-icon {
+    grid-row: 1 / 3;
+}
+
+/* three ways to write, as equal quiet buttons under the primary one */
+.sections-overlay__compose {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--s2);
+    margin-top: var(--s4);
+}
+
+.sections-overlay__compose p {
+    flex-basis: 100%;
+    margin: 0;
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.sections-overlay__compose .sections-overlay__profile {
+    margin-top: 0;
+}
+
+/* where I am and where my code is: two pills of one height, on one line while there is room */
+.sections-overlay__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--s3);
+    margin-top: var(--s4);
+}
+
+.sections-overlay__meta + .sections-overlay__list {
+    margin-top: var(--s5);
+}
