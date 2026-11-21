@@ -509,3 +509,91 @@
 .sections-overlay__meta + .sections-overlay__list {
     margin-top: var(--s5);
 }
+
+/*
+ * Phones, first plate. One rhythm: lines that belong together sit close, and every group is
+ * --group apart. The spacing is never squeezed to fit: on a short screen the plate simply runs
+ * longer and the clock is a scroll away. Where there is room to spare, the galaxy gets it.
+ */
+@media (max-width: 960px) {
+    .sections-overlay__section--home {
+        --group: 36px;
+        padding-top: calc(max(var(--edge), var(--sat)) + var(--control-h) + var(--s5));
+        padding-bottom: calc(max(var(--edge), var(--sab)) + 94px);
+    }
+
+    .sections-overlay__section--home .sections-overlay__title {
+        margin: var(--s4) 0;
+        font-size: clamp(36px, 10vw, 48px);
+        line-height: 1.1;
+    }
+
+    .sections-overlay__section--home .sections-overlay__availability {
+        line-height: 1.6;
+    }
+
+    /* two equal pills across the plate */
+    .sections-overlay__section--home .sections-overlay__meta {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--s3);
+        margin-top: var(--group);
+    }
+
+    .sections-overlay__section--home .sections-overlay__meta > * {
+        justify-content: center;
+    }
+
+    .sections-overlay__section--home .sections-overlay__meta + .sections-overlay__list {
+        margin-top: var(--group);
+    }
+
+    .sections-overlay__section--home .sections-overlay__row {
+        grid-template-columns: 88px 1fr;
+        column-gap: var(--s4);
+        padding: 0;
+        font-size: 14px;
+        line-height: 1.55;
+    }
+
+    .sections-overlay__section--home .sections-overlay__row + .sections-overlay__row {
+        margin-top: var(--s4);
+    }
+
+    .sections-overlay__section--home .local-times {
+        margin-top: calc(var(--group) + var(--s2));
+        row-gap: var(--s3);
+    }
+}
+
+/* short phones: a touch less between groups, and the plate number gives up its line */
+@media (max-width: 960px) and (max-height: 700px) {
+    .sections-overlay__section--home {
+        --group: 28px;
+    }
+
+    .sections-overlay__section--home .sections-overlay__plate {
+        display: none;
+    }
+}
+
+/* the narrowest phones: slimmer pills keep the badge and GitHub on one line */
+@media (max-width: 359px) {
+    .sections-overlay__meta {
+        gap: var(--s2);
+    }
+
+}
+
+.sections-overlay__keep {
+    white-space: nowrap;
+}
+
+/* the other phone plates get the same air between their lines */
+@media (max-width: 960px) {
+    .sections-overlay__section--skills .sections-overlay__row {
+        column-gap: var(--s4);
+        padding: var(--s2) 0;
+        line-height: 1.55;
+    }
+}
