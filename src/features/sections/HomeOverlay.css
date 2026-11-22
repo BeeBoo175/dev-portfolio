@@ -597,3 +597,33 @@
         line-height: 1.55;
     }
 }
+
+/* every leading mark sits in one 18px slot, raised half a pixel onto the text's optical centre */
+.sections-overlay__profile > svg:first-child {
+    width: 18px;
+}
+
+.sections-overlay__profile > svg {
+    flex-shrink: 0;
+    translate: 0 -0.5px;
+}
+
+/* the GitHub mark already sits level */
+.sections-overlay__profile > svg.octicon {
+    translate: none;
+}
+
+/* beside the badge it sits level with it; the spacing belongs to the row they share */
+.sections-overlay__meta .sections-overlay__profile {
+    margin-top: 0;
+}
+
+/* GitHub is not a way of writing an email, so it stands apart from that group */
+.sections-overlay__compose + .sections-overlay__profile {
+    margin-top: var(--s5);
+}
+
+/* Contact: one width for all three, so the rows line up; the pills themselves are unchanged */
+.sections-overlay__section--contact .sections-overlay__profile {
+    width: 132px;
+}
