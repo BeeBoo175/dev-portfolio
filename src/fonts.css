@@ -1,0 +1,44 @@
+@font-face {
+    font-family: "Instrument Serif";
+    font-style: italic;
+    font-weight: 400;
+    /* wait for the real face instead of drawing a stand-in that then reflows; preloaded, so the wait is short */
+    font-display: block;
+    src: url("@fontsource/instrument-serif/files/instrument-serif-latin-400-italic.woff2") format("woff2");
+}
+
+@font-face {
+    font-family: "Hanken Grotesk";
+    font-style: normal;
+    font-weight: 400;
+    /* wait for the real face instead of drawing a stand-in that then reflows; preloaded, so the wait is short */
+    font-display: block;
+    src: url("@fontsource/hanken-grotesk/files/hanken-grotesk-latin-400-normal.woff2") format("woff2");
+}
+
+@font-face {
+    font-family: "Hanken Grotesk";
+    font-style: normal;
+    font-weight: 600;
+    /* wait for the real face instead of drawing a stand-in that then reflows; preloaded, so the wait is short */
+    font-display: block;
+    src: url("@fontsource/hanken-grotesk/files/hanken-grotesk-latin-600-normal.woff2") format("woff2");
+}
+
+@font-face {
+    font-family: "DM Mono";
+    font-style: normal;
+    font-weight: 400;
+    /* wait for the real face instead of drawing a stand-in that then reflows; preloaded, so the wait is short */
+    font-display: block;
+    src: url("@fontsource/dm-mono/files/dm-mono-latin-400-normal.woff2") format("woff2");
+}
+
+@font-face {
+    font-family: "DM Mono";
+    font-style: normal;
+    font-weight: 500;
+    /* wait for the real face instead of drawing a stand-in that then reflows; preloaded, so the wait is short */
+    font-display: block;
+    src: url("@fontsource/dm-mono/files/dm-mono-latin-500-normal.woff2") format("woff2");
+}
