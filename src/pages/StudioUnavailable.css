@@ -1,0 +1,41 @@
+.studio-unavailable {
+    position: fixed;
+    inset: 0;
+    z-index: 5;
+    display: grid;
+    place-items: center;
+    padding: var(--s5);
+    overflow-y: auto;
+    pointer-events: auto;
+}
+
+.studio-unavailable__card {
+    max-width: 420px;
+    text-align: center;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.studio-unavailable__icon {
+    color: var(--signal);
+}
+
+.studio-unavailable h1 {
+    margin: var(--s3) 0;
+    font: italic 400 clamp(34px, 7vw, 48px) / 1.1 var(--font-display);
+    color: var(--text-primary);
+    text-wrap: balance;
+}
+
+.studio-unavailable p {
+    margin: 0 0 var(--s3);
+    text-wrap: pretty;
+}
+
+.studio-unavailable__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--s3);
+    margin-top: var(--s5);
+}
