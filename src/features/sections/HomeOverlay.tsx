@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import { useGalaxySun, useGalaxyViewport, getBodyNumeral, StarChart, useSceneStatus, SCENE_REASONS } from "../galaxy";
 import { getSunButtonStyle } from "./sunButtonStyle";
 import { ALL_SECTIONS } from "./data";
@@ -6,6 +6,7 @@ import { PLATE_CONTENT } from "./content";
 import { SectionPlate } from "./SectionPlate";
 import { UpIcon } from "../../components/ui/Icons";
 import { useSectionScroll } from "./useSectionScroll";
+import { useScrolledDistance } from "./useScrolledDistance";
 import type { SectionId } from "./types";
 import "./HomeOverlay.css";
 import "./HomePlate.css";
@@ -21,13 +22,15 @@ export function HomeOverlay({ onFocusChange, registerTrigger }: HomeOverlayProps
         registerTrigger,
     });
     const sun = useGalaxySun();
+    const mainRef = useRef<HTMLElement>(null);
+    useScrolledDistance(mainRef);
     const { handleSelect } = useGalaxyViewport();
     const scene = useSceneStatus();
 
     const sunStyle = useMemo(() => getSunButtonStyle(sun.color || "#ffe59e"), [sun.color]);
 
     return (
-        <main className="sections-overlay">
+        <main ref={mainRef} className="sections-overlay">
             <div className="sections-overlay__scrim" aria-hidden="true" />
 
             {ALL_SECTIONS.map((section) => (

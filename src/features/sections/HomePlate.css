@@ -15,9 +15,11 @@
  */
 @media (max-width: 960px) {
     .sections-overlay .sections-overlay__section--home {
+        /* how much of the dock's room, below the introduction, closes up as the page scrolls */
+        --lift-max: 74px;
         display: block;
         padding-top: 0;
-        padding-bottom: calc(max(var(--edge), var(--sab)) + 94px);
+        padding-bottom: calc(max(var(--edge), var(--sab)) + 94px - var(--lift-max));
     }
 
     /* each part carries its own backdrop; one behind the whole plate would hide the galaxy */
@@ -49,6 +51,15 @@
         --veil-strength: 80%;
     }
 
+    /*
+     * At rest the details wait below the screen, under room that keeps the buttons clear of the dock.
+     * Once scrolling, nothing needs that room, so they close up until the plate reads as one piece.
+     */
+    .sections-overlay__details {
+        --lift: min(var(--scrolled, 0px) * 0.6, var(--lift-max, 0px));
+        translate: 0 calc(-1 * var(--lift));
+    }
+
     .sections-overlay__lead::before,
     .sections-overlay__details::before {
         content: "";
@@ -70,8 +81,12 @@
         );
     }
 
+    /*
+     * Starts exactly where the introduction's backdrop ends, however far the details have moved up:
+     * two see-through backdrops that overlap would show as a darker band.
+     */
     .sections-overlay__details::before {
-        top: 0;
+        top: var(--lift, 0px);
         bottom: calc(-1 * (max(var(--edge), var(--sab)) + 94px));
         background: linear-gradient(
             180deg,
@@ -125,6 +140,7 @@
 
     /* without 3D the chart sits above the introduction, so nothing needs a screen of its own */
     .sections-overlay .sections-overlay__section--home.sections-overlay__section--flat {
+        --lift-max: 0px;
         display: flex;
         padding-top: calc(max(var(--edge), var(--sat)) + var(--control-h) + var(--s3));
     }
