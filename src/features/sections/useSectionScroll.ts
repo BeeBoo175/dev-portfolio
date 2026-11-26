@@ -116,7 +116,9 @@ export function useSectionScroll({ onFocusChange, registerTrigger }: UseSectionS
             },
             {
                 root: rootElement,
-                threshold: 0.6,
+                // the section crossing the middle of the screen is current, however tall it is
+                rootMargin: "-50% 0px -50% 0px",
+                threshold: 0,
             }
         );
 
