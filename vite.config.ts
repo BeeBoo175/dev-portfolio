@@ -21,14 +21,12 @@ export default defineConfig({
     rolldownOptions: {
       output: {
         codeSplitting: {
+          // react only: a hand-made three.js group also captured shared helpers, which made the first
+          // paint download all of three.js. Left alone, it stays with the lazily loaded scene.
           groups: [
             {
-              name: 'three-vendor',
-              test: /[\\/]node_modules[\\/](three|@react-three)[\\/]/,
-            },
-            {
               name: 'react-vendor',
-              test: /[\\/]node_modules[\\/](react|react-dom|react-router-dom)[\\/]/,
+              test: /[\\/]node_modules[\\/](react|react-dom|react-router|react-router-dom|scheduler)[\\/]/,
             },
           ],
         },

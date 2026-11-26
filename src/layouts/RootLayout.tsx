@@ -1,15 +1,23 @@
-import { useState, useRef, useEffect } from "react";
+import { lazy, Suspense, useState, useRef, useEffect } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import {
-    GalaxyScene,
     GalaxyViewportProvider,
     useGalaxyViewport,
     galaxyStore,
     PlanetCallout,
+    StarChart,
+    sceneStatus,
+    useSceneStatus,
+    SCENE_REASONS,
 } from "../features/galaxy";
 import { RadarTransitionProvider, useRadarTransition } from "../features/transition";
+import { ErrorBoundary } from "../components/system/ErrorBoundary";
+import { PageFailed, PageLoading } from "../components/system/Fallbacks";
 import { PATH_TO_ID } from "../features/sections";
 import { findProject } from "../features/projects/data";
+
+// the 3D library is most of the download: the words are on screen before it arrives
+const GalaxyScene = lazy(() => import("../features/galaxy/GalaxyScene"));
 
 function getInitialFocusId(pathname: string, search: string): string {
     if (pathname.startsWith("/studio")) {
@@ -48,6 +56,7 @@ function RootLayoutContent() {
     const { focusId, selectedMoonId, handleSelect } = useGalaxyViewport();
     const { triggerSweep } = useRadarTransition();
     const calloutRef = useRef<SVGSVGElement>(null);
+    const scene = useSceneStatus();
 
     const prevRouteTypeRef = useRef<"studio" | "main">(isStudio ? "studio" : "main");
     const prevGalaxySigRef = useRef<string>(getGalaxySignature());
@@ -71,17 +80,32 @@ function RootLayoutContent() {
 
     return (
         <div className="app-shell" style={isStudio ? { overflow: "hidden" } : undefined}>
-            <div className="app-shell__canvas" style={isStudio ? { pointerEvents: "auto" } : undefined}>
-                <GalaxyScene
-                    focusId={focusId}
-                    isEditorMode={isStudio}
-                    selectedMoonId={selectedMoonId}
-                    onSelect={handleSelect}
-                    calloutRef={calloutRef}
-                />
+            <div className="app-shell__canvas" aria-hidden={scene === "ready" ? "true" : undefined} style={isStudio ? { pointerEvents: "auto" } : undefined}>
+                {scene === "ready" ? (
+                    <ErrorBoundary fallback={null} onError={sceneStatus.fail}>
+                        <Suspense fallback={null}>
+                            <GalaxyScene
+                                focusId={focusId}
+                                isEditorMode={isStudio}
+                                selectedMoonId={selectedMoonId}
+                                onSelect={handleSelect}
+                                calloutRef={calloutRef}
+                            />
+                        </Suspense>
+                    </ErrorBoundary>
+                ) : (
+                    // the closed studio has its own message
+                    !isStudio && (
+                        <StarChart focusId={focusId} onSelect={handleSelect} caption={`Flat chart view. ${SCENE_REASONS[scene]}`} />
+                    )
+                )}
             </div>
             <PlanetCallout ref={calloutRef} />
-            <Outlet />
+            <ErrorBoundary resetKey={location.pathname} fallback={<PageFailed />}>
+                <Suspense fallback={<PageLoading />}>
+                    <Outlet />
+                </Suspense>
+            </ErrorBoundary>
         </div>
     );
 }
