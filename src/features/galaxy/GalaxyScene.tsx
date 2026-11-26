@@ -13,7 +13,7 @@ import SceneSettled from "./components/SceneSettled";
 import ThemeToneMapping from "./components/ThemeToneMapping";
 import QualityGovernor from "./components/QualityGovernor";
 import { createBodyRegistry } from "./utils/bodyRegistry";
-import { DPR_STEPS, getInitialStep, isLowEndDevice } from "./utils/renderQuality";
+import { getDprSteps, getInitialStep, isLowEndDevice, judgeQuality, startQuality } from "./utils/renderQuality";
 import { useGalaxyAsteroidBelt, useGalaxyPlanets, useGalaxySun, useGalaxyVisuals } from "./store";
 import { useTheme } from "../theme";
 
@@ -46,8 +46,13 @@ export function GalaxyScene({
     const visuals = useGalaxyVisuals();
     const { isLight } = useTheme();
     const [lowEnd] = useState(() => isLowEndDevice(navigator));
-    const [qualityStep, setQualityStep] = useState(() => getInitialStep(lowEnd));
-    const maxDpr = DPR_STEPS[qualityStep];
+    const [dprSteps] = useState(() => getDprSteps(window.devicePixelRatio || 1));
+    const [quality, setQuality] = useState(() => startQuality(getInitialStep(lowEnd, dprSteps)));
+    const handleFrameSample = (typical: number) => {
+        const next = judgeQuality(quality, typical, dprSteps.length);
+        if (next !== quality) setQuality(next);
+        return next.step !== quality.step;
+    };
 
     const effectiveCameraOrbitPaused =
         isEditorMode
@@ -57,15 +62,12 @@ export function GalaxyScene({
     return (
         <Canvas
             camera={{ position: [0, 20, 42], fov: 50, near: 0.1, far: 2000 }}
-            // a 2x screen at full density is 78% more pixels than at 1.5x, for little visible gain
-            dpr={[Math.min(1, maxDpr), maxDpr]}
-            // fixed when the WebGL context is made, so decided from the device alone
-            gl={{ antialias: !lowEnd }}
+            dpr={dprSteps[quality.step]}
             // reallocating the drawing buffer on every resize event is what makes window drags stutter
             resize={{ debounce: { resize: 200, scroll: 50 } }}
             style={{ touchAction: isEditorMode ? "none" : "pan-y" }}
         >
-            <QualityGovernor onTooSlow={() => setQualityStep((current) => Math.min(current + 1, DPR_STEPS.length - 1))} />
+            <QualityGovernor onSample={handleFrameSample} />
             <SceneSettled />
             <ThemeToneMapping isLight={isLight} />
             <color attach="background" args={[isLight ? "#eaf1f8" : "#060a14"]} />
