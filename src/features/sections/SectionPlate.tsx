@@ -21,8 +21,8 @@ export function SectionPlate({ numeral, content, isLead = false }: SectionPlateP
     const EntryHeading = isLead ? "h2" : "h3";
     const { title, body, availability, rows, history, links, copy, compose, profile, whereabouts } = content;
 
-    return (
-        <div className="sections-overlay__card">
+    const intro = (
+        <>
             <p className="sections-overlay__plate">Plate {numeral}</p>
             <Heading className="sections-overlay__title">{title}</Heading>
             {availability && (
@@ -51,16 +51,39 @@ export function SectionPlate({ numeral, content, isLead = false }: SectionPlateP
                 </div>
             )}
             {body && <p className="sections-overlay__subtitle">{body}</p>}
-            {rows && (
-                <dl className="sections-overlay__list">
-                    {rows.map((row) => (
-                        <div key={row.label} className="sections-overlay__row">
-                            <dt>{row.label}</dt>
-                            <dd>{row.value}</dd>
-                        </div>
-                    ))}
-                </dl>
-            )}
+        </>
+    );
+    const facts = rows && (
+        <dl className="sections-overlay__list">
+            {rows.map((row) => (
+                <div key={row.label} className="sections-overlay__row">
+                    <dt>{row.label}</dt>
+                    <dd>{row.value}</dd>
+                </div>
+            ))}
+        </dl>
+    );
+
+    // The first plate has two parts. Side by side with the galaxy they read as one; on phones the
+    // introduction alone fills the first screen, leaving the galaxy room, and the details follow it.
+    if (whereabouts) {
+        return (
+            <div className="sections-overlay__card">
+                <div className="sections-overlay__hero">
+                    <div className="sections-overlay__lead">{intro}</div>
+                </div>
+                <div className="sections-overlay__details">
+                    {facts}
+                    <LocalTimes />
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="sections-overlay__card">
+            {intro}
+            {facts}
             {history && (
                 <ol className="sections-overlay__list sections-overlay__history">
                     {history.map((entry) => (
@@ -114,7 +137,6 @@ export function SectionPlate({ numeral, content, isLead = false }: SectionPlateP
                     <span className="sr-only">(opens in a new tab)</span>
                 </a>
             )}
-            {whereabouts && <LocalTimes />}
         </div>
     );
 }

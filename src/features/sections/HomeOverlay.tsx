@@ -8,6 +8,7 @@ import { UpIcon } from "../../components/ui/Icons";
 import { useSectionScroll } from "./useSectionScroll";
 import type { SectionId } from "./types";
 import "./HomeOverlay.css";
+import "./HomePlate.css";
 
 export interface HomeOverlayProps {
     onFocusChange: (id: SectionId) => void;

@@ -1,0 +1,152 @@
+/* side by side with the galaxy the first plate is one column: its wrappers add no boxes */
+.sections-overlay__hero,
+.sections-overlay__lead,
+.sections-overlay__details {
+    display: contents;
+}
+
+.sections-overlay__details .sections-overlay__list {
+    margin-top: var(--s5);
+}
+
+/*
+ * Phones. The first screen holds only the introduction, resting on the dock, so the galaxy has the
+ * rest of the screen. The facts and clocks sit just below it, a scroll away, with room to breathe.
+ */
+@media (max-width: 960px) {
+    .sections-overlay .sections-overlay__section--home {
+        display: block;
+        padding-top: 0;
+        padding-bottom: calc(max(var(--edge), var(--sab)) + 94px);
+    }
+
+    /* each part carries its own backdrop; one behind the whole plate would hide the galaxy */
+    .sections-overlay__section--home .sections-overlay__card::before {
+        content: none;
+    }
+
+    .sections-overlay__hero {
+        --dock-room: calc(max(var(--edge), var(--sab)) + 70px);
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        box-sizing: border-box;
+        min-height: 100vh;
+        min-height: 100svh;
+        padding-top: calc(max(var(--edge), var(--sat)) + var(--control-h));
+        padding-bottom: calc(var(--dock-room) + var(--s5));
+    }
+
+    .sections-overlay__lead,
+    .sections-overlay__details {
+        --veil-strength: 86%;
+        display: flow-root;
+        position: relative;
+    }
+
+    :root[data-theme="light"] .sections-overlay__lead,
+    :root[data-theme="light"] .sections-overlay__details {
+        --veil-strength: 80%;
+    }
+
+    .sections-overlay__lead::before,
+    .sections-overlay__details::before {
+        content: "";
+        position: absolute;
+        z-index: -1;
+        left: calc(-1 * max(var(--side), var(--sal)));
+        width: 100vw;
+        pointer-events: none;
+    }
+
+    /* fades in just above the plate number and runs under the dock to the foot of the screen */
+    .sections-overlay__lead::before {
+        top: -48px;
+        bottom: calc(-1 * (var(--dock-room) + var(--s5)));
+        background: linear-gradient(
+            180deg,
+            transparent,
+            color-mix(in srgb, var(--bg-canvas) var(--veil-strength), transparent) 64px
+        );
+    }
+
+    .sections-overlay__details::before {
+        top: 0;
+        bottom: calc(-1 * (max(var(--edge), var(--sab)) + 94px));
+        background: linear-gradient(
+            180deg,
+            color-mix(in srgb, var(--bg-canvas) var(--veil-strength), transparent) calc(100% - 100px),
+            transparent
+        );
+    }
+
+    .sections-overlay__section--home .sections-overlay__title {
+        margin: var(--s3) 0;
+        font-size: clamp(36px, 10vw, 48px);
+        line-height: 1.1;
+    }
+
+    .sections-overlay__section--home .sections-overlay__availability {
+        line-height: 1.55;
+    }
+
+    /* two equal pills across the plate */
+    .sections-overlay__section--home .sections-overlay__meta {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--s3);
+        margin-top: var(--s5);
+    }
+
+    .sections-overlay__section--home .sections-overlay__meta > * {
+        justify-content: center;
+    }
+
+    .sections-overlay__section--home .sections-overlay__details .sections-overlay__list {
+        margin-top: var(--s4);
+    }
+
+    .sections-overlay__section--home .sections-overlay__row {
+        grid-template-columns: 88px 1fr;
+        column-gap: var(--s4);
+        padding: 0;
+        font-size: 14px;
+        line-height: 1.55;
+    }
+
+    .sections-overlay__section--home .sections-overlay__row + .sections-overlay__row {
+        margin-top: var(--s4);
+    }
+
+    .sections-overlay__section--home .local-times {
+        margin-top: 44px;
+        row-gap: var(--s3);
+    }
+
+    /* without 3D the chart sits above the introduction, so nothing needs a screen of its own */
+    .sections-overlay .sections-overlay__section--home.sections-overlay__section--flat {
+        display: flex;
+        padding-top: calc(max(var(--edge), var(--sat)) + var(--control-h) + var(--s3));
+    }
+
+    .sections-overlay .sections-overlay__section--flat .sections-overlay__hero {
+        min-height: 0;
+        padding-top: 0;
+        padding-bottom: var(--s5);
+    }
+
+    .sections-overlay__section--flat :is(.sections-overlay__lead, .sections-overlay__details)::before {
+        content: none;
+    }
+}
+
+/* very short screens give the plate number's line to the galaxy */
+@media (max-width: 960px) and (max-height: 700px) {
+    .sections-overlay__section--home .sections-overlay__title {
+        font-size: 36px;
+    }
+
+    .sections-overlay__section--home .sections-overlay__plate {
+        display: none;
+    }
+}

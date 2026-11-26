@@ -25,8 +25,8 @@ export function getViewShift({ width, height, isEditorMode, isHome, isInspectorO
         return { x: isInspectorOpen ? -0.2 : 0, y: 0 };
     }
 
-    // plates and their backdrop take the lower two thirds, so the subject goes well into the top one
-    if (!isEditorMode) return { x: 0, y: isHome ? 0.27 : 0.31 };
+    // the first screen's introduction takes under half; the other plates take about two thirds
+    if (!isEditorMode) return { x: 0, y: isHome ? 0.2 : 0.31 };
     return { x: 0, y: isInspectorOpen ? 0.18 : 0 };
 }
 
