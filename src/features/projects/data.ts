@@ -13,6 +13,10 @@ export interface Project {
     sections: ProjectSection[];
     /** Scope or ownership caveat shown at the end of the page. */
     note: string;
+    /** Where the live demo reports which of its parts are ready, waking or down. */
+    statusUrl?: string;
+    /** The live demo itself. */
+    demoUrl?: string;
 }
 
 /** Outline for a project that is still being built: one placeholder line under each heading. */
@@ -55,6 +59,8 @@ export const PROJECTS: Project[] = [
             },
         ],
         note: "Still in development. It runs on demo data and is not a real dealership.",
+        statusUrl: "https://apexauto-two.vercel.app/api/readiness",
+        demoUrl: "https://apexauto-two.vercel.app",
     },
     {
         slug: "suika-bot",

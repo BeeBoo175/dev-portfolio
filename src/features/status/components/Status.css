@@ -1,0 +1,278 @@
+/* a mark and a few words; the colour says the state and the words never rely on it */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s2);
+    font: 500 13px/1.4 var(--font-sans);
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.status-badge__label,
+.stable-text__now {
+    animation: status-fade 0.35s var(--ease-out);
+}
+
+/* the dot and the spinner share one square, so swapping them moves nothing */
+.status-mark {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 14px;
+    height: 14px;
+    color: var(--status-colour, var(--text-dim));
+}
+
+.status-mark__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+    transition: background-color var(--transition-normal);
+    animation: status-fade 0.35s var(--ease-out);
+}
+
+.status-mark__spinner {
+    animation: status-spin 0.9s linear infinite;
+}
+
+.status-badge--ready,
+.status-details__toggle.status-badge--ready {
+    --status-colour: var(--celestial-projects);
+}
+
+.status-badge--waking,
+.status-badge--slow,
+.status-details__toggle.status-badge--waking,
+.status-details__toggle.status-badge--slow {
+    --status-colour: var(--accent);
+}
+
+.status-badge--down,
+.status-details__toggle.status-badge--down {
+    --status-colour: var(--destructive);
+}
+
+@keyframes status-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes status-fade {
+    from {
+        opacity: 0;
+    }
+}
+
+.stable-text {
+    display: grid;
+    text-align: left;
+}
+
+.stable-text > span {
+    grid-area: 1 / 1;
+}
+
+.stable-text__room {
+    visibility: hidden;
+}
+
+/* the project's name and its badge share one line in the list */
+.sections-overlay__title-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--s1) var(--s3);
+}
+
+/* the project page: one line and the way into the demo, with the parts on request */
+.status-details {
+    margin-top: var(--s4);
+}
+
+.status-details__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--s3);
+}
+
+.status-details__toggle,
+.status-details__open,
+.status-details__again {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s2);
+    min-height: var(--control-h);
+    border-radius: var(--r-pill);
+    font: 500 13px/1.2 var(--font-sans);
+    cursor: pointer;
+    transition:
+        border-color var(--transition-fast),
+        background-color var(--transition-fast),
+        filter var(--transition-fast),
+        opacity var(--transition-fast);
+}
+
+.status-details__toggle {
+    padding: 0 var(--s3) 0 var(--s4);
+    color: var(--text-primary);
+    background: var(--panel);
+    border: 1px solid var(--line);
+}
+
+.status-details__toggle .stable-text {
+    white-space: nowrap;
+}
+
+.status-details__more {
+    display: inline-flex;
+    align-self: stretch;
+    align-items: center;
+    margin-left: var(--s1);
+    padding-left: var(--s2);
+    color: var(--text-muted);
+    border-left: 1px solid var(--line);
+}
+
+.status-details__chevron {
+    transition: transform 0.3s var(--ease-out);
+}
+
+.status-details__toggle[aria-expanded="true"] .status-details__chevron {
+    transform: rotate(180deg);
+}
+
+/* the same gold in both themes, always with ink on it */
+.status-details__open {
+    padding: 0 var(--s4);
+    font-weight: 600;
+    color: #10131c;
+    background: var(--accent-bright);
+    border: 1px solid var(--accent-bright);
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.status-details__open:hover {
+    filter: brightness(1.08);
+}
+
+.status-details__toggle:hover,
+.status-details__again:hover:not(:disabled) {
+    border-color: var(--accent);
+}
+
+.status-details__toggle:focus-visible,
+.status-details__open:focus-visible,
+.status-details__again:focus-visible {
+    outline: 2px solid var(--signal);
+    outline-offset: 2px;
+}
+
+/* the details slide open instead of appearing */
+.status-details__drawer {
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    transition:
+        grid-template-rows 0.4s var(--ease-out),
+        opacity 0.3s ease;
+}
+
+.status-details__drawer[data-open="true"] {
+    grid-template-rows: 1fr;
+    opacity: 1;
+}
+
+.status-details__clip {
+    min-height: 0;
+    overflow: hidden;
+}
+
+.status-details__box {
+    margin-top: var(--s3);
+    padding: var(--s2) var(--s5) var(--s4);
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--r-box);
+}
+
+.status-details__parts {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.status-details__part {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: var(--s4);
+    padding: var(--s3) 0;
+    border-bottom: 1px solid var(--line);
+}
+
+.status-details__name {
+    display: grid;
+    font: 600 14px/1.4 var(--font-sans);
+}
+
+.status-details__name small {
+    font: 400 13px/1.4 var(--font-sans);
+    color: var(--text-muted);
+}
+
+.status-details__note {
+    margin: var(--s3) 0 0;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text-muted);
+}
+
+.status-details__footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--s3);
+    margin-top: var(--s3);
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-muted);
+}
+
+.status-details__again {
+    flex-shrink: 0;
+    padding: 0 var(--s4);
+    color: var(--text-primary);
+    background: transparent;
+    border: 1px solid var(--accent-border);
+}
+
+.status-details__again:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
+
+/* the visitor's pause button and the system setting both still everything */
+:root[data-motion="paused"] :is(.status-mark__spinner, .status-mark__dot, .status-badge__label, .stable-text__now) {
+    animation: none;
+}
+
+:root[data-motion="paused"] :is(.status-details__drawer, .status-details__chevron) {
+    transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .status-badge__label,
+    .stable-text__now,
+    .status-mark__dot {
+        animation: none;
+    }
+
+    .status-details__drawer,
+    .status-details__chevron {
+        transition: none;
+    }
+}

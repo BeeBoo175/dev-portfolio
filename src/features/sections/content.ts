@@ -10,7 +10,7 @@ export interface PlateContent {
     rows?: { label: string; value: string }[];
     /** Dated entries, newest first. */
     history?: { when: string; title: string; detail: string }[];
-    links?: { slug: string; label: string; detail: string; to: string }[];
+    links?: { slug: string; label: string; detail: string; to: string; statusUrl?: string }[];
     /** An address the visitor can copy with one press. */
     copy?: string;
     /** Places to start writing that email. */
@@ -78,6 +78,7 @@ export const PLATE_CONTENT: Record<SectionId, PlateContent> = {
             label: project.name,
             detail: project.headline,
             to: getProjectPath(project),
+            statusUrl: project.statusUrl,
         })),
     },
     contact: {

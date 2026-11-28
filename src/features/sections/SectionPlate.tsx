@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import type { PlateContent } from "./content";
 import { CopyEmailButton } from "./CopyEmailButton";
 import { ProjectIcon } from "../projects/ProjectIcon";
+import { StatusBadge } from "../status";
 import { LocalTimes } from "../timezone/LocalTimes";
 import { LocationBadge } from "../timezone/LocationBadge";
 import { ExternalIcon, ForwardIcon, GithubIcon } from "../../components/ui/Icons";
@@ -101,7 +102,14 @@ export function SectionPlate({ numeral, content, isLead = false }: SectionPlateP
                         <li key={item.to}>
                             <Link to={item.to} className="sections-overlay__row sections-overlay__row--link sections-overlay__row--project">
                                 <ProjectIcon slug={item.slug} />
-                                <strong>{item.label}</strong>
+                                {item.statusUrl ? (
+                                    <div className="sections-overlay__title-line">
+                                        <strong>{item.label}</strong>
+                                        <StatusBadge url={item.statusUrl} />
+                                    </div>
+                                ) : (
+                                    <strong>{item.label}</strong>
+                                )}
                                 <span>
                                     {item.detail} <ForwardIcon />
                                 </span>

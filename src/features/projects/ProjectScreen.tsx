@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { PROJECTS, getProjectPath, type Project } from "./data";
 import { ReadingScreen } from "../../components/reading/ReadingScreen";
 import { ForwardIcon } from "../../components/ui/Icons";
+import { ProjectStatusDetails } from "../status";
 import { ProjectIcon } from "./ProjectIcon";
 import "./ProjectScreen.css";
 
@@ -16,6 +17,8 @@ export function ProjectScreen({ project }: { project: Project }) {
             icon={<ProjectIcon slug={project.slug} />}
         >
             <p className="reading-screen__summary">{project.summary}</p>
+
+            {project.statusUrl && <ProjectStatusDetails url={project.statusUrl} demoUrl={project.demoUrl} />}
 
             <section className="project-screen__built" aria-labelledby="project-built-with">
                 <h2 id="project-built-with">Built with</h2>

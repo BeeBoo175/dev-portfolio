@@ -4,11 +4,14 @@ import {
     ArrowRight,
     ArrowUp,
     ArrowUpRight,
+    ChevronDown,
+    LoaderCircle,
     Minus,
     Pause,
     Play,
     Plus,
     Redo2,
+    RefreshCw,
     Rocket,
     RotateCcw,
     SlidersHorizontal,
@@ -32,6 +35,9 @@ export const MinusIcon = (props: LucideProps) => <Minus {...DEFAULTS} {...props}
 export const BackIcon = (props: LucideProps) => <ArrowLeft {...DEFAULTS} {...props} />;
 export const ForwardIcon = (props: LucideProps) => <ArrowRight {...DEFAULTS} {...props} />;
 export const ExternalIcon = (props: LucideProps) => <ArrowUpRight {...DEFAULTS} {...props} />;
+export const ExpandIcon = (props: LucideProps) => <ChevronDown {...DEFAULTS} {...props} />;
+export const SpinnerIcon = (props: LucideProps) => <LoaderCircle {...DEFAULTS} {...props} />;
+export const RefreshIcon = (props: LucideProps) => <RefreshCw {...DEFAULTS} {...props} />;
 export const GithubIcon = () => <MarkGithubIcon size={15} />;
 export const PauseIcon = (props: LucideProps) => <Pause {...DEFAULTS} {...props} />;
 export const PlayIcon = (props: LucideProps) => <Play {...DEFAULTS} {...props} />;
