@@ -1,8 +1,3 @@
-/* the document does not scroll here, so no strip is reserved for its scrollbar */
-:root[data-reading] {
-    scrollbar-gutter: auto;
-}
-
 /* one scrolling reading column over the chart; the galaxy stays visible beside it */
 .reading-screen {
     position: fixed;
